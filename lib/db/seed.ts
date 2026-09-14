@@ -1,4 +1,4 @@
-import { count } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { categories, sources, type SourceType } from "./schema";
 import * as schema from "./schema";
@@ -19,6 +19,7 @@ const SEED_SOURCES: {
   type: SourceType;
   identifier: string;
   categorySlug: string;
+  replaces?: string;
 }[] = [
   {
     name: "Motorsport.com F1",
@@ -33,21 +34,29 @@ const SEED_SOURCES: {
     categorySlug: "racing",
   },
   {
-    name: "Hemmings",
+    name: "Classic & Sports Car",
     type: "rss",
-    identifier: "https://www.hemmings.com/stories/feed/",
+    identifier: "https://www.classicandsportscar.com/rss.xml",
     categorySlug: "classic",
+    replaces: "Hemmings",
   },
   {
     name: "Petrolicious",
     type: "rss",
-    identifier: "https://petrolicious.com/feed",
+    identifier: "https://www.petrolicious.com/blogs/articles.atom",
     categorySlug: "classic",
   },
   {
-    name: "Speedhunters",
+    name: "Hot Rod",
     type: "rss",
-    identifier: "https://www.speedhunters.com/feed/",
+    identifier: "https://www.hotrod.com/rss/all.xml/",
+    categorySlug: "modified",
+    replaces: "Speedhunters",
+  },
+  {
+    name: "EngineLabs",
+    type: "rss",
+    identifier: "https://www.enginelabs.com/feed/",
     categorySlug: "modified",
   },
   {
@@ -63,10 +72,11 @@ const SEED_SOURCES: {
     categorySlug: "culture",
   },
   {
-    name: "The Drive",
+    name: "The Truth About Cars",
     type: "rss",
-    identifier: "https://www.thedrive.com/feeds/rss",
+    identifier: "https://www.thetruthaboutcars.com/feed/",
     categorySlug: "culture",
+    replaces: "The Drive",
   },
   {
     name: "Goodwood Road & Racing",
@@ -138,25 +148,44 @@ export const CATEGORY_COPY: Record<
 
 export function seedIfEmpty(db: Db) {
   const [{ value }] = db.select({ value: count() }).from(categories).all();
-  if (value > 0) return;
-
-  const now = Date.now();
-  db.insert(categories).values([...STARTING_CATEGORIES]).run();
+  if (value === 0) {
+    db.insert(categories).values([...STARTING_CATEGORIES]).run();
+  }
 
   const rows = db.select().from(categories).all();
   const bySlug = new Map(rows.map((row) => [row.slug, row.id]));
+  const existing = db.select().from(sources).all();
+  const byName = new Map(existing.map((row) => [row.name, row]));
+  const now = Date.now();
 
-  db.insert(sources)
-    .values(
-      SEED_SOURCES.map((source) => ({
-        name: source.name,
-        type: source.type,
-        identifier: source.identifier,
-        defaultCategoryId: bySlug.get(source.categorySlug) ?? bySlug.get("desk")!,
-        enabled: true,
-        lastFetchStatus: "idle" as const,
-        createdAt: now,
-      })),
-    )
-    .run();
+  for (const source of SEED_SOURCES) {
+    const current =
+      byName.get(source.name) ??
+      (source.replaces ? byName.get(source.replaces) : undefined);
+    const categoryId = bySlug.get(source.categorySlug) ?? bySlug.get("desk")!;
+    if (current) {
+      db.update(sources)
+        .set({
+          name: source.name,
+          type: source.type,
+          identifier: source.identifier,
+          defaultCategoryId: categoryId,
+          enabled: true,
+        })
+        .where(eq(sources.id, current.id))
+        .run();
+    } else {
+      db.insert(sources)
+        .values({
+          name: source.name,
+          type: source.type,
+          identifier: source.identifier,
+          defaultCategoryId: categoryId,
+          enabled: true,
+          lastFetchStatus: "idle",
+          createdAt: now,
+        })
+        .run();
+    }
+  }
 }
