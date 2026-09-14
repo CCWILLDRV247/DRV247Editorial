@@ -5,7 +5,10 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
 import { seedIfEmpty } from "./seed";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const onVercel = Boolean(process.env.VERCEL);
+const DATA_DIR = onVercel
+  ? path.join("/tmp", "drv247-data")
+  : path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "drv247.sqlite");
 
 function createSchema(sqlite: Database.Database) {
@@ -57,7 +60,8 @@ function getSqlite() {
   if (!globalForDb.drvSqlite) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
     const sqlite = new Database(DB_PATH);
-    sqlite.pragma("journal_mode = WAL");
+    // WAL extra files are fine locally; DELETE is simpler on Vercel's /tmp.
+    sqlite.pragma(onVercel ? "journal_mode = DELETE" : "journal_mode = WAL");
     sqlite.pragma("foreign_keys = ON");
     createSchema(sqlite);
     globalForDb.drvSqlite = sqlite;

@@ -129,9 +129,6 @@ export async function ingestSource(sourceId: number): Promise<IngestResult> {
 export async function ingestAll(): Promise<IngestResult[]> {
   const db = getDb();
   const enabled = db.select().from(sources).where(eq(sources.enabled, true)).all();
-  const results: IngestResult[] = [];
-  for (const source of enabled) {
-    results.push(await ingestSource(source.id));
-  }
-  return results;
+  // Parallel fetches so a Vercel cold start can fill the magazine before timeout.
+  return Promise.all(enabled.map((source) => ingestSource(source.id)));
 }

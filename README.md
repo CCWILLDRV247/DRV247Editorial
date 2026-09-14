@@ -33,3 +33,11 @@ Without those keys the YouTube and NewsAPI sources still ingest via built-in moc
 - Scheduled pull every 15 minutes (`INGEST_INTERVAL_MS`) plus `GET|POST /api/cron/ingest`
 
 SQLite lives in `data/drv247.sqlite` (gitignored). Schema is Drizzle so Postgres can swap in later.
+
+## Preview on Vercel
+
+The GitHub default branch `cursor/editorial-v1-c83d` is what production should track.
+
+**SQLite does not persist on Vercel.** Each serverless instance uses an ephemeral file in `/tmp`. On a cold start the app seeds sources and ingests RSS (YouTube/NewsAPI stay mocked without keys) so the magazine is not blank. Edits in `/admin` (hide, recategorize, extra sources) can vanish when the instance recycles. A later swap to Turso or Postgres is the durable fix.
+
+Desk password for this preview: `desk247` (`ADMIN_PASSWORD`).

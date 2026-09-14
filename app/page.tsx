@@ -4,6 +4,7 @@ import { listPublicStories } from "@/lib/stories";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export default async function HomePage() {
   const stories = await listPublicStories({ limit: 24 });

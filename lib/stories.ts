@@ -1,5 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
+import { ensureStories } from "@/lib/db/ensure";
 import { categories, sources, stories } from "@/lib/db/schema";
 
 export type StoryDto = {
@@ -41,11 +42,13 @@ function toDto(row: {
 }
 
 export async function listCategories() {
+  await ensureStories();
   const db = getDb();
   return db.select().from(categories).all();
 }
 
 export async function getCategoryBySlug(slug: string) {
+  await ensureStories();
   const db = getDb();
   return db.select().from(categories).where(eq(categories.slug, slug)).get();
 }
@@ -54,6 +57,7 @@ export async function listPublicStories(options?: {
   categoryId?: number;
   limit?: number;
 }) {
+  await ensureStories();
   const db = getDb();
   const rows = db
     .select({
@@ -77,6 +81,7 @@ export async function listPublicStories(options?: {
 }
 
 export async function getPublicStory(id: number) {
+  await ensureStories();
   const db = getDb();
   const row = db
     .select({
@@ -93,6 +98,7 @@ export async function getPublicStory(id: number) {
 }
 
 export async function listAdminStories() {
+  await ensureStories();
   const db = getDb();
   const rows = db
     .select({
@@ -110,6 +116,7 @@ export async function listAdminStories() {
 }
 
 export async function listAdminSources() {
+  await ensureStories();
   const db = getDb();
   return db.select().from(sources).all();
 }
