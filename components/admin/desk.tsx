@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,11 @@ export function AdminDesk({ categories, sources, stories }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [storyRows, setStoryRows] = useState(stories);
+
+  useEffect(() => {
+    setStoryRows(stories);
+  }, [stories]);
 
   const categoryName = useMemo(
     () => new Map(categories.map((category) => [category.id, category.name])),
@@ -96,12 +101,30 @@ export function AdminDesk({ categories, sources, stories }: Props) {
 
   async function patchStory(id: number, patch: Record<string, unknown>) {
     setBusy(`story-${id}`);
-    await fetch(`/api/admin/stories/${id}`, {
+    const response = await fetch(`/api/admin/stories/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     });
     setBusy(null);
+    if (!response.ok) {
+      setMessage("Could not update that story.");
+      return;
+    }
+    setStoryRows((rows) =>
+      rows.map((story) => {
+        if (story.id !== id) return story;
+        const next = { ...story };
+        if (typeof patch.hidden === "boolean") next.hidden = patch.hidden;
+        if (typeof patch.categoryId === "number") {
+          const category = categories.find((entry) => entry.id === patch.categoryId);
+          if (category) {
+            next.category = { id: category.id, slug: category.slug, name: category.name };
+          }
+        }
+        return next;
+      }),
+    );
     router.refresh();
   }
 
@@ -214,14 +237,14 @@ export function AdminDesk({ categories, sources, stories }: Props) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {stories.length === 0 ? (
+              {storyRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
                     No stories yet — run Ingest now.
                   </TableCell>
                 </TableRow>
               ) : (
-                stories.map((story) => (
+                storyRows.map((story) => (
                   <TableRow key={story.id} className={story.hidden ? "opacity-60" : ""}>
                     <TableCell className="max-w-sm">
                       <a
@@ -240,7 +263,7 @@ export function AdminDesk({ categories, sources, stories }: Props) {
                         }}
                       >
                         <SelectTrigger size="sm" className="w-36">
-                          <SelectValue />
+                          <SelectValue>{story.category.name}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {categories.map((category) => (
@@ -252,13 +275,13 @@ export function AdminDesk({ categories, sources, stories }: Props) {
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant={story.hidden ? "secondary" : "outline"}
+                      <button
+                        type="button"
+                        className="h-7 rounded-md border border-border px-2.5 text-sm hover:bg-muted"
                         onClick={() => patchStory(story.id, { hidden: !story.hidden })}
                       >
                         {story.hidden ? "Unhide" : "Hide"}
-                      </Button>
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))

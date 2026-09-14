@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
 import { stories } from "@/lib/db/schema";
 
@@ -21,14 +22,13 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const patch: Record<string, unknown> = {};
-  if (typeof body.hidden === "boolean") patch.hidden = body.hidden;
-  if (typeof body.categoryId === "number") patch.categoryId = body.categoryId;
-
   const db = getDb();
   const updated = db
     .update(stories)
-    .set(patch)
+    .set({
+      ...(typeof body.hidden === "boolean" ? { hidden: body.hidden } : {}),
+      ...(typeof body.categoryId === "number" ? { categoryId: body.categoryId } : {}),
+    })
     .where(eq(stories.id, storyId))
     .returning()
     .get();
@@ -36,5 +36,7 @@ export async function PATCH(
   if (!updated) {
     return NextResponse.json({ error: "Story not found" }, { status: 404 });
   }
+  revalidatePath("/admin");
+  revalidatePath("/");
   return NextResponse.json({ story: updated });
 }
