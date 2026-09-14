@@ -32,6 +32,7 @@ import {
 import { formatFetchTime } from "@/lib/format";
 import type { Category, Source } from "@/lib/db/schema";
 import type { StoryDto } from "@/lib/stories";
+import { toggleStoryHidden } from "@/app/admin/actions";
 
 type Props = {
   categories: Category[];
@@ -275,13 +276,20 @@ export function AdminDesk({ categories, sources, stories }: Props) {
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <button
-                        type="button"
-                        className="h-7 rounded-md border border-border px-2.5 text-sm hover:bg-muted"
-                        onClick={() => patchStory(story.id, { hidden: !story.hidden })}
-                      >
-                        {story.hidden ? "Unhide" : "Hide"}
-                      </button>
+                      <form action={toggleStoryHidden}>
+                        <input type="hidden" name="id" value={story.id} />
+                        <input
+                          type="hidden"
+                          name="hidden"
+                          value={story.hidden ? "false" : "true"}
+                        />
+                        <button
+                          type="submit"
+                          className="h-7 rounded-md border border-border px-2.5 text-sm hover:bg-muted"
+                        >
+                          {story.hidden ? "Unhide" : "Hide"}
+                        </button>
+                      </form>
                     </TableCell>
                   </TableRow>
                 ))
