@@ -3,8 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
   const router = useRouter();
@@ -13,7 +11,7 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function onSubmit(event: React.FormEvent) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
     setError(null);
@@ -32,20 +30,24 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4" autoComplete="off">
       <div className="space-y-2">
-        <Label htmlFor="password">Desk password</Label>
-        <Input
-          id="password"
+        <label htmlFor="desk-password" className="text-sm font-medium">
+          Desk password
+        </label>
+        <input
+          id="desk-password"
+          name="desk-password"
           type="password"
-          autoComplete="current-password"
+          autoComplete="off"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
+          className="h-11 w-full rounded-[5px] border border-[#1b1d1f] bg-white px-3 text-base text-[#1b1d1f] outline-none focus:ring-2 focus:ring-[#1b1d1f]/20"
         />
       </div>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" className="w-full" disabled={pending}>
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      <Button type="submit" className="h-11 w-full" disabled={pending}>
         {pending ? "Checking…" : "Open the desk"}
       </Button>
     </form>

@@ -22,7 +22,7 @@ export default async function StoryPage({
     <div className="min-h-full bg-white">
       <SiteHeader title={story.category.name} backHref={`/category/${story.category.slug}`} />
       <article className="mx-auto max-w-3xl pb-20">
-        <div className="relative h-[553px] overflow-hidden bg-[#1b1d1f]">
+        <div className="relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl">
           <StoryImage src={story.imageUrl} alt="" />
         </div>
         <div className="px-7 pt-10 md:px-8">

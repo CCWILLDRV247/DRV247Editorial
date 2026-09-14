@@ -5,7 +5,7 @@ import { StoryImage } from "./story-image";
 
 export function FeatureTag({ children }: { children: string }) {
   return (
-    <span className="inline-flex items-center rounded-[4px] bg-white px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-[#1b1d1f]">
+    <span className="inline-flex w-fit self-start items-center rounded-[4px] bg-white px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-[#1b1d1f]">
       {children}
     </span>
   );
@@ -65,7 +65,7 @@ export function PickCard({ story }: { story: StoryDto }) {
       <div className="relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf]">
         <StoryImage src={story.imageUrl} alt="" />
         <div className="absolute bottom-4 left-5">
-          <span className="inline-flex items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
+          <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
             {story.category.name}
           </span>
         </div>
