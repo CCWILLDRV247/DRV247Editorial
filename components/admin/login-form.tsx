@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 
 export function LoginForm() {
   const router = useRouter();
@@ -11,14 +10,13 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function submitPassword(value: string) {
     setPending(true);
     setError(null);
     const response = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ password: value }),
     });
     setPending(false);
     if (!response.ok) {
@@ -30,14 +28,22 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4" autoComplete="off">
+    <form
+      method="post"
+      action="/admin/login"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void submitPassword(password);
+      }}
+      className="space-y-4"
+      autoComplete="off"
+    >
       <div className="space-y-2">
         <label htmlFor="desk-password" className="text-sm font-medium">
           Desk password
         </label>
         <input
           id="desk-password"
-          name="desk-password"
           type="password"
           autoComplete="off"
           value={password}
@@ -47,9 +53,13 @@ export function LoginForm() {
         />
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      <Button type="submit" className="h-11 w-full" disabled={pending}>
+      <button
+        type="submit"
+        disabled={pending}
+        className="flex h-11 w-full items-center justify-center rounded-[5px] bg-[#1b1d1f] font-display text-lg font-extrabold uppercase text-white disabled:opacity-60"
+      >
         {pending ? "Checking…" : "Open the desk"}
-      </Button>
+      </button>
     </form>
   );
 }
