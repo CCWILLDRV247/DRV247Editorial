@@ -1,7 +1,11 @@
-import { Suspense } from "react";
-import { LoginForm } from "@/components/admin/login-form";
+import { loginAction } from "./actions";
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; next?: string }>;
+}) {
+  const params = await searchParams;
   return (
     <div className="flex min-h-full items-center justify-center bg-white px-6">
       <div className="w-full max-w-sm space-y-6">
@@ -17,9 +21,30 @@ export default function AdminLoginPage() {
             <code>desk247</code> when the env var is unset.
           </p>
         </div>
-        <Suspense>
-          <LoginForm />
-        </Suspense>
+        <form action={loginAction} className="space-y-4" autoComplete="off">
+          <div className="space-y-2">
+            <label htmlFor="password" className="text-sm font-medium">
+              Desk password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              className="h-11 w-full rounded-[5px] border border-[#1b1d1f] bg-white px-3 text-base text-[#1b1d1f] outline-none focus:ring-2 focus:ring-[#1b1d1f]/20"
+            />
+          </div>
+          {params.error ? (
+            <p className="text-sm text-red-600">Wrong password — check ADMIN_PASSWORD.</p>
+          ) : null}
+          <button
+            type="submit"
+            className="flex h-11 w-full items-center justify-center rounded-[5px] bg-[#1b1d1f] font-display text-lg font-extrabold uppercase text-white"
+          >
+            Open the desk
+          </button>
+        </form>
       </div>
     </div>
   );
