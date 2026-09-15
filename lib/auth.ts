@@ -11,6 +11,24 @@ export function adminToken(password = adminPassword()) {
   return createHash("sha256").update(`drv247-admin:${password}`).digest("hex");
 }
 
+export function safeAdminPath(value: unknown) {
+  const next = String(value ?? "/admin/engine");
+  if (next.startsWith("/admin") && !next.startsWith("//") && !next.includes("\\")) {
+    return next;
+  }
+  return "/admin/engine";
+}
+
+export function adminCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+    secure: Boolean(process.env.VERCEL),
+  };
+}
+
 export async function isAdminSession() {
   const jar = await cookies();
   return jar.get(ADMIN_COOKIE)?.value === adminToken();

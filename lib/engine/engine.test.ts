@@ -125,6 +125,16 @@ describe("admin ingest routing", () => {
   });
 });
 
+describe("admin login path", () => {
+  it("keeps desk paths and rejects open redirects", async () => {
+    const { safeAdminPath } = await import("../auth");
+    assert.equal(safeAdminPath("/admin/engine"), "/admin/engine");
+    assert.equal(safeAdminPath("/admin"), "/admin");
+    assert.equal(safeAdminPath("//evil.example"), "/admin/engine");
+    assert.equal(safeAdminPath("https://evil.example"), "/admin/engine");
+  });
+});
+
 describe("dedupe", () => {
   it("groups the same title", () => {
     assert.equal(
