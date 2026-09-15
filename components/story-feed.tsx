@@ -38,6 +38,10 @@ export function StoryFeed({
   const leadCards = rest.slice(0, 2);
   const picks = rest.slice(2, 6);
   const trailing = rest.slice(6);
+  const storyCardGridClass =
+    copyKey === "home"
+      ? "mx-[10px] grid gap-2 md:grid-cols-2"
+      : "grid gap-2 md:grid-cols-2";
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 pb-16 md:max-w-6xl">
@@ -64,7 +68,7 @@ export function StoryFeed({
             homeSpacing={copyKey === "home"}
           />
           {leadCards.length > 0 ? (
-            <div className="grid gap-2 md:grid-cols-2">
+            <div className={storyCardGridClass}>
               {leadCards.map((story) => (
                 <StoryCard key={story.id} story={story} />
               ))}
@@ -86,7 +90,7 @@ export function StoryFeed({
       ) : null}
       <Interstitial text={copy.interstitial} />
       {trailing.length > 0 ? (
-        <div className="grid gap-2 md:grid-cols-2">
+        <div className={storyCardGridClass}>
           {trailing.map((story) => (
             <StoryCard key={story.id} story={story} />
           ))}
