@@ -149,7 +149,7 @@ export function Interstitial({
       className={cn(
         "px-7 font-display font-black uppercase tracking-[-0.02em] text-[#1b1d1f] md:px-0",
         size === "home"
-          ? "text-[135px] leading-[0.70]"
+          ? "text-[135px] leading-[0.64]"
           : "text-[clamp(4.5rem,14vw,8.4rem)] leading-[0.62]",
       )}
     >
