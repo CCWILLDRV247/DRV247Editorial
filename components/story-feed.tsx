@@ -48,6 +48,13 @@ export function StoryFeed({
   const leadCards = rest.slice(0, 2);
   const picks = rest.slice(2, 6);
   const trailing = rest.slice(6);
+  const sketchIndex = trailing.findIndex((story) =>
+    /sketch body|ferrari expression for collectors/i.test(story.title),
+  );
+  const trailingThroughSketch =
+    sketchIndex >= 0 ? trailing.slice(0, sketchIndex + 1) : trailing;
+  const trailingAfterSketch =
+    sketchIndex >= 0 ? trailing.slice(sketchIndex + 1) : [];
   const insetHomeCards = copyKey === "home";
   const storyCardGrid = (cards: StoryDto[]) => {
     const grid = (
@@ -94,7 +101,6 @@ export function StoryFeed({
           {leadCards.length > 0 ? storyCardGrid(leadCards) : null}
         </div>
       </div>
-      {lane("racing") ? <CategoryCarousel {...lane("racing")!} /> : null}
       {picks.length > 0 ? (
         <section className="min-w-0 px-4 md:px-0">
           <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
@@ -107,15 +113,21 @@ export function StoryFeed({
           </div>
         </section>
       ) : null}
-      {lane("classic") ? <CategoryCarousel {...lane("classic")!} /> : null}
+      {lane("concourse") ? <CategoryCarousel {...lane("concourse")!} /> : null}
       <Interstitial
         text={copy.interstitial}
         size={copyKey === "home" ? "home" : "default"}
       />
+      {lane("racing") ? <CategoryCarousel {...lane("racing")!} /> : null}
       {lane("modified") ? <CategoryCarousel {...lane("modified")!} /> : null}
-      {trailing.length > 0 ? storyCardGrid(trailing) : null}
-      {lane("concourse") ? <CategoryCarousel {...lane("concourse")!} /> : null}
       {lane("culture") ? <CategoryCarousel {...lane("culture")!} /> : null}
+      {trailingThroughSketch.length > 0
+        ? storyCardGrid(trailingThroughSketch)
+        : null}
+      {lane("classic") ? <CategoryCarousel {...lane("classic")!} /> : null}
+      {trailingAfterSketch.length > 0
+        ? storyCardGrid(trailingAfterSketch)
+        : null}
     </div>
   );
 }
