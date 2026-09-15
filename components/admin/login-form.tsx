@@ -4,9 +4,7 @@ import { useState } from "react";
 
 export function LoginForm({ next, error }: { next: string; error: boolean }) {
   const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState(
-    error ? "Wrong password — the preview default is desk247." : "",
-  );
+  const [message, setMessage] = useState(error ? "Wrong password." : "");
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,7 +22,7 @@ export function LoginForm({ next, error }: { next: string; error: boolean }) {
         body: JSON.stringify({ password, next }),
       });
       if (!response.ok) {
-        setMessage("Wrong password — the preview default is desk247.");
+        setMessage("Wrong password.");
         setPending(false);
         return;
       }
@@ -46,9 +44,8 @@ export function LoginForm({ next, error }: { next: string; error: boolean }) {
           id="password"
           name="password"
           type="password"
-          autoComplete="off"
+          autoComplete="current-password"
           spellCheck={false}
-          placeholder="desk247"
           className="h-12 w-full rounded-[5px] border-2 border-[#1b1d1f] bg-[#f4f1ea] px-3 text-base text-[#1b1d1f] outline-none focus:ring-2 focus:ring-[#1b1d1f]/20"
         />
       </div>

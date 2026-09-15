@@ -19,10 +19,7 @@ export default async function AdminLoginPage({
             <br />
             login
           </h1>
-          <p className="mt-6 text-sm text-muted-foreground">
-            Culture engine desk. Preview password is <code>desk247</code> unless{" "}
-            <code>ADMIN_PASSWORD</code> is set.
-          </p>
+          <p className="mt-6 text-sm text-muted-foreground">Culture engine desk.</p>
         </div>
         <LoginForm next={next} error={params.error === "1"} />
       </div>
