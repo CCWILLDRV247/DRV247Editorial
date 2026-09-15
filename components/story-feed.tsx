@@ -27,6 +27,7 @@ export function StoryFeed({
           dek={copy.dek}
           blurb={copy.blurb}
           stackKickerOnMobile={copyKey === "home"}
+          homeSpacing={copyKey === "home"}
         />
         <EmptyStories category={categoryName} />
       </div>
@@ -48,20 +49,29 @@ export function StoryFeed({
         }
       >
         <StoryHero story={hero} titleLeading={looseHero ? "loose" : "tight"} />
-        <SectionIntro
-          kicker={copy.kicker}
-          dek={copy.dek}
-          blurb={copy.blurb}
-          stackKickerOnMobile={copyKey === "home"}
-        />
-      </div>
-      {leadCards.length > 0 ? (
-        <div className="grid gap-2 md:grid-cols-2">
-          {leadCards.map((story) => (
-            <StoryCard key={story.id} story={story} />
-          ))}
+        <div
+          className={
+            copyKey === "home"
+              ? "flex flex-col gap-[26px]"
+              : "contents"
+          }
+        >
+          <SectionIntro
+            kicker={copy.kicker}
+            dek={copy.dek}
+            blurb={copy.blurb}
+            stackKickerOnMobile={copyKey === "home"}
+            homeSpacing={copyKey === "home"}
+          />
+          {leadCards.length > 0 ? (
+            <div className="grid gap-2 md:grid-cols-2">
+              {leadCards.map((story) => (
+                <StoryCard key={story.id} story={story} />
+              ))}
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      </div>
       {picks.length > 0 ? (
         <section className="px-4 md:px-0">
           <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">

@@ -88,11 +88,13 @@ export function SectionIntro({
   dek,
   blurb,
   stackKickerOnMobile = false,
+  homeSpacing = false,
 }: {
   kicker: string;
   dek: string;
   blurb: string;
   stackKickerOnMobile?: boolean;
+  homeSpacing?: boolean;
 }) {
   const kickerClass =
     "font-display font-black uppercase leading-[0.62] tracking-[-0.02em]";
@@ -121,10 +123,14 @@ export function SectionIntro({
           {kicker}
         </p>
       )}
-      <p className="mt-8 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
+      <p
+        className={`${homeSpacing ? "mt-[52px]" : "mt-8"} font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]`}
+      >
         {dek}
       </p>
-      <p className="mt-4 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px]">
+      <p
+        className={`${homeSpacing ? "mt-[26px]" : "mt-4"} max-w-xl text-[18px] leading-[22px] tracking-[-0.36px]`}
+      >
         {blurb}
       </p>
     </div>
