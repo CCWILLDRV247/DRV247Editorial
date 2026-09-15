@@ -15,7 +15,7 @@ export function StoryCard({ story }: { story: StoryDto }) {
   return (
     <Link
       href={`/story/${story.id}`}
-      className="relative block h-[500px] overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
+      className="relative block h-[500px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
     >
       <div className="absolute inset-0 opacity-80">
         <StoryImage src={story.imageUrl} alt="" />
@@ -46,7 +46,7 @@ export function StoryHero({
   return (
     <Link
       href={`/story/${story.id}`}
-      className="relative block h-[553px] overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
+      className="relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
     >
       <div className="absolute inset-0">
         <StoryImage src={story.imageUrl} alt="" />
