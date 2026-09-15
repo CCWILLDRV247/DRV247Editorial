@@ -22,7 +22,12 @@ export function StoryFeed({
   if (stories.length === 0) {
     return (
       <div className="mx-auto max-w-3xl py-10">
-        <SectionIntro kicker={copy.kicker} dek={copy.dek} blurb={copy.blurb} />
+        <SectionIntro
+          kicker={copy.kicker}
+          dek={copy.dek}
+          blurb={copy.blurb}
+          stackKickerOnMobile={copyKey === "home"}
+        />
         <EmptyStories category={categoryName} />
       </div>
     );
@@ -43,7 +48,12 @@ export function StoryFeed({
         }
       >
         <StoryHero story={hero} titleLeading={looseHero ? "loose" : "tight"} />
-        <SectionIntro kicker={copy.kicker} dek={copy.dek} blurb={copy.blurb} />
+        <SectionIntro
+          kicker={copy.kicker}
+          dek={copy.dek}
+          blurb={copy.blurb}
+          stackKickerOnMobile={copyKey === "home"}
+        />
       </div>
       {leadCards.length > 0 ? (
         <div className="grid gap-2 md:grid-cols-2">

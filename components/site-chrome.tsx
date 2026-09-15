@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "cn";
@@ -86,16 +87,40 @@ export function SectionIntro({
   kicker,
   dek,
   blurb,
+  stackKickerOnMobile = false,
 }: {
   kicker: string;
   dek: string;
   blurb: string;
+  stackKickerOnMobile?: boolean;
 }) {
+  const kickerClass =
+    "font-display font-black uppercase leading-[0.62] tracking-[-0.02em]";
+  const kickerWords = kicker.split(/\s+/).filter(Boolean);
+
   return (
     <div className="px-7 text-[#1b1d1f] md:px-0">
-      <p className="font-display text-[clamp(3.5rem,10vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
-        {kicker}
-      </p>
+      {stackKickerOnMobile ? (
+        <>
+          <p className={`${kickerClass} text-[80px] md:hidden`}>
+            {kickerWords.map((word, index) => (
+              <Fragment key={`${word}-${index}`}>
+                {index > 0 ? <br /> : null}
+                {word}
+              </Fragment>
+            ))}
+          </p>
+          <p
+            className={`${kickerClass} hidden text-[clamp(3.5rem,10vw,5rem)] md:block`}
+          >
+            {kicker}
+          </p>
+        </>
+      ) : (
+        <p className={`${kickerClass} text-[clamp(3.5rem,10vw,5rem)]`}>
+          {kicker}
+        </p>
+      )}
       <p className="mt-8 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
         {dek}
       </p>
