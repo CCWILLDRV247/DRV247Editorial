@@ -72,9 +72,12 @@ export function EngineDesk({ sources, runs, articles }: Props) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link href="/admin">v1 desk</Link>
-          </Button>
+          <Link
+            href="/admin"
+            className="inline-flex h-8 items-center rounded-lg border border-border px-2.5 text-sm"
+          >
+            v1 desk
+          </Link>
           <Button variant="outline" disabled={Boolean(busy)} onClick={() => void reprocess()}>
             Reprocess
           </Button>

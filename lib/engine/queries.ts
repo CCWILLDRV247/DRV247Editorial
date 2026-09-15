@@ -33,6 +33,7 @@ export type EditorialDto = {
   makes: string[];
   models: string[];
   generations: string[];
+  variants: string[];
   categories: string[];
   interests: string[];
   locations: string[];
@@ -45,6 +46,7 @@ function toDto(
     makes: string[];
     models: string[];
     generations: string[];
+    variants: string[];
     categories: string[];
     interests: string[];
     locations: string[];
@@ -69,6 +71,7 @@ function toDto(
     makes: extras.makes,
     models: extras.models,
     generations: extras.generations,
+    variants: extras.variants,
     categories: extras.categories,
     interests: extras.interests,
     locations: extras.locations,
@@ -87,6 +90,7 @@ function articleExtras(articleId: number) {
     makes: entities.filter((row) => row.kind === "make").map((row) => row.name),
     models: entities.filter((row) => row.kind === "model").map((row) => row.name),
     generations: entities.filter((row) => row.kind === "generation").map((row) => row.name),
+    variants: entities.filter((row) => row.kind === "variant").map((row) => row.name),
     categories: db
       .select()
       .from(articleCategories)
