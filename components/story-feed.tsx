@@ -96,7 +96,10 @@ export function StoryFeed({
           </div>
         </section>
       ) : null}
-      <Interstitial text={copy.interstitial} />
+      <Interstitial
+        text={copy.interstitial}
+        size={copyKey === "home" ? "home" : "default"}
+      />
       {trailing.length > 0 ? storyCardGrid(trailing) : null}
     </div>
   );
