@@ -154,7 +154,7 @@ export function StoryFeed({
         </div>
       </div>
       {picks.length > 0 ? (
-        <section className="min-w-0 px-4 md:px-0">
+        <section className="min-w-0 pl-4 pr-0 md:px-0">
           <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
             Our picks
           </p>
