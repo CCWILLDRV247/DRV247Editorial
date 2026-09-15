@@ -24,7 +24,7 @@ export function StoryCard({ story }: { story: StoryDto }) {
       <div className="absolute inset-0 flex flex-col justify-end px-7 pb-7 pr-6">
         <div className="flex flex-col gap-6">
           <FeatureTag>{story.category.name}</FeatureTag>
-          <h2 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-black uppercase leading-[0.73] tracking-[-0.02em]">
+          <h2 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
             {story.title}
           </h2>
           <p className="font-display text-[25px] font-bold uppercase leading-[0.64]">
