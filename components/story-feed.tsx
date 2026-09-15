@@ -53,7 +53,8 @@ export function StoryFeed({
   looseHero?: boolean;
   carousels?: CategoryLane[];
 }) {
-  const lane = (slug: string) => carousels.find((item) => item.slug === slug);
+  const lane = (slug: string) =>
+    carousels.find((item) => item.slug === slug && item.stories.length > 0);
   const copy = CATEGORY_COPY[copyKey] ?? CATEGORY_COPY.home;
   if (stories.length === 0) {
     return (
