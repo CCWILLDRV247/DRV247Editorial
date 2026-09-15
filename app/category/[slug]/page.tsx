@@ -21,7 +21,7 @@ export default async function CategoryPage({
   const stories = listMagazineStories({ navSlug: slug, limit: 24 });
 
   return (
-    <div className="min-h-full bg-white">
+    <div className="min-h-full overflow-x-clip bg-white">
       <SiteHeader title={category.name} backHref="/" />
       <main className="pt-2">
         <StoryFeed stories={stories} copyKey={category.slug} categoryName={category.name} />

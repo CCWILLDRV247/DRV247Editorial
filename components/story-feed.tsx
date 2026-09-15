@@ -80,6 +80,7 @@ export function StoryFeed({
   const lane = (slug: string) =>
     carousels.find((item) => item.slug === slug && item.stories.length > 0);
   const copy = CATEGORY_COPY[copyKey] ?? CATEGORY_COPY.home;
+  const deskVisual = true;
   if (stories.length === 0) {
     return (
       <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 py-10 md:max-w-6xl">
@@ -87,8 +88,8 @@ export function StoryFeed({
           kicker={copy.kicker}
           dek={copy.dek}
           blurb={copy.blurb}
-          stackKickerOnMobile={copyKey === "home"}
-          homeSpacing={copyKey === "home"}
+          stackKickerOnMobile={deskVisual}
+          homeSpacing={deskVisual}
         />
         <EmptyStories category={categoryName} />
         {carousels.map((item) => (
@@ -151,7 +152,7 @@ export function StoryFeed({
   }
   appendCards(homeBlocks, modifiedSplit.tail);
   appendLane(homeBlocks, "concourse", lane);
-  const insetHomeCards = copyKey === "home";
+  const insetCards = deskVisual;
   const storyCardGrid = (cards: StoryDto[]) => {
     const grid = (
       <div className="grid w-full min-w-0 gap-2 md:grid-cols-2">
@@ -160,7 +161,7 @@ export function StoryFeed({
         ))}
       </div>
     );
-    if (!insetHomeCards) {
+    if (!insetCards) {
       return grid;
     }
     return (
@@ -174,19 +175,19 @@ export function StoryFeed({
     <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 pb-16 md:max-w-6xl">
       <div
         className={
-          copyKey === "home"
+          deskVisual
             ? "flex min-w-0 flex-col gap-[52px]"
             : "flex min-w-0 flex-col gap-8"
         }
       >
         <StoryHero
           story={hero}
-          titleLeading={looseHero ? "loose" : "tight"}
-          square={copyKey === "home"}
+          titleLeading={looseHero || deskVisual ? "loose" : "tight"}
+          square={deskVisual}
         />
         <div
           className={
-            copyKey === "home"
+            deskVisual
               ? "flex min-w-0 flex-col gap-[26px]"
               : "contents"
           }
@@ -195,8 +196,8 @@ export function StoryFeed({
             kicker={copy.kicker}
             dek={copy.dek}
             blurb={copy.blurb}
-            stackKickerOnMobile={copyKey === "home"}
-            homeSpacing={copyKey === "home"}
+            stackKickerOnMobile={deskVisual}
+            homeSpacing={deskVisual}
           />
           {leadCards.length > 0 ? storyCardGrid(leadCards) : null}
         </div>
