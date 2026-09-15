@@ -11,6 +11,16 @@ import {
 } from "@/components/category-carousel";
 import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
 
+function splitSequential(items: StoryDto[], parts: number) {
+  if (items.length === 0) {
+    return Array.from({ length: parts }, () => [] as StoryDto[]);
+  }
+  const size = Math.ceil(items.length / parts);
+  return Array.from({ length: parts }, (_, index) =>
+    items.slice(index * size, (index + 1) * size),
+  );
+}
+
 export function StoryFeed({
   stories,
   copyKey,
@@ -55,6 +65,10 @@ export function StoryFeed({
     sketchIndex >= 0 ? trailing.slice(0, sketchIndex + 1) : trailing;
   const trailingAfterSketch =
     sketchIndex >= 0 ? trailing.slice(sketchIndex + 1) : [];
+  const [afterClassic, afterRacing, afterModified] = splitSequential(
+    trailingAfterSketch,
+    3,
+  );
   const insetHomeCards = copyKey === "home";
   const storyCardGrid = (cards: StoryDto[]) => {
     const grid = (
@@ -113,21 +127,29 @@ export function StoryFeed({
           </div>
         </section>
       ) : null}
-      {lane("concourse") ? <CategoryCarousel {...lane("concourse")!} /> : null}
       <Interstitial
         text={copy.interstitial}
         size={copyKey === "home" ? "home" : "default"}
       />
-      {lane("racing") ? <CategoryCarousel {...lane("racing")!} /> : null}
-      {lane("modified") ? <CategoryCarousel {...lane("modified")!} /> : null}
-      {lane("culture") ? <CategoryCarousel {...lane("culture")!} /> : null}
-      {trailingThroughSketch.length > 0
-        ? storyCardGrid(trailingThroughSketch)
-        : null}
-      {lane("classic") ? <CategoryCarousel {...lane("classic")!} /> : null}
-      {trailingAfterSketch.length > 0
-        ? storyCardGrid(trailingAfterSketch)
-        : null}
+      {carousels.length === 0 ? (
+        trailing.length > 0 ? storyCardGrid(trailing) : null
+      ) : (
+        <>
+          {trailingThroughSketch.length > 0
+            ? storyCardGrid(trailingThroughSketch)
+            : null}
+          {lane("classic") ? <CategoryCarousel {...lane("classic")!} /> : null}
+          {afterClassic.length > 0 ? storyCardGrid(afterClassic) : null}
+          {lane("racing") ? <CategoryCarousel {...lane("racing")!} /> : null}
+          {afterRacing.length > 0 ? storyCardGrid(afterRacing) : null}
+          {lane("modified") ? <CategoryCarousel {...lane("modified")!} /> : null}
+          {afterModified.length > 0 ? storyCardGrid(afterModified) : null}
+          {lane("culture") ? <CategoryCarousel {...lane("culture")!} /> : null}
+          {lane("concourse") ? (
+            <CategoryCarousel {...lane("concourse")!} />
+          ) : null}
+        </>
+      )}
     </div>
   );
 }
