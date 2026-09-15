@@ -5,6 +5,10 @@ import {
   Interstitial,
   SectionIntro,
 } from "@/components/site-chrome";
+import {
+  CategoryCarousel,
+  type CategoryLane,
+} from "@/components/category-carousel";
 import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
 
 export function StoryFeed({
@@ -12,16 +16,19 @@ export function StoryFeed({
   copyKey,
   categoryName,
   looseHero = false,
+  carousels = [],
 }: {
   stories: StoryDto[];
   copyKey: string;
   categoryName: string;
   looseHero?: boolean;
+  carousels?: CategoryLane[];
 }) {
+  const lane = (slug: string) => carousels.find((item) => item.slug === slug);
   const copy = CATEGORY_COPY[copyKey] ?? CATEGORY_COPY.home;
   if (stories.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl py-10">
+      <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 py-10 md:max-w-6xl">
         <SectionIntro
           kicker={copy.kicker}
           dek={copy.dek}
@@ -30,6 +37,9 @@ export function StoryFeed({
           homeSpacing={copyKey === "home"}
         />
         <EmptyStories category={categoryName} />
+        {carousels.map((item) => (
+          <CategoryCarousel key={item.slug} {...item} />
+        ))}
       </div>
     );
   }
@@ -84,6 +94,7 @@ export function StoryFeed({
           {leadCards.length > 0 ? storyCardGrid(leadCards) : null}
         </div>
       </div>
+      {lane("racing") ? <CategoryCarousel {...lane("racing")!} /> : null}
       {picks.length > 0 ? (
         <section className="min-w-0 px-4 md:px-0">
           <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
@@ -96,11 +107,15 @@ export function StoryFeed({
           </div>
         </section>
       ) : null}
+      {lane("classic") ? <CategoryCarousel {...lane("classic")!} /> : null}
       <Interstitial
         text={copy.interstitial}
         size={copyKey === "home" ? "home" : "default"}
       />
+      {lane("modified") ? <CategoryCarousel {...lane("modified")!} /> : null}
       {trailing.length > 0 ? storyCardGrid(trailing) : null}
+      {lane("concourse") ? <CategoryCarousel {...lane("concourse")!} /> : null}
+      {lane("culture") ? <CategoryCarousel {...lane("culture")!} /> : null}
     </div>
   );
 }
