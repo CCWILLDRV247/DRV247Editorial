@@ -21,6 +21,25 @@ function splitSequential(items: StoryDto[], parts: number) {
   );
 }
 
+function isPlungeStory(story: StoryDto) {
+  return /taking the plunge/i.test(story.title);
+}
+
+function splitThroughMatch(
+  items: StoryDto[],
+  match: (story: StoryDto) => boolean,
+) {
+  const index = items.findIndex(match);
+  if (index < 0) {
+    return { head: items, tail: [] as StoryDto[], hit: false };
+  }
+  return {
+    head: items.slice(0, index + 1),
+    tail: items.slice(index + 1),
+    hit: true,
+  };
+}
+
 export function StoryFeed({
   stories,
   copyKey,
@@ -69,6 +88,25 @@ export function StoryFeed({
     trailingAfterSketch,
     3,
   );
+  const classicSplit = splitThroughMatch(afterClassic, isPlungeStory);
+  const racingSplit = splitThroughMatch(afterRacing, isPlungeStory);
+  const modifiedSplit = splitThroughMatch(afterModified, isPlungeStory);
+  const plungeFound =
+    classicSplit.hit || racingSplit.hit || modifiedSplit.hit;
+  const cultureThenRacing = classicSplit.hit && classicSplit.tail.length === 0;
+  const cultureThenModified = racingSplit.hit && racingSplit.tail.length === 0;
+  const racingBridge = cultureThenRacing
+    ? racingSplit.head.slice(0, 1)
+    : [];
+  const racingRemainder = cultureThenRacing
+    ? racingSplit.head.slice(1)
+    : racingSplit.head;
+  const modifiedBridge = cultureThenModified
+    ? modifiedSplit.head.slice(0, 1)
+    : [];
+  const modifiedRemainder = cultureThenModified
+    ? modifiedSplit.head.slice(1)
+    : modifiedSplit.head;
   const insetHomeCards = copyKey === "home";
   const storyCardGrid = (cards: StoryDto[]) => {
     const grid = (
@@ -139,12 +177,35 @@ export function StoryFeed({
             ? storyCardGrid(trailingThroughSketch)
             : null}
           {lane("classic") ? <CategoryCarousel {...lane("classic")!} /> : null}
-          {afterClassic.length > 0 ? storyCardGrid(afterClassic) : null}
+          {classicSplit.head.length > 0
+            ? storyCardGrid(classicSplit.head)
+            : null}
+          {classicSplit.hit && lane("culture") ? (
+            <CategoryCarousel {...lane("culture")!} />
+          ) : null}
+          {classicSplit.tail.length > 0
+            ? storyCardGrid(classicSplit.tail)
+            : null}
+          {racingBridge.length > 0 ? storyCardGrid(racingBridge) : null}
           {lane("racing") ? <CategoryCarousel {...lane("racing")!} /> : null}
-          {afterRacing.length > 0 ? storyCardGrid(afterRacing) : null}
+          {racingRemainder.length > 0 ? storyCardGrid(racingRemainder) : null}
+          {racingSplit.hit && lane("culture") ? (
+            <CategoryCarousel {...lane("culture")!} />
+          ) : null}
+          {racingSplit.tail.length > 0
+            ? storyCardGrid(racingSplit.tail)
+            : null}
+          {modifiedBridge.length > 0 ? storyCardGrid(modifiedBridge) : null}
           {lane("modified") ? <CategoryCarousel {...lane("modified")!} /> : null}
-          {afterModified.length > 0 ? storyCardGrid(afterModified) : null}
-          {lane("culture") ? <CategoryCarousel {...lane("culture")!} /> : null}
+          {modifiedRemainder.length > 0
+            ? storyCardGrid(modifiedRemainder)
+            : null}
+          {(modifiedSplit.hit || !plungeFound) && lane("culture") ? (
+            <CategoryCarousel {...lane("culture")!} />
+          ) : null}
+          {modifiedSplit.tail.length > 0
+            ? storyCardGrid(modifiedSplit.tail)
+            : null}
           {lane("concourse") ? (
             <CategoryCarousel {...lane("concourse")!} />
           ) : null}
