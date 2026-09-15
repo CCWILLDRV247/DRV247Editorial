@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "cn";
-import { MAGAZINE_NAV } from "@/lib/engine/magazine";
+import { MAGAZINE_NAV } from "@/config/magazine-nav";
 
 export function SiteHeader({
   title,

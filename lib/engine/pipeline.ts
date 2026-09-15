@@ -307,8 +307,10 @@ function persistItems(source: MediaSource, items: EngineItem[], method: string):
       .where(eq(articles.canonicalUrl, item.canonicalUrl))
       .get();
     if (seen) {
+      const imageUrl =
+        seen.imageUrl || (source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null);
       db.update(articles)
-        .set({ lastSeen: now })
+        .set({ lastSeen: now, imageUrl: imageUrl ?? seen.imageUrl })
         .where(eq(articles.id, seen.id))
         .run();
       continue;
