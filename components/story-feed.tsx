@@ -11,10 +11,12 @@ export function StoryFeed({
   stories,
   copyKey,
   categoryName,
+  looseHero = false,
 }: {
   stories: StoryDto[];
   copyKey: string;
   categoryName: string;
+  looseHero?: boolean;
 }) {
   const copy = CATEGORY_COPY[copyKey] ?? CATEGORY_COPY.home;
   if (stories.length === 0) {
@@ -33,7 +35,7 @@ export function StoryFeed({
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 pb-16 md:max-w-6xl">
-      <StoryHero story={hero} />
+      <StoryHero story={hero} titleLeading={looseHero ? "loose" : "tight"} />
       <SectionIntro kicker={copy.kicker} dek={copy.dek} blurb={copy.blurb} />
       {leadCards.length > 0 ? (
         <div className="grid gap-2 md:grid-cols-2">

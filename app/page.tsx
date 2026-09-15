@@ -15,7 +15,7 @@ export default async function HomePage() {
     <div className="min-h-full bg-white">
       <SiteHeader title="Stories" />
       <main className="pt-2">
-        <StoryFeed stories={stories} copyKey="home" categoryName="the desk" />
+        <StoryFeed stories={stories} copyKey="home" categoryName="the desk" looseHero />
       </main>
     </div>
   );

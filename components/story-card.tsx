@@ -36,7 +36,13 @@ export function StoryCard({ story }: { story: StoryDto }) {
   );
 }
 
-export function StoryHero({ story }: { story: StoryDto }) {
+export function StoryHero({
+  story,
+  titleLeading = "tight",
+}: {
+  story: StoryDto;
+  titleLeading?: "tight" | "loose";
+}) {
   return (
     <Link
       href={`/story/${story.id}`}
@@ -48,7 +54,13 @@ export function StoryHero({ story }: { story: StoryDto }) {
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
       <div className="absolute inset-x-7 bottom-10 flex flex-col gap-3">
         <FeatureTag>{story.category.name}</FeatureTag>
-        <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
+        <h1
+          className={
+            titleLeading === "loose"
+              ? "font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[1.24] tracking-[-0.02em]"
+              : "font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]"
+          }
+        >
           {story.title}
         </h1>
         <p className="font-display text-[25px] font-bold uppercase leading-[0.64]">
