@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { CATEGORY_COPY } from "@/lib/db/seed";
 import type { StoryDto } from "@/lib/stories";
 import {
@@ -38,6 +39,29 @@ function splitThroughMatch(
     tail: items.slice(index + 1),
     hit: true,
   };
+}
+
+type FeedBlock =
+  | { kind: "cards"; stories: StoryDto[] }
+  | { kind: "lane"; slug: string };
+
+function appendCards(blocks: FeedBlock[], stories: StoryDto[]) {
+  if (stories.length === 0) return;
+  const last = blocks[blocks.length - 1];
+  if (last?.kind === "cards") {
+    last.stories = last.stories.concat(stories);
+    return;
+  }
+  blocks.push({ kind: "cards", stories: [...stories] });
+}
+
+function appendLane(
+  blocks: FeedBlock[],
+  slug: string,
+  present: (slug: string) => CategoryLane | undefined,
+) {
+  if (!present(slug)) return;
+  blocks.push({ kind: "lane", slug });
 }
 
 export function StoryFeed({
@@ -108,6 +132,25 @@ export function StoryFeed({
   const modifiedRemainder = cultureThenModified
     ? modifiedSplit.head.slice(1)
     : modifiedSplit.head;
+  const homeBlocks: FeedBlock[] = [];
+  appendCards(homeBlocks, trailingThroughSketch);
+  appendLane(homeBlocks, "classic", lane);
+  appendCards(homeBlocks, classicSplit.head);
+  if (classicSplit.hit) appendLane(homeBlocks, "culture", lane);
+  appendCards(homeBlocks, classicSplit.tail);
+  appendCards(homeBlocks, racingBridge);
+  appendLane(homeBlocks, "racing", lane);
+  appendCards(homeBlocks, racingRemainder);
+  if (racingSplit.hit) appendLane(homeBlocks, "culture", lane);
+  appendCards(homeBlocks, racingSplit.tail);
+  appendCards(homeBlocks, modifiedBridge);
+  appendLane(homeBlocks, "modified", lane);
+  appendCards(homeBlocks, modifiedRemainder);
+  if (modifiedSplit.hit || !plungeFound) {
+    appendLane(homeBlocks, "culture", lane);
+  }
+  appendCards(homeBlocks, modifiedSplit.tail);
+  appendLane(homeBlocks, "concourse", lane);
   const insetHomeCards = copyKey === "home";
   const storyCardGrid = (cards: StoryDto[]) => {
     const grid = (
@@ -174,42 +217,15 @@ export function StoryFeed({
         trailing.length > 0 ? storyCardGrid(trailing) : null
       ) : (
         <>
-          {trailingThroughSketch.length > 0
-            ? storyCardGrid(trailingThroughSketch)
-            : null}
-          {lane("classic") ? <CategoryCarousel {...lane("classic")!} /> : null}
-          {classicSplit.head.length > 0
-            ? storyCardGrid(classicSplit.head)
-            : null}
-          {classicSplit.hit && lane("culture") ? (
-            <CategoryCarousel {...lane("culture")!} />
-          ) : null}
-          {classicSplit.tail.length > 0
-            ? storyCardGrid(classicSplit.tail)
-            : null}
-          {racingBridge.length > 0 ? storyCardGrid(racingBridge) : null}
-          {lane("racing") ? <CategoryCarousel {...lane("racing")!} /> : null}
-          {racingRemainder.length > 0 ? storyCardGrid(racingRemainder) : null}
-          {racingSplit.hit && lane("culture") ? (
-            <CategoryCarousel {...lane("culture")!} />
-          ) : null}
-          {racingSplit.tail.length > 0
-            ? storyCardGrid(racingSplit.tail)
-            : null}
-          {modifiedBridge.length > 0 ? storyCardGrid(modifiedBridge) : null}
-          {lane("modified") ? <CategoryCarousel {...lane("modified")!} /> : null}
-          {modifiedRemainder.length > 0
-            ? storyCardGrid(modifiedRemainder)
-            : null}
-          {(modifiedSplit.hit || !plungeFound) && lane("culture") ? (
-            <CategoryCarousel {...lane("culture")!} />
-          ) : null}
-          {modifiedSplit.tail.length > 0
-            ? storyCardGrid(modifiedSplit.tail)
-            : null}
-          {lane("concourse") ? (
-            <CategoryCarousel {...lane("concourse")!} />
-          ) : null}
+          {homeBlocks.map((block, index) =>
+            block.kind === "cards" ? (
+              <Fragment key={`cards-${index}`}>
+                {storyCardGrid(block.stories)}
+              </Fragment>
+            ) : (
+              <CategoryCarousel key={block.slug} {...lane(block.slug)!} />
+            ),
+          )}
         </>
       )}
     </div>
