@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryImage } from "@/components/story-image";
 import { ensureCultureArticles } from "@/lib/db/ensure";
@@ -33,9 +32,10 @@ export default async function StoryPage({
           <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">
             {story.title}
           </h1>
-          <p className="mt-6 flex items-center gap-3 font-display text-2xl font-extrabold uppercase tracking-[-0.02em]">
-            <ChevronLeft className="size-4 rotate-180 opacity-0" aria-hidden />
-            {story.source.name}
+          <p className="mt-6">
+            <span className="inline-flex w-fit items-center rounded-[4px] bg-[#1b1d1f] px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-white">
+              {story.source.name}
+            </span>
           </p>
           <p className="mt-2 font-display text-lg font-bold uppercase text-[#1b1d1f]/70">
             {formatStoryDate(story.publishedAt)} · {story.category.name}
