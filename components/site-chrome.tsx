@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "cn";
-
-const CATEGORIES = [
-  { slug: "racing", name: "Racing" },
-  { slug: "classic", name: "Classic" },
-  { slug: "modified", name: "Modified" },
-  { slug: "concourse", name: "Concourse" },
-  { slug: "culture", name: "Culture" },
-];
+import { MAGAZINE_NAV } from "@/lib/engine/magazine";
 
 export function SiteHeader({
   title,
@@ -47,13 +40,7 @@ export function SiteHeader({
         </Link>
       </div>
       <nav className="mx-auto hidden max-w-6xl items-center gap-6 overflow-x-auto px-6 pb-3 md:flex">
-        <Link
-          href="/editorial"
-          className="font-display text-lg font-bold uppercase tracking-[-0.02em] text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
-        >
-          Culture
-        </Link>
-        {CATEGORIES.map((category) => (
+        {MAGAZINE_NAV.map((category) => (
           <Link
             key={category.slug}
             href={`/category/${category.slug}`}
@@ -64,7 +51,7 @@ export function SiteHeader({
         ))}
       </nav>
       <nav className="flex gap-4 overflow-x-auto px-4 pb-3 md:hidden">
-        {CATEGORIES.map((category) => (
+        {MAGAZINE_NAV.map((category) => (
           <Link
             key={category.slug}
             href={`/category/${category.slug}`}

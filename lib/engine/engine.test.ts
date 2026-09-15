@@ -31,6 +31,7 @@ describe("rss/atom", () => {
     assert.equal(items.length, 2);
     assert.equal(items[0].method, "rss");
     assert.match(items[0].canonicalUrl, /porsche-964/);
+    assert.equal(items[0].imageUrl, "https://cdn.example.com/964.jpg");
   });
   it("parses Atom entries", () => {
     const items = parseFeedXml(atom);
@@ -132,6 +133,25 @@ describe("admin login path", () => {
     assert.equal(safeAdminPath("/admin"), "/admin");
     assert.equal(safeAdminPath("//evil.example"), "/admin/engine");
     assert.equal(safeAdminPath("https://evil.example"), "/admin/engine");
+  });
+});
+
+describe("magazine mapping", () => {
+  it("maps classic interests onto the Classic desk", async () => {
+    const { articleMatchesNav, tagForArticle, resolveImageUrl } = await import("./magazine");
+    const article = {
+      categories: ["Classic"],
+      interests: ["Restoration"],
+      publication: "Octane",
+      title: "E-Type restoration",
+    };
+    assert.equal(articleMatchesNav(article as never, "classic"), true);
+    assert.equal(articleMatchesNav(article as never, "modified"), false);
+    assert.equal(tagForArticle(article as never), "Classic");
+    assert.equal(
+      resolveImageUrl("/img/hero.jpg", "https://octane.example/story"),
+      "https://octane.example/img/hero.jpg",
+    );
   });
 });
 

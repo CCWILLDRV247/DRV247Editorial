@@ -1,4 +1,4 @@
-import { capSummary, canonicalizeUrl, firstImageFromHtml, stripHtml } from "../../text";
+import { capSummary, canonicalizeUrl, feedImageUrl, firstImageFromHtml, stripHtml } from "../../text";
 import { looksLikeFeed } from "../http";
 
 export type EngineItem = {
@@ -42,7 +42,7 @@ function parseRss(xml: string): EngineItem[] {
       guid,
       author: decode(tag(block, "dc:creator") || tag(block, "author")) || null,
       excerpt: capSummary(encoded || title),
-      imageUrl: enclosure(block) || firstImageFromHtml(encoded),
+      imageUrl: feedImageUrl(block) || firstImageFromHtml(encoded),
       publishedAt: parseDate(date),
       method: "rss",
     });
@@ -69,7 +69,7 @@ function parseAtom(xml: string): EngineItem[] {
       guid: tag(block, "id"),
       author: decode(tag(block, "name")) || null,
       excerpt: capSummary(summary || title),
-      imageUrl: firstImageFromHtml(summary),
+      imageUrl: feedImageUrl(block) || firstImageFromHtml(summary),
       publishedAt: parseDate(tag(block, "updated") || tag(block, "published")),
       method: "atom",
     });
@@ -98,11 +98,6 @@ function attrTag(xml: string, name: string, attribute: string, value: string): s
 function hrefOf(xml: string): string {
   const match = xml.match(/<link[^>]*href=["']([^"']+)["'][^>]*>/i);
   return match?.[1] ?? "";
-}
-
-function enclosure(xml: string): string | null {
-  const match = xml.match(/<enclosure[^>]*url=["']([^"']+)["']/i);
-  return match?.[1] ?? null;
 }
 
 function stripCdata(value: string): string {

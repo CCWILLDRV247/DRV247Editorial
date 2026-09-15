@@ -1,18 +1,7 @@
-import { CultureFeed } from "@/components/culture-feed";
-import { SiteHeader } from "@/components/site-chrome";
-import { ensureCultureArticles } from "@/lib/db/ensure";
+import { redirect } from "next/navigation";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-export const maxDuration = 300;
 
-export default async function EditorialPage() {
-  await ensureCultureArticles();
-  return (
-    <div className="min-h-full bg-white">
-      <SiteHeader title="Culture" />
-      <CultureFeed />
-    </div>
-  );
+export default function EditorialPage() {
+  redirect("/");
 }

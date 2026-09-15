@@ -16,6 +16,7 @@ import { isSitemapIndex, looksLikeArticleUrl, parseSitemapXml } from "./adapters
 import { parseArticleMetadata, parseHomeLinks, robotsAllows } from "./adapters/scrape";
 import { extractEntities } from "./extract";
 import { fetchText, looksLikeFeed } from "./http";
+import { resolveImageUrl } from "./magazine";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 
@@ -326,7 +327,7 @@ function persistItems(source: MediaSource, items: EngineItem[], method: string):
         guid: item.guid ?? null,
         author: source.allowExcerpt ? item.author ?? null : null,
         publishedAt: Number.isFinite(item.publishedAt) ? item.publishedAt : now,
-        imageUrl: source.allowImage ? item.imageUrl : null,
+        imageUrl: source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null,
         excerpt: source.allowExcerpt ? item.excerpt : "",
         editorialScore: publisherScore(source.relevance) + (item.excerpt.length >= 180 ? weights.longForm : 0),
         processed: true,

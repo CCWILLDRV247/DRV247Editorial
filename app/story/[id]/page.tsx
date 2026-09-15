@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryImage } from "@/components/story-image";
+import { ensureCultureArticles } from "@/lib/db/ensure";
+import { getMagazineStory } from "@/lib/engine/magazine";
 import { formatStoryDate } from "@/lib/format";
-import { getPublicStory } from "@/lib/stories";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const fetchCache = "force-no-store";
+export const maxDuration = 300;
 
 export default async function StoryPage({
   params,
@@ -16,7 +18,8 @@ export default async function StoryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const story = await getPublicStory(Number(id));
+  await ensureCultureArticles();
+  const story = getMagazineStory(Number(id));
   if (!story) notFound();
 
   return (
@@ -54,7 +57,8 @@ export default async function StoryPage({
             Read on {story.source.name}
           </a>
           <p className="mt-4 text-[14px] leading-5 text-[#1b1d1f]/70">
-            DRV247 is an aggregator. We store a headline, a short feed excerpt, and the outbound link — never the full third-party article.
+            DRV247 is an aggregator. We store a headline, a short feed excerpt, and the outbound
+            link — never the full third-party article.
           </p>
           <Link
             href={`/category/${story.category.slug}`}

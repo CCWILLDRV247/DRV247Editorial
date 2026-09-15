@@ -8,6 +8,7 @@
       <guid>https://example.com/porsche-964-carrera-rs</guid>
       <pubDate>Mon, 14 Sep 2026 10:00:00 GMT</pubDate>
       <description>A classic air-cooled 911 on the hill.</description>
+      <media:content url="https://cdn.example.com/964.jpg" medium="image" />
     </item>
     <item>
       <title>Ferrari F355 on the autostrada</title>

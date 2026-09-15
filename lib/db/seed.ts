@@ -141,7 +141,7 @@ export const CATEGORY_COPY: Record<
     kicker: "This week's stories",
     dek: "Catch up on what's been happening out there",
     blurb:
-      "Racing, classics, modified metal, concourse lawns, and car culture — pulled from the feeds, not rewritten.",
+      "UK and EU automotive culture from ten titles — teasers, images, and the original link. Never the full article.",
     interstitial: "THE TRUTH SHALL SET YOU FREE",
   },
 };

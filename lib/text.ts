@@ -62,3 +62,20 @@ export function firstImageFromHtml(html: string | undefined | null): string | nu
   const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   return match?.[1] ?? null;
 }
+
+export function feedImageUrl(xml: string | undefined | null): string | null {
+  if (!xml) return null;
+  const media = xml.match(/<media:(?:content|thumbnail)[^>]+url=["']([^"']+)["']/i);
+  if (media?.[1]) return media[1];
+  const itunes = xml.match(/<itunes:image[^>]+href=["']([^"']+)["']/i);
+  if (itunes?.[1]) return itunes[1];
+  const imageEnclosure = xml.match(
+    /<enclosure[^>]+url=["']([^"']+)["'][^>]*(?:type=["']image\/|medium=["']image)/i,
+  );
+  if (imageEnclosure?.[1]) return imageEnclosure[1];
+  const enclosure = xml.match(/<enclosure[^>]+url=["']([^"']+)["']/i);
+  if (enclosure?.[1] && /\.(jpe?g|png|webp|gif)(\?|$)/i.test(enclosure[1])) {
+    return enclosure[1];
+  }
+  return firstImageFromHtml(xml);
+}

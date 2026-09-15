@@ -70,7 +70,7 @@ Demo garage users (`demo-chris` Porsche 911 964, `demo-355` Ferrari F355, `demo-
 - `POST /api/editorial/ingest` — admin; body `{ sourceId }` or `{ sourceIds }`
 - `POST /api/editorial/reprocess` — admin
 
-Public magazine teasers: `/` and `/editorial` (culture feed, not the leftover v1 RSS homepage). Admin monitoring: `/admin/engine`. Desk login lands there.
+Public magazine: `/` uses the v1 Figma category layout (hero, cards, Our picks, interstitial) with wave-1 articles. `/story/[id]` is the Figma article teaser (hero image, title, publication, excerpt, outbound Read on). `/category/racing|classic|modified|concourse|culture` filters the same ingest. `/editorial` redirects home.
 
 `/admin` still exists as the v1 leftover desk. Its primary button is **Ingest 10 culture titles** (`POST /api/admin/ingest` with an empty body → culture pipeline). The old Motorsport/RACER/Jalopnik pull is a separate **v1 RSS leftover** control (`{ pipeline: "v1" }`).
 

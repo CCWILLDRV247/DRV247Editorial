@@ -1,4 +1,5 @@
 import { capSummary, canonicalizeUrl, firstImageFromHtml, stripHtml } from "../../text";
+import { resolveImageUrl } from "../magazine";
 import { isPathAllowed, parseRobots } from "../robots";
 import type { EngineItem } from "./rss";
 
@@ -38,7 +39,7 @@ export function parseArticleMetadata(html: string, pageUrl: string): EngineItem 
     canonicalUrl: canonical,
     author: author || null,
     excerpt: capSummary(description || title),
-    imageUrl: image,
+    imageUrl: resolveImageUrl(image, canonical || pageUrl),
     publishedAt: published ? Date.parse(published) || Date.now() : Date.now(),
     method: "scrape",
   };
