@@ -57,7 +57,7 @@ export function StoryHero({
         <h1
           className={
             titleLeading === "loose"
-              ? "font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.68] tracking-[-0.02em]"
+              ? "font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.66] tracking-[-0.02em]"
               : "font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]"
           }
         >
