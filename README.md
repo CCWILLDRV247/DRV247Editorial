@@ -41,3 +41,6 @@ The GitHub default branch `cursor/editorial-v1-c83d` is what production should t
 **SQLite does not persist on Vercel.** Each serverless instance uses an ephemeral file in `/tmp`. On a cold start the app seeds sources and ingests RSS (YouTube/NewsAPI stay mocked without keys) so the magazine is not blank. Edits in `/admin` (hide, recategorize, extra sources) can vanish when the instance recycles. A later swap to Turso or Postgres is the durable fix.
 
 Desk password for this preview: `desk247` (`ADMIN_PASSWORD`).
+
+The Automotive Culture Engine (wave-1 UK/EU titles, ranked teasers) lives on branch `explore/ingest-personalization`. See [docs/editorial-aggregation.md](docs/editorial-aggregation.md).
+

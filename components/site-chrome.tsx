@@ -47,6 +47,12 @@ export function SiteHeader({
         </Link>
       </div>
       <nav className="mx-auto hidden max-w-6xl items-center gap-6 overflow-x-auto px-6 pb-3 md:flex">
+        <Link
+          href="/editorial"
+          className="font-display text-lg font-bold uppercase tracking-[-0.02em] text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
+        >
+          Culture
+        </Link>
         {CATEGORIES.map((category) => (
           <Link
             key={category.slug}

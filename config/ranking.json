@@ -1,0 +1,12 @@
+{
+  "exactVehicle": 100,
+  "model": 80,
+  "generation": 70,
+  "make": 40,
+  "strongInterest": 25,
+  "secondaryInterest": 10,
+  "highQualityPub": 20,
+  "longForm": 15,
+  "eventLocation": 15,
+  "genericNews": 5
+}

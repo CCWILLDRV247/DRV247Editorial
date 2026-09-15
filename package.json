@@ -6,7 +6,9 @@
     "dev": "next dev --hostname 0.0.0.0 --port 43127",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 43127",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx --test lib/engine/engine.test.ts",
+    "ingest:wave1": "tsx scripts/ingest-wave1.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -34,6 +36,10 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true
   }
 }

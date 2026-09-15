@@ -14,7 +14,12 @@ async function expectedToken() {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (!pathname.startsWith("/admin") && !pathname.startsWith("/api/admin")) {
+  if (
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/api/admin") &&
+    pathname !== "/api/editorial/ingest" &&
+    pathname !== "/api/editorial/reprocess"
+  ) {
     return NextResponse.next();
   }
   if (pathname.startsWith("/admin/login") || pathname === "/api/admin/login") {
@@ -35,5 +40,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/api/editorial/ingest", "/api/editorial/reprocess"],
 };

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Atom Mag</title>
+  <entry>
+    <title>BMW M3 E46 restomod</title>
+    <id>urn:test:e46</id>
+    <link href="https://example.com/bmw-m3-e46" rel="alternate"/>
+    <updated>2026-09-01T12:00:00Z</updated>
+    <summary>Modified E46 with a culture-first build story.</summary>
+  </entry>
+</feed>
