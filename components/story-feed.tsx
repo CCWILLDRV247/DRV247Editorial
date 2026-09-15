@@ -38,7 +38,7 @@ export function StoryFeed({
       <div
         className={
           copyKey === "home"
-            ? "flex flex-col gap-[38.4px]"
+            ? "flex flex-col gap-[52px]"
             : "flex flex-col gap-8"
         }
       >
