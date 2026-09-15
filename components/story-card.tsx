@@ -39,14 +39,20 @@ export function StoryCard({ story }: { story: StoryDto }) {
 export function StoryHero({
   story,
   titleLeading = "tight",
+  square = false,
 }: {
   story: StoryDto;
   titleLeading?: "tight" | "loose";
+  square?: boolean;
 }) {
   return (
     <Link
       href={`/story/${story.id}`}
-      className="relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
+      className={
+        square
+          ? "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-none bg-[#1b1d1f] text-white"
+          : "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
+      }
     >
       <div className="absolute inset-0">
         <StoryImage src={story.imageUrl} alt="" />

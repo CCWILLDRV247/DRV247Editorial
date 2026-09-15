@@ -179,7 +179,11 @@ export function StoryFeed({
             : "flex min-w-0 flex-col gap-8"
         }
       >
-        <StoryHero story={hero} titleLeading={looseHero ? "loose" : "tight"} />
+        <StoryHero
+          story={hero}
+          titleLeading={looseHero ? "loose" : "tight"}
+          square={copyKey === "home"}
+        />
         <div
           className={
             copyKey === "home"
