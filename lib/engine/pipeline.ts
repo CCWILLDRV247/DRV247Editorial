@@ -231,7 +231,7 @@ async function trySitemap(source: MediaSource): Promise<{
       .slice(0, source.maxArticles);
     const items: EngineItem[] = [];
     for (const url of articleUrls) {
-      await delay(400);
+      await delay(200);
       const page = await fetchText(url);
       if (!page.ok) continue;
       const item = parseArticleMetadata(page.text, url);
@@ -269,7 +269,7 @@ async function tryScrape(source: MediaSource): Promise<{
 
   const items: EngineItem[] = [];
   for (const url of links) {
-    await delay(500);
+      await delay(200);
     try {
       if (robots.ok && !robotsAllows(robots.text, new URL(url).pathname)) continue;
     } catch {

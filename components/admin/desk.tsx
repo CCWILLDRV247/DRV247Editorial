@@ -61,13 +61,15 @@ export function AdminDesk({ categories, sources, stories }: Props) {
     [categories],
   );
 
-  async function ingest(sourceId?: number) {
-    setBusy(sourceId ? `ingest-${sourceId}` : "ingest-all");
+  async function ingest(sourceId?: number, pipeline: "culture" | "v1" = "culture") {
+    setBusy(sourceId ? `ingest-${sourceId}` : pipeline === "v1" ? "ingest-v1" : "ingest-all");
     setMessage(null);
     const response = await fetch("/api/admin/ingest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(sourceId ? { sourceId } : {}),
+      body: JSON.stringify(
+        sourceId ? { sourceId, pipeline: "v1" } : pipeline === "v1" ? { pipeline: "v1" } : {},
+      ),
     });
     const data = (await response.json()) as {
       results?: { sourceName: string; inserted: number; fetched: number; error: string | null; usedMock: boolean }[];
@@ -137,10 +139,17 @@ export function AdminDesk({ categories, sources, stories }: Props) {
           <h1 className="font-display text-4xl font-black uppercase tracking-[-0.04em]">
             Editorial desk
           </h1>
+          <p className="mt-2 max-w-xl text-sm text-[#1b1d1f]/70">
+            This branch&apos;s ingest is the 10-title culture engine. The leftover v1 RSS
+            sources below (Motorsport, RACER, Jalopnik…) are not the wave-1 pipeline.
+          </p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => ingest()} disabled={busy !== null}>
-            {busy === "ingest-all" ? "Pulling…" : "Ingest now"}
+            {busy === "ingest-all" ? "Ingesting 10…" : "Ingest 10 culture titles"}
+          </Button>
+          <Button variant="outline" onClick={() => ingest(undefined, "v1")} disabled={busy !== null}>
+            {busy === "ingest-v1" ? "Pulling v1…" : "v1 RSS leftover"}
           </Button>
           <Button variant="outline" onClick={logout}>
             Sign out

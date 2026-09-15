@@ -1,19 +1,18 @@
+import { CultureFeed } from "@/components/culture-feed";
 import { SiteHeader } from "@/components/site-chrome";
-import { StoryFeed } from "@/components/story-feed";
-import { listPublicStories } from "@/lib/stories";
+import { ensureCultureArticles } from "@/lib/db/ensure";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const fetchCache = "force-no-store";
+export const maxDuration = 300;
 
 export default async function HomePage() {
-  const stories = await listPublicStories({ limit: 24 });
+  await ensureCultureArticles();
   return (
     <div className="min-h-full bg-white">
-      <SiteHeader title="Stories" />
-      <main className="pt-2">
-        <StoryFeed stories={stories} copyKey="home" categoryName="the desk" />
-      </main>
+      <SiteHeader title="Culture" />
+      <CultureFeed />
     </div>
   );
 }

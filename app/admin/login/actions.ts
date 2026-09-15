@@ -16,5 +16,8 @@ export async function loginAction(formData: FormData) {
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });
-  redirect("/admin");
+  const nextRaw = String(formData.get("next") ?? "/admin/engine");
+  const next =
+    nextRaw.startsWith("/admin") && !nextRaw.startsWith("//") ? nextRaw : "/admin/engine";
+  redirect(next);
 }

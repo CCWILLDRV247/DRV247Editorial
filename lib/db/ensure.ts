@@ -1,30 +1,34 @@
-import { count } from "drizzle-orm";
-import { ingestAll } from "@/lib/ingest";
+import { ingestEnabledSources } from "@/lib/engine/pipeline";
 import { getDb } from "@/lib/db";
-import { stories } from "@/lib/db/schema";
+import { mediaSources } from "@/lib/db/schema";
 
 const globalForIngest = globalThis as unknown as {
-  drvEnsureStories?: Promise<void>;
+  drvEnsureCulture?: Promise<void>;
 };
 
+/** v1 RSS is leftover on this branch — do not auto-fill the homepage with it. */
 export async function ensureStories() {
-  const db = getDb();
-  const [{ value }] = db.select({ value: count() }).from(stories).all();
-  if (value > 0) return;
+  return;
+}
 
-  if (!globalForIngest.drvEnsureStories) {
-    globalForIngest.drvEnsureStories = ingestAll()
+export async function ensureCultureArticles() {
+  const db = getDb();
+  const pending = db
+    .select()
+    .from(mediaSources)
+    .all()
+    .filter((source) => source.enabled && source.lastSuccessAt == null && source.lastFailureAt == null)
+    .map((source) => source.id);
+  if (!pending.length) return;
+
+  if (!globalForIngest.drvEnsureCulture) {
+    globalForIngest.drvEnsureCulture = ingestEnabledSources(pending)
       .then(() => undefined)
       .catch((error) => {
-        globalForIngest.drvEnsureStories = undefined;
-        throw error;
+        console.error("[drv247] culture ingest failed", error);
+        globalForIngest.drvEnsureCulture = undefined;
       });
   }
 
-  await globalForIngest.drvEnsureStories;
-
-  const [{ value: after }] = db.select({ value: count() }).from(stories).all();
-  if (after === 0) {
-    globalForIngest.drvEnsureStories = undefined;
-  }
+  await globalForIngest.drvEnsureCulture;
 }

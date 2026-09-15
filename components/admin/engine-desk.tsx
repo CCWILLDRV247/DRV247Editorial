@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ENGINE_BRANCH, engineCommit } from "@/lib/engine/version";
 import type { Article, IngestionRun, MediaSource } from "@/lib/db/schema";
 
 type Props = {
@@ -68,7 +69,8 @@ export function EngineDesk({ sources, runs, articles }: Props) {
             Wave 1 — 10 titles
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-[#1b1d1f]/70">
-            CSV is the source of truth. Only these ten are enabled. Remaining ~40 stay dark until the pipeline is proven.
+            CSV is the source of truth. Only these ten are enabled. Remaining ~40 stay dark until the pipeline is proven.{" "}
+            {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>
         <div className="flex gap-2">

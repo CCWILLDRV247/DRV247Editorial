@@ -22,6 +22,15 @@ export default async function AdminLoginPage({
           </p>
         </div>
         <form action={loginAction} className="space-y-4" autoComplete="off">
+          <input
+            type="hidden"
+            name="next"
+            value={
+              params.next?.startsWith("/admin") && !params.next.startsWith("//")
+                ? params.next
+                : "/admin/engine"
+            }
+          />
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">
               Desk password

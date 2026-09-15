@@ -115,6 +115,16 @@ describe("entities and ranking", () => {
   });
 });
 
+describe("admin ingest routing", () => {
+  it("sends a bare ingest click to the culture engine", async () => {
+    const { adminIngestMode } = await import("./admin-ingest");
+    assert.equal(adminIngestMode({}), "culture");
+    assert.equal(adminIngestMode(null), "culture");
+    assert.equal(adminIngestMode({ pipeline: "v1" }), "v1");
+    assert.equal(adminIngestMode({ sourceId: 3 }), "v1");
+  });
+});
+
 describe("dedupe", () => {
   it("groups the same title", () => {
     assert.equal(

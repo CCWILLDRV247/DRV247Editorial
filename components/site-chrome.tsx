@@ -40,7 +40,7 @@ export function SiteHeader({
           {title}
         </p>
         <Link
-          href="/admin"
+          href="/admin/engine"
           className="rounded-lg bg-[#1b1d1f] px-3 py-1.5 font-display text-[12px] font-bold uppercase leading-6 text-white"
         >
           Desk

@@ -70,6 +70,8 @@ Demo garage users (`demo-chris` Porsche 911 964, `demo-355` Ferrari F355, `demo-
 - `POST /api/editorial/ingest` — admin; body `{ sourceId }` or `{ sourceIds }`
 - `POST /api/editorial/reprocess` — admin
 
-Public magazine teasers: `/editorial`. Admin monitoring: `/admin/engine`.
+Public magazine teasers: `/` and `/editorial` (culture feed, not the leftover v1 RSS homepage). Admin monitoring: `/admin/engine`. Desk login lands there.
+
+`/admin` still exists as the v1 leftover desk. Its primary button is **Ingest 10 culture titles** (`POST /api/admin/ingest` with an empty body → culture pipeline). The old Motorsport/RACER/Jalopnik pull is a separate **v1 RSS leftover** control (`{ pipeline: "v1" }`).
 
 Always attribute the publisher and link out. DRV247 does not claim authorship.
