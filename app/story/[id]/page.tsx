@@ -38,7 +38,7 @@ export default async function StoryPage({
             {formatStoryDate(story.publishedAt)} · {story.category.name}
           </p>
           <p className="mt-6 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
-            Read the original — we only hold the teaser.
+            {story.title}
           </p>
           {story.summary ? (
             <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
