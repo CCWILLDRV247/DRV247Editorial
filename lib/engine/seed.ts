@@ -78,24 +78,32 @@ export async function seedEngine(db: Db) {
     }
   }
 
-  const catalogCount = (await db.select().from(vehicleEntities)).length;
-  if (catalogCount === 0) {
-    for (const record of VEHICLE_CATALOG) {
+  const existingEntities = await db.select().from(vehicleEntities);
+  const seen = new Set(
+    existingEntities.map((row) => `${row.kind}:${slugify(row.name)}:${row.make ?? ""}`),
+  );
+  for (const record of VEHICLE_CATALOG) {
+    const makeKey = `make:${slugify(record.make)}:${record.make}`;
+    if (!seen.has(makeKey)) {
       await db.insert(vehicleEntities).values({
         kind: "make",
         name: record.make,
         slug: slugify(record.make),
         make: record.make,
       });
-      for (const model of record.models) {
-        await db.insert(vehicleEntities).values({
-          kind: "model",
-          name: model.name,
-          slug: slugify(model.name),
-          make: record.make,
-          model: model.name,
-        });
-      }
+      seen.add(makeKey);
+    }
+    for (const model of record.models) {
+      const modelKey = `model:${slugify(model.name)}:${record.make}`;
+      if (seen.has(modelKey)) continue;
+      await db.insert(vehicleEntities).values({
+        kind: "model",
+        name: model.name,
+        slug: slugify(model.name),
+        make: record.make,
+        model: model.name,
+      });
+      seen.add(modelKey);
     }
   }
 

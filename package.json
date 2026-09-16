@@ -11,7 +11,8 @@
     "ingest:wave1": "tsx scripts/ingest-wave1.ts",
     "ingest:wave2": "tsx scripts/ingest-wave2.ts",
     "extract:summaries": "tsx scripts/extract-summaries.ts",
-    "purge:non-english": "tsx scripts/purge-non-english.ts"
+    "purge:non-english": "tsx scripts/purge-non-english.ts",
+    "reprocess:entities": "tsx scripts/reprocess-entities.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -131,6 +131,71 @@ describe("entities and ranking", () => {
     assert.ok(extracted.makes.includes("Ferrari"));
     assert.ok(extracted.models.includes("F355"));
   });
+  it("offers every gazetteer marque in the picker, including Honda with no stories", async () => {
+    const { VEHICLE_CATALOG } = await import("./catalog");
+    const { forYouTestCatalog: picker } = await import("./for-you-test");
+    const names = VEHICLE_CATALOG.map((row) => row.make);
+    assert.equal(new Set(names).size, names.length);
+    for (const make of [
+      "Porsche",
+      "Ferrari",
+      "BMW",
+      "Mercedes-Benz",
+      "Audi",
+      "Volkswagen",
+      "Ford",
+      "Jaguar",
+      "Land Rover",
+      "Aston Martin",
+      "Bentley",
+      "Lotus",
+      "McLaren",
+      "Lamborghini",
+      "Maserati",
+      "Alfa Romeo",
+      "Fiat",
+      "Lancia",
+      "Volvo",
+      "Saab",
+      "Renault",
+      "Peugeot",
+      "Citroën",
+      "Honda",
+      "Toyota",
+      "Nissan",
+      "Mazda",
+      "Subaru",
+      "Mini",
+      "Rolls-Royce",
+      "Morgan",
+      "TVR",
+      "Pagani",
+      "Koenigsegg",
+      "Bugatti",
+    ]) {
+      assert.ok(names.includes(make), make);
+    }
+    assert.ok(names.length >= 80, `gazetteer too short: ${names.length}`);
+    const catalog = picker();
+    assert.equal(catalog.makes.length, names.length);
+    assert.ok(catalog.makes.some((item) => item.name === "Honda"));
+    const civic = extractEntities("Honda Civic Type R at Suzuka");
+    assert.ok(civic.makes.includes("Honda"));
+    assert.ok(civic.models.includes("Civic"));
+    assert.ok(civic.variants.includes("Type R"));
+    const citroen = extractEntities("A restored Citroën 2CV on a French D-road");
+    assert.ok(citroen.makes.includes("Citroën"));
+    assert.ok(citroen.models.includes("2CV"));
+    const audi = extractEntities("Audi R8 into the sunset");
+    assert.ok(audi.makes.includes("Audi"));
+    assert.ok(audi.models.includes("R8"));
+    const seat = extractEntities("The passenger seat of a classic coach");
+    assert.equal(seat.makes.includes("SEAT"), false);
+    const focus = extractEntities("A focus on classic design");
+    assert.equal(focus.makes.includes("Ford"), false);
+    const alpineRoads = extractEntities("Alpine roads in the Dolomites, no particular car");
+    assert.equal(alpineRoads.makes.includes("Alpine"), false);
+  });
   it("scores a For You 911 pick against 964/993 stories as a model match", () => {
     const gen = extractEntities("Air-cooled 993 values keep climbing");
     const garage = [{ make: "Porsche", model: "911" }];
@@ -384,8 +449,16 @@ describe("for you test profile", () => {
     const gazetteer = forYouTestCatalog();
     assert.ok(gazetteer.makes.some((item) => item.name === "Porsche"));
     assert.ok(gazetteer.makes.some((item) => item.name === "Ferrari"));
+    assert.ok(gazetteer.makes.some((item) => item.name === "Honda"));
+    assert.ok(
+      gazetteer.makes
+        .find((item) => item.name === "Honda")
+        ?.models.some((item) => item.name === "Civic"),
+    );
+    const byd = parseForYouTestProfile({ make: "BYD", model: "Atto 3" });
+    assert.equal(byd.make, "BYD");
     assert.equal(
-      gazetteer.makes.some((item) => item.name === "Honda"),
+      gazetteer.makes.some((item) => item.name === "BYD"),
       false,
     );
     const live = forYouTestCatalog({
