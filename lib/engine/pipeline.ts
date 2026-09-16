@@ -19,6 +19,7 @@ import { fetchText, looksLikeFeed } from "./http";
 import { resolveImageUrl } from "./magazine";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
+import { llmConfigured, summarizeOriginalArticle } from "./summarize";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -28,9 +29,12 @@ export type SourceIngestResult = {
   method: string | null;
   fetched: number;
   inserted: number;
+  summarized: number;
   error: string | null;
   httpStatus: number | null;
 };
+
+const MAX_SUMMARIES_PER_SOURCE = 8;
 
 export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngestResult[]> {
   const db = await getDb();
@@ -40,13 +44,22 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
     return ids.includes(source.id);
   });
   const results: SourceIngestResult[] = [];
+  let summaryBudget = 16;
   for (const source of sources) {
-    results.push(await ingestMediaSource(source));
+    const result = await ingestMediaSource(source, summaryBudget);
+    results.push(result);
+    summaryBudget = Math.max(0, summaryBudget - result.summarized);
+  }
+  if (summaryBudget > 0) {
+    await summarizeMissingArticles(summaryBudget);
   }
   return results;
 }
 
-export async function ingestMediaSource(source: MediaSource): Promise<SourceIngestResult> {
+export async function ingestMediaSource(
+  source: MediaSource,
+  summaryBudget = MAX_SUMMARIES_PER_SOURCE,
+): Promise<SourceIngestResult> {
   const db = await getDb();
   const startedAt = Date.now();
   let method: string | null = null;
@@ -89,7 +102,12 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
     }
 
     items = items.slice(0, source.maxArticles);
-    const inserted = await persistItems(source, items, method ?? "none");
+    const { inserted, summarized } = await persistItems(
+      source,
+      items,
+      method ?? "none",
+      summaryBudget,
+    );
     const ok = items.length > 0;
     await db.insert(ingestionRuns).values({
       sourceId: source.id,
@@ -130,6 +148,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       method,
       fetched: items.length,
       inserted,
+      summarized,
       error: ok ? null : error ?? "No articles found",
       httpStatus,
     };
@@ -162,6 +181,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       method,
       fetched: 0,
       inserted: 0,
+      summarized: 0,
       error: message,
       httpStatus,
     };
@@ -288,11 +308,17 @@ async function tryScrape(source: MediaSource): Promise<{
   };
 }
 
-async function persistItems(source: MediaSource, items: EngineItem[], method: string): Promise<number> {
+async function persistItems(
+  source: MediaSource,
+  items: EngineItem[],
+  method: string,
+  summaryBudget: number,
+): Promise<{ inserted: number; summarized: number }> {
   const db = await getDb();
   const now = Date.now();
   const weights = loadRankWeights();
   let inserted = 0;
+  const pendingSummaries: { id: number; title: string; canonicalUrl: string }[] = [];
   const existing = await db.select().from(articles);
   const byTitle = new Map(
     existing.map((row) => [sameStoryKey(row.title), row.duplicateGroupId ?? sameStoryKey(row.title)]),
@@ -309,6 +335,13 @@ async function persistItems(source: MediaSource, items: EngineItem[], method: st
         .update(articles)
         .set({ lastSeen: now, imageUrl: imageUrl ?? seen.imageUrl })
         .where(eq(articles.id, seen.id));
+      if (!seen.aiSummary?.trim()) {
+        pendingSummaries.push({
+          id: seen.id,
+          title: seen.title,
+          canonicalUrl: seen.canonicalUrl,
+        });
+      }
       continue;
     }
     const group = byTitle.get(sameStoryKey(item.title)) ?? sameStoryKey(item.title);
@@ -371,8 +404,47 @@ async function persistItems(source: MediaSource, items: EngineItem[], method: st
         alt: row.title,
       });
     }
+    pendingSummaries.push({
+      id: row.id,
+      title: row.title,
+      canonicalUrl: row.canonicalUrl,
+    });
   }
-  return inserted;
+  const summarized = await summarizePending(pendingSummaries, summaryBudget);
+  return { inserted, summarized };
+}
+
+async function summarizePending(
+  pending: { id: number; title: string; canonicalUrl: string }[],
+  budget: number,
+): Promise<number> {
+  if (!pending.length || !llmConfigured() || budget <= 0) return 0;
+  const db = await getDb();
+  const seen = new Set<number>();
+  let summarized = 0;
+  for (const item of pending) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    if (summarized >= Math.min(MAX_SUMMARIES_PER_SOURCE, budget)) break;
+    const summary = await summarizeOriginalArticle(item.canonicalUrl, item.title);
+    if (!summary) continue;
+    await db.update(articles).set({ aiSummary: summary }).where(eq(articles.id, item.id));
+    summarized += 1;
+    await delay(150);
+  }
+  return summarized;
+}
+
+export async function summarizeMissingArticles(limit: number): Promise<number> {
+  if (!llmConfigured() || limit <= 0) return 0;
+  const db = await getDb();
+  const rows = await db.select().from(articles);
+  const missing = rows
+    .filter((row) => !row.aiSummary?.trim())
+    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .slice(0, limit)
+    .map((row) => ({ id: row.id, title: row.title, canonicalUrl: row.canonicalUrl }));
+  return summarizePending(missing, limit);
 }
 
 export async function reprocessArticles(): Promise<number> {

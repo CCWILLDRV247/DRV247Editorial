@@ -18,6 +18,7 @@ export default async function StoryPage({
   const story = await getMagazineStory(Number(id));
   if (!story) notFound();
   const intro = storyIntro(story.title, story.summary);
+  const aiSummary = storyAiSummary(story.aiSummary, story.title, intro);
 
   return (
     <div className="min-h-full bg-white">
@@ -43,6 +44,16 @@ export default async function StoryPage({
               {intro}
             </p>
           ) : null}
+          {aiSummary ? (
+            <div className="mt-8">
+              <p className="font-display text-sm font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/50">
+                AI summary
+              </p>
+              <p className="mt-3 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
+                {aiSummary}
+              </p>
+            </div>
+          ) : null}
           <a
             href={story.canonicalUrl}
             target="_blank"
@@ -52,8 +63,8 @@ export default async function StoryPage({
             Read on {story.source.name}
           </a>
           <p className="mt-4 text-[14px] leading-5 text-[#1b1d1f]/70">
-            DRV247 is an aggregator. We store a headline, a short feed excerpt, and the outbound
-            link — never the full third-party article.
+            DRV247 is an aggregator. We store a headline, a short feed excerpt, a generated summary,
+            and the outbound link — never the full third-party article.
           </p>
           <Link
             href={`/category/${story.category.slug}`}
@@ -72,4 +83,17 @@ function storyIntro(title: string, summary: string | null | undefined) {
   if (!intro) return null;
   if (intro.toLowerCase() === title.trim().toLowerCase()) return null;
   return intro;
+}
+
+function storyAiSummary(
+  summary: string | null | undefined,
+  title: string,
+  intro: string | null,
+) {
+  const text = summary?.trim() ?? "";
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  if (lower === title.trim().toLowerCase()) return null;
+  if (intro && lower === intro.toLowerCase()) return null;
+  return text;
 }

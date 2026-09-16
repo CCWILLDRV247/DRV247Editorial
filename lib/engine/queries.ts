@@ -30,6 +30,7 @@ export type EditorialDto = {
   vehicleRelevanceScore: number;
   rankScore: number;
   ingestionMethod: string;
+  aiSummary: string | null;
   makes: string[];
   models: string[];
   generations: string[];
@@ -68,6 +69,7 @@ function toDto(
     vehicleRelevanceScore: extras.rankScore,
     rankScore: extras.rankScore,
     ingestionMethod: article.ingestionMethod,
+    aiSummary: article.aiSummary?.trim() || null,
     makes: extras.makes,
     models: extras.models,
     generations: extras.generations,

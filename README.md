@@ -26,6 +26,7 @@ Set these on the `drv247-editorial` project (Preview and Production):
 | `TURSO_AUTH_TOKEN` | Turso database token |
 | `CRON_SECRET` | Shared secret for weekly ingest (`Authorization: Bearer …`) |
 | `ADMIN_PASSWORD` | Desk login (already set) |
+| `OPENAI_API_KEY` | Ingest-time AI summaries. Preview, Production, and Development. Without it, story pages hide the summary. |
 
 Create the database in **Dublin (`dub1`)** so it sits with the Vercel functions (`regions: ["dub1"]` in `vercel.json`):
 
@@ -43,7 +44,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 
 - **Home** — ranked teasers from the ten culture titles, plus category carousels
 - **Category** — same visual system, filtered lane
-- **Story** — hero, source tag, excerpt, **Read on [outlet]**
+- **Story** — hero, source tag, title, feed teaser, ingest-time AI summary, **Read on [outlet]**
 - **Admin** (`/admin/engine`) — ingest now, source health
 - **JSON** — `GET /api/editorial`, `GET /api/editorial/status`
 - **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
@@ -53,3 +54,5 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 Desk **Ingest now** still runs the 10-title culture pipeline. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds.
+
+Story pages show a short **AI summary** generated during ingest: fetch the original URL, send extracted article text to OpenAI (`gpt-4o-mini`), persist only `ai_summary`. Full HTML is discarded. If the fetch 403s/fails or `OPENAI_API_KEY` is unset, the summary is hidden.

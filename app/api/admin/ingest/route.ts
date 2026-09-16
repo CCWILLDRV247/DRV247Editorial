@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       publication: result.publication,
       inserted: result.inserted,
       fetched: result.fetched,
+      summarized: result.summarized,
       error: result.error,
       method: result.method,
       usedMock: false,

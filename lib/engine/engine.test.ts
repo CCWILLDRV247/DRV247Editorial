@@ -163,3 +163,43 @@ describe("dedupe", () => {
     );
   });
 });
+
+describe("article text for AI summaries", () => {
+  it("extracts article paragraphs and ignores boilerplate", async () => {
+    const { extractArticleText, acceptAiSummary } = await import("./article-text");
+    const html = `<html><head><title>Bizzarrini Corsa</title></head>
+      <body>
+        <article>
+          <p>Words: James Elliott</p>
+          <p>The last of the Bizzarrini 5300 GT Corsa Revival cars has been completed, barely two years after the project began to hand-build two dozen clones of the 1965 Le Mans class winner.</p>
+          <p>Each Revival car uses a single-piece composite body over a steel frame, while there is a six-point roll-cage inside and a safety fuel cell that meets FIA Appendix K.</p>
+          <p>The cars have been built in the UK and the company will now embark on its next project, the Giotto hypercar.</p>
+          <p>Simon Busby, Bizzarrini CMO, said the Revival was envisioned as a reintroduction of the brand to the elite tiers of the automotive world.</p>
+          <p>Never miss out on the latest classic car news from Octane, subscribe today!</p>
+        </article>
+        <script>document.title = "track this"</script>
+      </body></html>`;
+    const text = extractArticleText(html);
+    assert.ok(text);
+    assert.match(text!, /Giotto hypercar/);
+    assert.doesNotMatch(text!, /subscribe today/);
+    assert.doesNotMatch(text!, /track this/);
+    assert.equal(acceptAiSummary("NONE", "Bizzarrini Corsa"), null);
+    assert.equal(acceptAiSummary("Bizzarrini Corsa", "Bizzarrini Corsa"), null);
+    assert.match(
+      acceptAiSummary(
+        "The last Revival cars are done in the UK. Bizzarrini now turns to the Giotto hypercar.",
+        "Bizzarrini Corsa",
+      ) ?? "",
+      /Giotto/,
+    );
+  });
+
+  it("returns null when the page is too thin to summarize", async () => {
+    const { extractArticleText } = await import("./article-text");
+    assert.equal(
+      extractArticleText("<html><head><title>Paywall</title></head><body><p>Subscribe.</p></body></html>"),
+      null,
+    );
+  });
+});
