@@ -16,7 +16,7 @@ import {
 import { loadRankWeights, recencyBonus, scoreArticle, scoreForYou, type GarageVehicle } from "./rank";
 import { classifyPrimary, isContentPrimary } from "./taxonomy";
 import { loadArticlePrimaries } from "./article-primary";
-import { forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
+import { articleMatchesForYouTest, forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
 
 export type EditorialDto = {
   id: number;
@@ -253,6 +253,9 @@ export async function listEditorial(options?: {
         interests: extras.interests,
       });
     if (options?.section && isContentPrimary(options.section) && primaryCategory !== options.section) {
+      return null;
+    }
+    if (useTestProfile && testProfile && !articleMatchesForYouTest(extras, testProfile)) {
       return null;
     }
     if (!useTestProfile) {

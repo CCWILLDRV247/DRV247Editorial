@@ -64,6 +64,36 @@ export function forYouTestIsActive(profile: ForYouTestProfile) {
   return Boolean(profile.make || profile.model || profile.interests.length || profile.location);
 }
 
+export function articleMatchesForYouTest(
+  extras: {
+    makes: string[];
+    models: string[];
+    generations?: string[];
+    interests: string[];
+    locations: string[];
+  },
+  profile: ForYouTestProfile,
+): boolean {
+  if (!forYouTestIsActive(profile)) return true;
+  const makes = extras.makes.map(norm);
+  const models = extras.models.map(norm);
+  const generations = (extras.generations ?? []).map(norm);
+  const interests = extras.interests.map(norm);
+  const locations = extras.locations.map(norm);
+  if (profile.make && !makes.includes(norm(profile.make))) return false;
+  if (profile.model && !models.includes(norm(profile.model))) return false;
+  if (profile.generation && !generations.includes(norm(profile.generation))) return false;
+  if (profile.interests.length && !profile.interests.some((interest) => interests.includes(norm(interest)))) {
+    return false;
+  }
+  if (profile.location && !locations.includes(norm(profile.location))) return false;
+  return true;
+}
+
+function norm(value: string) {
+  return value.toLowerCase().trim();
+}
+
 export function forYouTestSummary(profile: ForYouTestProfile) {
   const parts = [
     [profile.make, profile.model, profile.generation].filter(Boolean).join(" "),

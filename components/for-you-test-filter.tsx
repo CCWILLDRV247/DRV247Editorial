@@ -98,8 +98,9 @@ export function ForYouTestFilter({
               Test personalization — placeholder
             </p>
             <p className="mt-1 text-[13px] leading-5 text-[#1b1d1f]/70">
-              Not a garage. Ranks For You from make/model, interests, and location already on the
-              story. No invented matches. Saved in the URL and on this phone.
+              Not a garage. Hides anything that does not match each setting you choose — make,
+              911-family model, interest, location. Blank settings do not constrain. Saved in the
+              URL and on this phone.
             </p>
             {active ? (
               <p className="mt-1 font-display text-sm font-bold uppercase text-[#1b1d1f]">

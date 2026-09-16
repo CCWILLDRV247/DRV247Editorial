@@ -387,6 +387,47 @@ describe("for you test profile", () => {
     );
   });
 
+  it("hard-filters each set dimension and leaves unset ones open", async () => {
+    const { articleMatchesForYouTest, parseForYouTestProfile } = await import("./for-you-test");
+    const porsche911 = parseForYouTestProfile({ make: "Porsche", model: "911" });
+    const merch = {
+      makes: [] as string[],
+      models: [] as string[],
+      generations: [] as string[],
+      interests: ["Modified", "Car Culture"],
+      locations: [] as string[],
+    };
+    const airCooled = {
+      makes: ["Porsche"],
+      models: ["911"],
+      generations: ["993"],
+      interests: [] as string[],
+      locations: [] as string[],
+    };
+    const porscheOnly = {
+      makes: ["Porsche"],
+      models: ["Cayenne"],
+      generations: [] as string[],
+      interests: [] as string[],
+      locations: [] as string[],
+    };
+    assert.equal(articleMatchesForYouTest(merch, porsche911), false);
+    assert.equal(articleMatchesForYouTest(airCooled, porsche911), true);
+    assert.equal(articleMatchesForYouTest(porscheOnly, porsche911), false);
+    assert.equal(articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche" })), true);
+    assert.equal(
+      articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche", interest: "Classic" })),
+      false,
+    );
+    assert.equal(
+      articleMatchesForYouTest(
+        { ...airCooled, interests: ["Classic"] },
+        parseForYouTestProfile({ make: "Porsche", model: "911", interest: "Classic" }),
+      ),
+      true,
+    );
+  });
+
   it("does not invent a vehicle match when the story has no entities", async () => {
     const { scoreArticle } = await import("./rank");
     const unmatched = scoreArticle({
