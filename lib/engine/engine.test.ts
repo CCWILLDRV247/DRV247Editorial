@@ -356,12 +356,14 @@ describe("primary taxonomy", () => {
 });
 
 describe("for you test profile", () => {
-  it("only accepts catalog make/model and known interests", async () => {
-    const { parseForYouTestProfile, forYouTestIsActive } = await import("./for-you-test");
+  it("keeps off-catalog marques, models, and interests", async () => {
+    const { parseForYouTestProfile, forYouTestIsActive, forYouTestCatalog, withProfileInCatalog } =
+      await import("./for-you-test");
     const profile = parseForYouTestProfile({
       make: "Porsche",
       model: "911",
       generation: "964",
+      variant: "Carrera RS",
       interest: ["Classic", "NotAThing"],
       location: "Goodwood",
     });
@@ -369,22 +371,47 @@ describe("for you test profile", () => {
       make: "Porsche",
       model: "911",
       generation: "964",
-      interests: ["Classic"],
+      variant: "Carrera RS",
+      interests: ["Classic", "NotAThing"],
       location: "Goodwood",
     });
     assert.equal(forYouTestIsActive(profile), true);
-    const rejected = parseForYouTestProfile({ make: "Honda", model: "Civic", interest: "Vibes" });
-    assert.equal(rejected.make, undefined);
-    assert.equal(rejected.model, undefined);
-    assert.deepEqual(rejected.interests, []);
-    assert.equal(forYouTestIsActive(rejected), false);
-    const { forYouTestCatalog } = await import("./for-you-test");
-    const catalog = forYouTestCatalog();
-    assert.ok(catalog.makes.some((item) => item.name === "Porsche"));
+    const honda = parseForYouTestProfile({ make: "Honda", model: "Civic", interest: "Vibes" });
+    assert.equal(honda.make, "Honda");
+    assert.equal(honda.model, "Civic");
+    assert.deepEqual(honda.interests, ["Vibes"]);
+    assert.equal(forYouTestIsActive(honda), true);
+    const gazetteer = forYouTestCatalog();
+    assert.ok(gazetteer.makes.some((item) => item.name === "Porsche"));
+    assert.ok(gazetteer.makes.some((item) => item.name === "Ferrari"));
     assert.equal(
-      catalog.makes.some((item) => item.name === "Honda"),
+      gazetteer.makes.some((item) => item.name === "Honda"),
       false,
     );
+    const live = forYouTestCatalog({
+      entities: [
+        { kind: "make", name: "Honda", make: "Honda" },
+        { kind: "model", name: "Civic", make: "Honda", model: "Civic" },
+        { kind: "generation", name: "EK9", make: "Honda", model: "Civic" },
+        { kind: "variant", name: "Type R", make: "Honda", model: "Civic" },
+      ],
+      interests: ["Vibes"],
+      locations: ["Suzuka"],
+    });
+    assert.ok(live.makes.some((item) => item.name === "Honda"));
+    const civic = live.makes.find((item) => item.name === "Honda")?.models.find((item) => item.name === "Civic");
+    assert.ok(civic?.generations.includes("EK9"));
+    assert.ok(civic?.variants.includes("Type R"));
+    assert.ok(live.interests.includes("Vibes"));
+    assert.ok(live.locations.includes("Suzuka"));
+    const injected = withProfileInCatalog(gazetteer, honda);
+    assert.ok(injected.makes.some((item) => item.name === "Honda"));
+    assert.ok(
+      injected.makes
+        .find((item) => item.name === "Honda")
+        ?.models.some((item) => item.name === "Civic"),
+    );
+    assert.ok(injected.makes.some((item) => item.name === "Ferrari"));
   });
 
   it("hard-filters each set dimension and leaves unset ones open", async () => {
@@ -394,6 +421,7 @@ describe("for you test profile", () => {
       makes: [] as string[],
       models: [] as string[],
       generations: [] as string[],
+      variants: [] as string[],
       interests: ["Modified", "Car Culture"],
       locations: [] as string[],
     };
@@ -401,6 +429,7 @@ describe("for you test profile", () => {
       makes: ["Porsche"],
       models: ["911"],
       generations: ["993"],
+      variants: ["Carrera RS"],
       interests: [] as string[],
       locations: [] as string[],
     };
@@ -408,8 +437,25 @@ describe("for you test profile", () => {
       makes: ["Porsche"],
       models: ["Cayenne"],
       generations: [] as string[],
+      variants: [] as string[],
       interests: [] as string[],
       locations: [] as string[],
+    };
+    const ferrari = {
+      makes: ["Ferrari"],
+      models: ["F355"],
+      generations: ["F355"],
+      variants: [] as string[],
+      interests: ["Classic"],
+      locations: ["Monza"],
+    };
+    const honda = {
+      makes: ["Honda"],
+      models: ["Civic"],
+      generations: ["EK9"],
+      variants: ["Type R"],
+      interests: ["Vibes"],
+      locations: ["Suzuka"],
     };
     assert.equal(articleMatchesForYouTest(merch, porsche911), false);
     assert.equal(articleMatchesForYouTest(airCooled, porsche911), true);
@@ -423,6 +469,49 @@ describe("for you test profile", () => {
       articleMatchesForYouTest(
         { ...airCooled, interests: ["Classic"] },
         parseForYouTestProfile({ make: "Porsche", model: "911", interest: "Classic" }),
+      ),
+      true,
+    );
+    assert.equal(articleMatchesForYouTest(ferrari, parseForYouTestProfile({ make: "Ferrari" })), true);
+    assert.equal(articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Ferrari" })), false);
+    assert.equal(articleMatchesForYouTest(honda, parseForYouTestProfile({ make: "Honda", model: "Civic" })), true);
+    assert.equal(articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Honda", model: "Civic" })), false);
+    assert.equal(
+      articleMatchesForYouTest(ferrari, parseForYouTestProfile({ interest: "Classic" })),
+      true,
+    );
+    assert.equal(articleMatchesForYouTest(merch, parseForYouTestProfile({ interest: "Classic" })), false);
+    assert.equal(
+      articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche", model: "911", generation: "993" })),
+      true,
+    );
+    assert.equal(
+      articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche", model: "911", generation: "996" })),
+      false,
+    );
+    assert.equal(
+      articleMatchesForYouTest(
+        airCooled,
+        parseForYouTestProfile({ make: "Porsche", model: "911", variant: "Carrera RS" }),
+      ),
+      true,
+    );
+    assert.equal(
+      articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche", model: "911", variant: "GT3" })),
+      false,
+    );
+    assert.equal(
+      articleMatchesForYouTest(ferrari, parseForYouTestProfile({ location: "Monza" })),
+      true,
+    );
+    assert.equal(
+      articleMatchesForYouTest(ferrari, parseForYouTestProfile({ location: "Goodwood" })),
+      false,
+    );
+    assert.equal(
+      articleMatchesForYouTest(
+        { ...ferrari, interests: ["Classic", "Design"] },
+        parseForYouTestProfile({ interest: ["Classic", "Modified"] }),
       ),
       true,
     );

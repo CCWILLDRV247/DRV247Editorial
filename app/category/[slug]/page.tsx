@@ -4,13 +4,14 @@ import { SiteHeader } from "@/components/site-chrome";
 import { StoryFeed } from "@/components/story-feed";
 import { LEGACY_NAV_TO_PRIMARY, contentPrimaryBySlug } from "@/config/magazine-nav";
 import {
-  forYouTestCatalog,
   forYouTestIsActive,
   forYouTestSearchString,
   parseForYouTestProfile,
+  withProfileInCatalog,
   withTestQuery,
 } from "@/lib/engine/for-you-test";
 import { listMagazineStories } from "@/lib/engine/magazine";
+import { loadForYouTestCatalog } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,11 +37,12 @@ export default async function CategoryPage({
     testProfile: forYouTestIsActive(testProfile) ? testProfile : undefined,
     limit: 24,
   });
+  const catalog = withProfileInCatalog(await loadForYouTestCatalog(), testProfile);
 
   return (
     <div className="min-h-full overflow-x-clip bg-white">
       <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
-      <ForYouTestFilter initial={testProfile} catalog={forYouTestCatalog()} />
+      <ForYouTestFilter initial={testProfile} catalog={catalog} />
       <main className="pt-2">
         <StoryFeed stories={stories} copyKey={category.slug} categoryName={category.name} />
       </main>

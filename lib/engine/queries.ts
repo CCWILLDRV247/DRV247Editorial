@@ -16,7 +16,7 @@ import {
 import { loadRankWeights, recencyBonus, scoreArticle, scoreForYou, type GarageVehicle } from "./rank";
 import { classifyPrimary, isContentPrimary } from "./taxonomy";
 import { loadArticlePrimaries } from "./article-primary";
-import { articleMatchesForYouTest, forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
+import { articleMatchesForYouTest, buildForYouTestCatalog, forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
 
 export type EditorialDto = {
   id: number;
@@ -201,12 +201,13 @@ export async function listEditorial(options?: {
   let userInterests: string[] = [];
   let userLocation: string | null = null;
   if (useTestProfile && testProfile) {
-    if (testProfile.make) {
+    if (testProfile.make || testProfile.model) {
       vehicles = [
         {
-          make: testProfile.make,
+          make: testProfile.make ?? "",
           model: testProfile.model ?? "",
           generation: testProfile.generation,
+          variant: testProfile.variant,
         },
       ];
     }
@@ -348,4 +349,26 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
       interests: extras.interests,
     });
   return toDto(article, { ...extras, rankScore, primaryCategory });
+}
+
+/** Gazetteer plus every make/model/generation/variant/interest/location on live stories. */
+export async function loadForYouTestCatalog() {
+  const db = await getDb();
+  const [entities, interests, locations] = await Promise.all([
+    db
+      .select({
+        kind: articleEntities.kind,
+        name: articleEntities.name,
+        make: articleEntities.make,
+        model: articleEntities.model,
+      })
+      .from(articleEntities),
+    db.select({ interest: articleInterests.interest }).from(articleInterests),
+    db.select({ location: articleLocations.location }).from(articleLocations),
+  ]);
+  return buildForYouTestCatalog({
+    entities,
+    interests: interests.map((row) => row.interest),
+    locations: locations.map((row) => row.location),
+  });
 }
