@@ -113,6 +113,11 @@ export function forYouTestSearchString(profile: ForYouTestProfile) {
   return params.toString();
 }
 
+export function withTestQuery(href: string, query?: string) {
+  if (!query) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}${query}`;
+}
+
 export function catalogMakes() {
   return VEHICLE_CATALOG.map((record) => record.make);
 }

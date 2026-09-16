@@ -11,19 +11,26 @@ const moreNav = PRIMARY_NAV.filter(
   (item) => !(MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
 );
 
+function withQuery(href: string, query?: string) {
+  if (!query) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}${query}`;
+}
+
 export function SiteHeader({
   title,
   backHref,
+  testQuery,
 }: {
   title: string;
   backHref?: string;
+  testQuery?: string;
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 md:h-16 md:px-6">
         {backHref ? (
           <Link
-            href={backHref}
+            href={withQuery(backHref, testQuery)}
             aria-label="Back"
             className="flex size-8 items-center justify-center text-[#1b1d1f]"
           >
@@ -31,7 +38,7 @@ export function SiteHeader({
           </Link>
         ) : (
           <Link
-            href="/"
+            href={withQuery("/", testQuery)}
             className="font-display text-xl font-black uppercase tracking-[-0.04em] text-[#1b1d1f]"
           >
             DRV247
@@ -51,7 +58,7 @@ export function SiteHeader({
         {PRIMARY_NAV.map((item) => (
           <Link
             key={item.slug}
-            href={item.href}
+            href={withQuery(item.href, testQuery)}
             className="font-display text-lg font-bold uppercase tracking-[-0.02em] text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
           >
             {item.name}
@@ -62,7 +69,7 @@ export function SiteHeader({
         {mobileNav.map((item) => (
           <Link
             key={item.slug}
-            href={item.href}
+            href={withQuery(item.href, testQuery)}
             className="shrink-0 font-display text-base font-bold uppercase text-[#1b1d1f]/70"
           >
             {item.name}
@@ -77,7 +84,7 @@ export function SiteHeader({
               {moreNav.map((item) => (
                 <Link
                   key={item.slug}
-                  href={item.href}
+                  href={withQuery(item.href, testQuery)}
                   className="block py-1 font-display text-base font-bold uppercase text-[#1b1d1f]"
                 >
                   {item.name}

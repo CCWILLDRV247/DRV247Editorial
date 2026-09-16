@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryImage } from "@/components/story-image";
+import { forYouTestSearchString, parseForYouTestProfile, withTestQuery } from "@/lib/engine/for-you-test";
 import { getMagazineStory } from "@/lib/engine/magazine";
 import { formatStoryDate } from "@/lib/format";
 
@@ -11,18 +12,22 @@ export const fetchCache = "force-no-store";
 
 export default async function StoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const testQuery = forYouTestSearchString(parseForYouTestProfile(await searchParams)) || undefined;
   const story = await getMagazineStory(Number(id));
   if (!story) notFound();
   const intro = storyIntro(story.title, story.summary);
   const extract = storyExtract(story.aiSummary, story.title, intro);
+  const categoryHref = withTestQuery(`/category/${story.category.slug}`, testQuery);
 
   return (
     <div className="min-h-full bg-white">
-      <SiteHeader title={story.category.name} backHref={`/category/${story.category.slug}`} />
+      <SiteHeader title={story.category.name} backHref={`/category/${story.category.slug}`} testQuery={testQuery} />
       <article className="mx-auto max-w-3xl pb-20">
         <div className="relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl">
           <StoryImage src={story.imageUrl} alt="" />
@@ -62,7 +67,7 @@ export default async function StoryPage({
             the original, and the outbound link — never the full third-party article.
           </p>
           <Link
-            href={`/category/${story.category.slug}`}
+            href={categoryHref}
             className="mt-6 flex h-11 w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white font-display text-lg font-extrabold uppercase text-[#1b1d1f]"
           >
             Back to {story.category.name}

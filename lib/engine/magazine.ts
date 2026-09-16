@@ -76,7 +76,9 @@ export async function listMagazineStories(options?: {
 }): Promise<StoryDto[]> {
   const articles = await listEditorial({
     section: options?.navSlug && options.navSlug !== "for-you" ? options.navSlug : "for-you",
-    testProfile: options?.testProfile,
+    testProfile: forYouTestIsActive(options?.testProfile ?? { interests: [] })
+      ? options?.testProfile
+      : undefined,
     limit: 80,
   });
   return articles.slice(0, options?.limit ?? 24).map(toMagazineStory);

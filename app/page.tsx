@@ -1,7 +1,7 @@
 import { ForYouTestFilter } from "@/components/for-you-test-filter";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryFeed } from "@/components/story-feed";
-import { forYouTestCatalog, parseForYouTestProfile } from "@/lib/engine/for-you-test";
+import { forYouTestCatalog, forYouTestSearchString, parseForYouTestProfile } from "@/lib/engine/for-you-test";
 import { getMagazineHome } from "@/lib/engine/magazine";
 
 export const runtime = "nodejs";
@@ -16,9 +16,10 @@ export default async function HomePage({
   const params = await searchParams;
   const testProfile = parseForYouTestProfile(params);
   const { stories, carousels } = await getMagazineHome(testProfile);
+  const testQuery = forYouTestSearchString(testProfile) || undefined;
   return (
     <div className="min-h-full overflow-x-clip bg-white">
-      <SiteHeader title="For You" />
+      <SiteHeader title="For You" testQuery={testQuery} />
       <ForYouTestFilter initial={testProfile} catalog={forYouTestCatalog()} />
       <main className="pt-2">
         <StoryFeed

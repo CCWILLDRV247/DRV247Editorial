@@ -428,6 +428,15 @@ describe("for you test profile", () => {
     );
   });
 
+  it("keeps the test query on primary nav hrefs", async () => {
+    const { withTestQuery, forYouTestSearchString, parseForYouTestProfile } = await import("./for-you-test");
+    const query = forYouTestSearchString(parseForYouTestProfile({ make: "Porsche", model: "911" }));
+    assert.equal(withTestQuery("/", query), "/?make=Porsche&model=911");
+    assert.equal(withTestQuery("/category/cars", query), "/category/cars?make=Porsche&model=911");
+    assert.equal(withTestQuery("/category/culture", query), "/category/culture?make=Porsche&model=911");
+    assert.equal(withTestQuery("/category/cars", undefined), "/category/cars");
+  });
+
   it("does not invent a vehicle match when the story has no entities", async () => {
     const { scoreArticle } = await import("./rank");
     const unmatched = scoreArticle({
