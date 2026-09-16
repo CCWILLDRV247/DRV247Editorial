@@ -9,6 +9,7 @@ import { isPathAllowed, parseRobots } from "./robots";
 import { scoreArticle } from "./rank";
 import { isSitemapIndex, looksLikeArticleUrl, parseSitemapXml } from "./adapters/sitemap";
 import { parseArticleMetadata, parseHomeLinks, robotsAllows } from "./adapters/scrape";
+import { isEnglish } from "./language";
 
 const rss = readFileSync(new URL("./__fixtures__/rss.xml", import.meta.url), "utf8");
 const atom = readFileSync(new URL("./__fixtures__/atom.xml", import.meta.url), "utf8");
@@ -118,14 +119,78 @@ describe("entities and ranking", () => {
 
 describe("enabled sources", () => {
   it("keeps wave 1 and adds ten CSV titles plus Turnpike", async () => {
-    const { WAVE1_SOURCE_IDS, WAVE2_SOURCE_IDS, ENABLED_SOURCE_IDS } = await import(
-      "../../config/wave1-sources"
-    );
+    const {
+      WAVE1_SOURCE_IDS,
+      WAVE2_SOURCE_IDS,
+      ENABLED_SOURCE_IDS,
+      DISABLED_SOURCE_IDS,
+      ENABLED_SOURCE_SET,
+    } = await import("../../config/wave1-sources");
     assert.equal(WAVE1_SOURCE_IDS.length, 10);
     assert.equal(WAVE2_SOURCE_IDS.length, 11);
-    assert.equal(ENABLED_SOURCE_IDS.length, 21);
+    assert.equal(ENABLED_SOURCE_IDS.length, 19);
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
     assert.equal((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
+    assert.deepEqual([...DISABLED_SOURCE_IDS], ["auto_012", "auto_048"]);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_012"), false);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_048"), false);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_008"), true);
+  });
+});
+
+describe("english-only ingest", () => {
+  it("keeps English teasers and mixed titles with English copy", () => {
+    assert.equal(
+      isEnglish(
+        "Bizzarrini finishes Corsa Revival cars and moves on to new Giotto hypercar project - Octane Magazine",
+        "With 24 homages to a 1965 Le Mans class winner now finished, the next project for Bizzarrini is a hypercar.",
+      ),
+      true,
+    );
+    assert.equal(isEnglish("Shop | ramp.space", "Shop | ramp.space"), true);
+    assert.equal(
+      isEnglish("Handmade in Zuffenhausen • Curves Magazin", "Handmade in Zuffenhausen • Curves Magazin"),
+      true,
+    );
+    assert.equal(
+      isEnglish(
+        "Postkarte von der Autobahn",
+        "After a gruelling Denmark-Switzerland trip in 2023 I swore off using motorways for continental journeys.",
+      ),
+      true,
+    );
+    assert.equal(
+      isEnglish(
+        "Concorso d’Eleganza Villa d’Este 2026: Another Unforgettable Weekend on Lake Como",
+        "Two world premieres, 54 motoring jewels and a 1937 one-off roadster crowned Best of Show.",
+      ),
+      true,
+    );
+  });
+
+  it("skips French, German, and non-Latin items without disabling mixed sources", () => {
+    assert.equal(
+      isEnglish(
+        "Top 10 des plus belles livrées Porsche Motorsport",
+        "Gulf, Rothmans, Pink Pig… Depuis plus de soixante ans, Porsche décore ses voitures de course avec autant de savoir-faire et de passion qu’elle en a mis à les concevoir.",
+      ),
+      false,
+    );
+    assert.equal(
+      isEnglish(
+        "#49 – Strassenrennen in Mugello 1914–1970 - AUTOMOBILSPORT Magazin",
+        "Die Liebe zum AUTOMOBILSPORT verbindet uns und unsere Leser. AUTOMOBILSPORT berichtet vierteljährlich über Motorsport-Events im Bereich des Historischen Motorsports.",
+      ),
+      false,
+    );
+    assert.equal(
+      isEnglish(
+        "ramp.space - World's best luxury magazines | ramp.space",
+        "Als multimediale Impact-Medienmarke steht ramp mit seinen vielfach ausgezeichneten Avantgarde-Luxus-Magazinen seit über 15 Jahren authentisch für Werte, Haltung und Exzellenz.",
+      ),
+      false,
+    );
+    assert.equal(isEnglish("保时捷 911 经典回归", "最新一期介绍了这台车的历史。"), false);
   });
 });
 

@@ -66,11 +66,12 @@ export function EngineDesk({ sources, runs, articles }: Props) {
             Automotive Culture Engine
           </p>
           <h1 className="font-display text-4xl font-black uppercase tracking-[-0.04em]">
-            Wave 2 — 21 titles
+            Wave 2 — 19 titles
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-[#1b1d1f]/70">
-            Original ten stay live. Eleven more (ten from the UK/EU sheet plus Turnpike) are enabled.
-            Remaining titles stay dark. {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
+            Original ten stay live. Nine more from the UK/EU sheet plus Turnpike. Flat 6 (French) and
+            AUTOMOBILSPORT (German) stay dark. Ingest skips non-English items from mixed titles such as
+            ramp. {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>
         <div className="flex gap-2">

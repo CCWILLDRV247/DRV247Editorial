@@ -1,9 +1,9 @@
-import { WAVE2_SOURCE_IDS } from "../config/wave1-sources";
+import { DISABLED_SOURCE_SET, WAVE2_SOURCE_IDS } from "../config/wave1-sources";
 import { getDb } from "../lib/db";
 import { ingestEnabledSources } from "../lib/engine/pipeline";
 
-const rssFirst = ["auto_004", "auto_009", "auto_047", "auto_048", "auto_049", "auto_051"];
-const rest = WAVE2_SOURCE_IDS.filter((id) => !rssFirst.includes(id));
+const rssFirst = ["auto_004", "auto_009", "auto_047", "auto_049", "auto_051"];
+const rest = WAVE2_SOURCE_IDS.filter((id) => !rssFirst.includes(id) && !DISABLED_SOURCE_SET.has(id));
 
 async function main() {
   await getDb();
