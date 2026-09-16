@@ -34,8 +34,6 @@ export type SourceIngestResult = {
   httpStatus: number | null;
 };
 
-const MAX_SUMMARIES_PER_SOURCE = 8;
-
 export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngestResult[]> {
   const db = await getDb();
   const sources = (await db.select().from(mediaSources)).filter((source) => {
@@ -44,22 +42,14 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
     return ids.includes(source.id);
   });
   const results: SourceIngestResult[] = [];
-  let summaryBudget = 16;
   for (const source of sources) {
-    const result = await ingestMediaSource(source, summaryBudget);
-    results.push(result);
-    summaryBudget = Math.max(0, summaryBudget - result.summarized);
+    results.push(await ingestMediaSource(source));
   }
-  if (summaryBudget > 0) {
-    await summarizeMissingArticles(summaryBudget);
-  }
+  await extractMissingSummaries();
   return results;
 }
 
-export async function ingestMediaSource(
-  source: MediaSource,
-  summaryBudget = MAX_SUMMARIES_PER_SOURCE,
-): Promise<SourceIngestResult> {
+export async function ingestMediaSource(source: MediaSource): Promise<SourceIngestResult> {
   const db = await getDb();
   const startedAt = Date.now();
   let method: string | null = null;
@@ -106,7 +96,6 @@ export async function ingestMediaSource(
       source,
       items,
       method ?? "none",
-      summaryBudget,
     );
     const ok = items.length > 0;
     await db.insert(ingestionRuns).values({
@@ -312,7 +301,6 @@ async function persistItems(
   source: MediaSource,
   items: EngineItem[],
   method: string,
-  summaryBudget: number,
 ): Promise<{ inserted: number; summarized: number }> {
   const db = await getDb();
   const now = Date.now();
@@ -417,46 +405,64 @@ async function persistItems(
       teaser: row.excerpt,
     });
   }
-  const summarized = await summarizePending(pendingSummaries, summaryBudget);
+  const summarized = await summarizePending(pendingSummaries);
   return { inserted, summarized };
 }
 
+const EXTRACT_CONCURRENCY = 4;
+
 async function summarizePending(
   pending: { id: number; title: string; canonicalUrl: string; teaser: string }[],
-  budget: number,
 ): Promise<number> {
-  if (!pending.length || budget <= 0) return 0;
+  if (!pending.length) return 0;
   const db = await getDb();
+  const unique: typeof pending = [];
   const seen = new Set<number>();
-  let summarized = 0;
   for (const item of pending) {
     if (seen.has(item.id)) continue;
     seen.add(item.id);
-    if (summarized >= Math.min(MAX_SUMMARIES_PER_SOURCE, budget)) break;
-    const summary = await extractOriginalSummary(item.canonicalUrl, item.title, item.teaser);
-    if (!summary) continue;
-    await db.update(articles).set({ aiSummary: summary }).where(eq(articles.id, item.id));
-    summarized += 1;
+    unique.push(item);
+  }
+  let summarized = 0;
+  for (let index = 0; index < unique.length; index += EXTRACT_CONCURRENCY) {
+    const batch = unique.slice(index, index + EXTRACT_CONCURRENCY);
+    const results = await Promise.all(
+      batch.map(async (item) => ({
+        id: item.id,
+        summary: await extractOriginalSummary(item.canonicalUrl, item.title, item.teaser),
+      })),
+    );
+    for (const result of results) {
+      if (!result.summary) continue;
+      await db.update(articles).set({ aiSummary: result.summary }).where(eq(articles.id, result.id));
+      summarized += 1;
+    }
     await delay(150);
   }
   return summarized;
 }
 
-export async function summarizeMissingArticles(limit: number): Promise<number> {
-  if (limit <= 0) return 0;
+export async function extractMissingSummaries(): Promise<{
+  attempted: number;
+  filled: number;
+  hidden: number;
+}> {
   const db = await getDb();
   const rows = await db.select().from(articles);
-  const missing = rows
-    .filter((row) => !row.aiSummary?.trim())
-    .sort((a, b) => b.publishedAt - a.publishedAt)
-    .slice(0, limit)
-    .map((row) => ({
+  const missing = rows.filter((row) => !row.aiSummary?.trim());
+  const filled = await summarizePending(
+    missing.map((row) => ({
       id: row.id,
       title: row.title,
       canonicalUrl: row.canonicalUrl,
       teaser: row.excerpt,
-    }));
-  return summarizePending(missing, limit);
+    })),
+  );
+  return {
+    attempted: missing.length,
+    filled,
+    hidden: missing.length - filled,
+  };
 }
 
 export async function reprocessArticles(): Promise<number> {
@@ -492,5 +498,6 @@ export async function reprocessArticles(): Promise<number> {
       .where(eq(articles.id, row.id));
     count += 1;
   }
+  await extractMissingSummaries();
   return count;
 }

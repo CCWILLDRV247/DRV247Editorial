@@ -54,4 +54,4 @@ Desk **Ingest now** still runs the 10-title culture pipeline. The leftover v1 RS
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds.
 
-Story pages show a short **extract** from the original, taken at ingest: fetch the URL, persist standfirst / meta description / first substantial paragraph only, then discard the HTML. If the fetch 403s/fails, or that extract is empty or just repeats the RSS teaser, the block is hidden. No LLM key.
+Story pages show a short **extract** from the original, taken at ingest: fetch the URL, persist standfirst / meta description / first substantial paragraph only, then discard the HTML. If the fetch 403s/fails, or that extract is empty or just repeats the RSS teaser, the block is hidden. No LLM key. Desk ingest-now and weekly cron backfill every story still missing an extract.
