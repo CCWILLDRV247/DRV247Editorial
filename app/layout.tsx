@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s · DRV247",
   },
   description:
-    "Drive 24/7 editorial desk — racing, classics, modified, concourse, and car culture. Metadata, summaries, and the original link. Never the full article.",
+    "Drive 24/7 editorial desk — For You, Cars, Culture, Driving, Motorsport, and Events. Metadata, summaries, and the original link. Never the full article.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

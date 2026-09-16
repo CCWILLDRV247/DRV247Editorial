@@ -173,22 +173,23 @@ function extractCategories(text: string): EditorialCategory[] {
   return hits;
 }
 
+export const EDITORIAL_LOCATIONS = [
+  "Goodwood",
+  "Monza",
+  "Le Mans",
+  "Spa",
+  "Nürburgring",
+  "London",
+  "Milan",
+  "Paris",
+  "Monaco",
+  "Villa d'Este",
+  "Retromobile",
+  "Amelia Island",
+] as const;
+
 function extractLocations(text: string): string[] {
-  const places = [
-    "Goodwood",
-    "Monza",
-    "Le Mans",
-    "Spa",
-    "Nürburgring",
-    "London",
-    "Milan",
-    "Paris",
-    "Monaco",
-    "Villa d'Este",
-    "Retromobile",
-    "Amelia Island",
-  ];
-  return places.filter((place) => text.includes(place.toLowerCase()));
+  return EDITORIAL_LOCATIONS.filter((place) => text.includes(place.toLowerCase()));
 }
 
 export function isKnownInterest(value: string): value is Interest {

@@ -159,6 +159,28 @@ const SCHEMA_STATEMENTS = [
       user_id TEXT NOT NULL REFERENCES demo_users(id),
       interest TEXT NOT NULL
     )`,
+  `CREATE TABLE IF NOT EXISTS editorial_primary_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      sort_order INTEGER NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1
+    )`,
+  `CREATE TABLE IF NOT EXISTS editorial_secondary_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      primary_category_id INTEGER NOT NULL REFERENCES editorial_primary_categories(id),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      enabled INTEGER NOT NULL DEFAULT 1
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_primary (
+      article_id INTEGER PRIMARY KEY REFERENCES articles(id),
+      primary_slug TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
 ];
 
 export type AppDb = LibSQLDatabase<typeof schema>;
@@ -188,12 +210,37 @@ function connection() {
 async function ensureSchema(client: Client) {
   try {
     await client.execute("SELECT 1 FROM media_sources LIMIT 1");
-    return;
   } catch {
     for (const sql of SCHEMA_STATEMENTS) {
       await client.execute(sql);
     }
   }
+  await ensureTaxonomy(client);
+}
+
+async function ensureTaxonomy(client: Client) {
+  await client.execute(`CREATE TABLE IF NOT EXISTS editorial_primary_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      sort_order INTEGER NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1
+    )`);
+  await client.execute(`CREATE TABLE IF NOT EXISTS editorial_secondary_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      primary_category_id INTEGER NOT NULL REFERENCES editorial_primary_categories(id),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      enabled INTEGER NOT NULL DEFAULT 1
+    )`);
+  await client.execute(`CREATE TABLE IF NOT EXISTS article_primary (
+      article_id INTEGER PRIMARY KEY REFERENCES articles(id),
+      primary_slug TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`);
 }
 
 async function createDb() {
@@ -204,6 +251,8 @@ async function createDb() {
   await seedIfEmpty(db);
   await seedEngine(db);
   globalForDb.drvDb = db;
+  const { classifyAllArticles } = await import("@/lib/engine/article-primary");
+  await classifyAllArticles();
   return db;
 }
 

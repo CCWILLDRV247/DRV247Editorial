@@ -135,23 +135,23 @@ export function StoryFeed({
     : modifiedSplit.head;
   const homeBlocks: FeedBlock[] = [];
   appendCards(homeBlocks, trailingThroughSketch);
-  appendLane(homeBlocks, "classic", lane);
+  appendLane(homeBlocks, "cars", lane);
   appendCards(homeBlocks, classicSplit.head);
   if (classicSplit.hit) appendLane(homeBlocks, "culture", lane);
   appendCards(homeBlocks, classicSplit.tail);
   appendCards(homeBlocks, racingBridge);
-  appendLane(homeBlocks, "racing", lane);
+  appendLane(homeBlocks, "motorsport", lane);
   appendCards(homeBlocks, racingRemainder);
   if (racingSplit.hit) appendLane(homeBlocks, "culture", lane);
   appendCards(homeBlocks, racingSplit.tail);
   appendCards(homeBlocks, modifiedBridge);
-  appendLane(homeBlocks, "modified", lane);
+  appendLane(homeBlocks, "driving", lane);
   appendCards(homeBlocks, modifiedRemainder);
   if (modifiedSplit.hit || !plungeFound) {
     appendLane(homeBlocks, "culture", lane);
   }
   appendCards(homeBlocks, modifiedSplit.tail);
-  appendLane(homeBlocks, "concourse", lane);
+  appendLane(homeBlocks, "events", lane);
   const insetCards = deskVisual;
   const storyCardGrid = (cards: StoryDto[]) => {
     const grid = (

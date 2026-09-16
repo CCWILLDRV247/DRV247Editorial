@@ -6,6 +6,7 @@ import {
   articleImages,
   articleInterests,
   articleLocations,
+  articlePrimary,
   articles,
   ingestionRuns,
   mediaSources,
@@ -21,6 +22,7 @@ import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
 import { extractOriginalSummary } from "./summarize";
+import { upsertArticlePrimary } from "./article-primary";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -414,6 +416,13 @@ async function persistItems(
       canonicalUrl: row.canonicalUrl,
       teaser: row.excerpt,
     });
+    await upsertArticlePrimary(row.id, {
+      title: row.title,
+      excerpt: row.excerpt,
+      publication: row.publication,
+      categories: extracted.categories,
+      interests: extracted.interests,
+    });
   }
   const summarized = await summarizePending(pendingSummaries);
   return { inserted, summarized, skippedNonEnglish };
@@ -426,6 +435,7 @@ export async function deleteArticleById(id: number): Promise<void> {
   await db.delete(articleInterests).where(eq(articleInterests.articleId, id));
   await db.delete(articleLocations).where(eq(articleLocations.articleId, id));
   await db.delete(articleImages).where(eq(articleImages.articleId, id));
+  await db.delete(articlePrimary).where(eq(articlePrimary.articleId, id));
   await db.delete(articles).where(eq(articles.id, id));
 }
 
@@ -527,6 +537,13 @@ export async function reprocessArticles(): Promise<number> {
     for (const interest of extracted.interests) {
       await db.insert(articleInterests).values({ articleId: row.id, interest });
     }
+    await upsertArticlePrimary(row.id, {
+      title: row.title,
+      excerpt: row.excerpt,
+      publication: row.publication,
+      categories: extracted.categories,
+      interests: extracted.interests,
+    });
     await db
       .update(articles)
       .set({ processed: true, lastProcessed: Date.now() })

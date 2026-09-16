@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forYouTestIsActive, parseForYouTestProfile } from "@/lib/engine/for-you-test";
 import { listEditorial } from "@/lib/engine/queries";
 import { ENGINE_BRANCH, ENGINE_WAVE, engineCommit } from "@/lib/engine/version";
 
@@ -7,15 +8,18 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const testProfile = parseForYouTestProfile(searchParams);
+  const testing = forYouTestIsActive(testProfile);
   const articles = await listEditorial({
-    userId: searchParams.get("user") ?? "demo-chris",
+    userId: testing ? undefined : (searchParams.get("user") ?? undefined),
     section: searchParams.get("section") ?? "for-you",
     sourceId: searchParams.get("source") ?? undefined,
-    make: searchParams.get("make") ?? undefined,
-    model: searchParams.get("model") ?? undefined,
-    generation: searchParams.get("generation") ?? undefined,
+    testProfile: testing ? testProfile : undefined,
+    make: testing ? undefined : (searchParams.get("make") ?? undefined),
+    model: testing ? undefined : (searchParams.get("model") ?? undefined),
+    generation: testing ? undefined : (searchParams.get("generation") ?? undefined),
     category: searchParams.get("category") ?? undefined,
-    interest: searchParams.get("interest") ?? undefined,
+    interest: testing ? undefined : (searchParams.get("interest") ?? undefined),
     q: searchParams.get("q") ?? undefined,
     limit: Number(searchParams.get("limit") ?? 40),
   });
@@ -25,7 +29,8 @@ export async function GET(request: Request) {
       branch: ENGINE_BRANCH,
       commit: engineCommit(),
       section: searchParams.get("section") ?? "for-you",
-      user: searchParams.get("user") ?? "demo-chris",
+      user: testing ? "test-filter" : (searchParams.get("user") ?? null),
+      testProfile: testing ? testProfile : null,
       publications: [...new Set(articles.map((article) => article.publication))],
       articles,
     },

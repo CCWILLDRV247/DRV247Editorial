@@ -198,6 +198,35 @@ export const demoUserInterests = sqliteTable("demo_user_interests", {
   interest: text("interest").notNull(),
 });
 
+export const editorialPrimaryCategories = sqliteTable("editorial_primary_categories", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull(),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+});
+
+export const editorialSecondaryCategories = sqliteTable("editorial_secondary_categories", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  primaryCategoryId: integer("primary_category_id")
+    .notNull()
+    .references(() => editorialPrimaryCategories.id),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+});
+
+export const articlePrimary = sqliteTable("article_primary", {
+  articleId: integer("article_id")
+    .primaryKey()
+    .references(() => articles.id),
+  primarySlug: text("primary_slug").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
 export type MediaSource = typeof mediaSources.$inferSelect;
 export type Article = typeof articles.$inferSelect;
 export type IngestionRun = typeof ingestionRuns.$inferSelect;

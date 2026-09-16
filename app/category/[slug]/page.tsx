@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryFeed } from "@/components/story-feed";
-import { MAGAZINE_NAV, listMagazineStories } from "@/lib/engine/magazine";
+import { LEGACY_NAV_TO_PRIMARY, contentPrimaryBySlug } from "@/config/magazine-nav";
+import { listMagazineStories } from "@/lib/engine/magazine";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +14,10 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const category = MAGAZINE_NAV.find((item) => item.slug === slug);
+  if (slug === "for-you") redirect("/");
+  const mapped = LEGACY_NAV_TO_PRIMARY[slug];
+  if (mapped && mapped !== slug) redirect(`/category/${mapped}`);
+  const category = contentPrimaryBySlug(slug);
   if (!category) notFound();
   const stories = await listMagazineStories({ navSlug: slug, limit: 24 });
 

@@ -129,3 +129,24 @@ export function scoreArticle(
 function norm(value: string): string {
   return value.toLowerCase().trim();
 }
+
+/** For You without a test profile: source quality + recency. No garage matching. */
+export function scoreForYou(input: {
+  relevance: string;
+  publishedAt: number;
+  excerptLength: number;
+}): number {
+  let score = 0;
+  const relevance = input.relevance.toLowerCase();
+  if (relevance.startsWith("excellent")) score += 40;
+  else if (relevance.startsWith("good")) score += 20;
+  else score += 8;
+  score += recencyBonus(input.publishedAt);
+  if (input.excerptLength >= 180) score += 15;
+  return score;
+}
+
+export function recencyBonus(publishedAt: number, now = Date.now()): number {
+  const ageDays = (now - publishedAt) / 86_400_000;
+  return Math.max(0, 28 - ageDays);
+}

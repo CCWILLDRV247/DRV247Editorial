@@ -215,21 +215,138 @@ describe("admin login path", () => {
 });
 
 describe("magazine mapping", () => {
-  it("maps classic interests onto the Classic desk", async () => {
-    const { articleMatchesNav, tagForArticle, resolveImageUrl } = await import("./magazine");
+  it("maps classic restoration onto Cars, not Motorsport", async () => {
+    const { articleMatchesNav, tagForArticle, primaryForArticle, resolveImageUrl } = await import(
+      "./magazine"
+    );
     const article = {
       categories: ["Classic"],
       interests: ["Restoration"],
       publication: "Octane",
       title: "E-Type restoration",
+      excerpt: "A barn-find Jaguar E-Type restoration.",
     };
+    assert.equal(primaryForArticle(article as never), "cars");
+    assert.equal(articleMatchesNav(article as never, "cars"), true);
     assert.equal(articleMatchesNav(article as never, "classic"), true);
-    assert.equal(articleMatchesNav(article as never, "modified"), false);
+    assert.equal(articleMatchesNav(article as never, "motorsport"), false);
     assert.equal(tagForArticle(article as never), "Classic");
     assert.equal(
       resolveImageUrl("/img/hero.jpg", "https://octane.example/story"),
       "https://octane.example/img/hero.jpg",
     );
+  });
+});
+
+describe("primary taxonomy", () => {
+  it("assigns exactly one primary from the brief examples", async () => {
+    const { classifyPrimary } = await import("./taxonomy");
+    assert.equal(
+      classifyPrimary({
+        title: "Why the Porsche 964 is the ultimate analogue 911",
+        excerpt: "The last of the air-cooled cars still feels like a collector performance 911.",
+        categories: ["Classic", "Collector", "Performance"],
+      }),
+      "cars",
+    );
+    assert.equal(
+      classifyPrimary({
+        title: "The designers who changed Ferrari forever",
+        excerpt: "An interview with the people who shaped Ferrari design history.",
+        categories: ["Design", "People", "History"],
+      }),
+      "culture",
+    );
+    assert.equal(
+      classifyPrimary({
+        title: "Driving the Stelvio Pass in a Porsche 911",
+        excerpt: "A road trip through the Alpine passes worth touring.",
+        categories: ["Road Trips", "Driving", "Travel"],
+      }),
+      "driving",
+    );
+    assert.equal(
+      classifyPrimary({
+        title: "Ferrari racing history at Le Mans",
+        excerpt: "The championship years and the drivers who won them.",
+        categories: ["Motorsport", "History"],
+      }),
+      "motorsport",
+    );
+    assert.equal(
+      classifyPrimary({
+        title: "New concours announced at Villa d'Este",
+        excerpt: "The gathering returns to the lawns this summer.",
+        categories: ["Events", "News"],
+      }),
+      "events",
+    );
+  });
+
+  it("maps the old magazine lanes onto the new primaries", async () => {
+    const { LEGACY_NAV_TO_PRIMARY } = await import("../../config/magazine-nav");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.racing, "motorsport");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.classic, "cars");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.modified, "cars");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.concourse, "events");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.culture, "culture");
+  });
+});
+
+describe("for you test profile", () => {
+  it("only accepts catalog make/model and known interests", async () => {
+    const { parseForYouTestProfile, forYouTestIsActive } = await import("./for-you-test");
+    const profile = parseForYouTestProfile({
+      make: "Porsche",
+      model: "911",
+      generation: "964",
+      interest: ["Classic", "NotAThing"],
+      location: "Goodwood",
+    });
+    assert.deepEqual(profile, {
+      make: "Porsche",
+      model: "911",
+      generation: "964",
+      interests: ["Classic"],
+      location: "Goodwood",
+    });
+    assert.equal(forYouTestIsActive(profile), true);
+    const rejected = parseForYouTestProfile({ make: "Honda", model: "Civic", interest: "Vibes" });
+    assert.equal(rejected.make, undefined);
+    assert.equal(rejected.model, undefined);
+    assert.deepEqual(rejected.interests, []);
+    assert.equal(forYouTestIsActive(rejected), false);
+  });
+
+  it("does not invent a vehicle match when the story has no entities", async () => {
+    const { scoreArticle } = await import("./rank");
+    const unmatched = scoreArticle({
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: ["Design"],
+      categories: ["Design"],
+      locations: [],
+      excerpt: "A design essay with no car entities.",
+      relevance: "Excellent",
+      vehicles: [{ make: "Porsche", model: "911", generation: "964" }],
+      userInterests: ["Classic"],
+    });
+    const matched = scoreArticle({
+      makes: ["Porsche"],
+      models: ["911"],
+      generations: ["964"],
+      variants: [],
+      interests: ["Classic"],
+      categories: ["Classic"],
+      locations: [],
+      excerpt: "Why the Porsche 964 is the ultimate analogue 911.",
+      relevance: "Excellent",
+      vehicles: [{ make: "Porsche", model: "911", generation: "964" }],
+      userInterests: ["Classic"],
+    });
+    assert.ok(matched > unmatched);
   });
 });
 

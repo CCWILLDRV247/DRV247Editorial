@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      { source: "/category/racing", destination: "/category/motorsport", permanent: true },
+      { source: "/category/classic", destination: "/category/cars", permanent: true },
+      { source: "/category/modified", destination: "/category/cars", permanent: true },
+      { source: "/category/concourse", destination: "/category/events", permanent: true },
+      { source: "/for-you", destination: "/", permanent: false },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -7,6 +7,8 @@ import {
   demoUserInterests,
   demoUsers,
   demoVehicles,
+  editorialPrimaryCategories,
+  editorialSecondaryCategories,
   mediaSources,
   vehicleEntities,
 } from "@/lib/db/schema";
@@ -14,6 +16,7 @@ import * as schema from "@/lib/db/schema";
 import { VEHICLE_CATALOG } from "./catalog";
 import { parseCsv } from "./csv";
 import { slugify } from "./normalize";
+import { PRIMARY_META, SECONDARY_TAXONOMY } from "./taxonomy";
 
 type Db = LibSQLDatabase<typeof schema>;
 
@@ -23,6 +26,7 @@ export function loadCsvSources(cwd = process.cwd()) {
 }
 
 export async function seedEngine(db: Db) {
+  await seedTaxonomy(db);
   const rows = loadCsvSources();
   const existingRows = await db.select().from(mediaSources);
   const byId = new Map(existingRows.map((row) => [row.id, row]));
@@ -137,5 +141,36 @@ export async function seedEngine(db: Db) {
       { userId: "demo-m3", interest: "Modified" },
       { userId: "demo-m3", interest: "Performance" },
     ]);
+  }
+}
+
+async function seedTaxonomy(db: Db) {
+  const existing = await db.select().from(editorialPrimaryCategories);
+  if (existing.length === 0) {
+    for (const primary of PRIMARY_META) {
+      await db.insert(editorialPrimaryCategories).values({
+        slug: primary.slug,
+        name: primary.name,
+        description: primary.description,
+        sortOrder: primary.sortOrder,
+        enabled: true,
+      });
+    }
+  }
+  const primaries = await db.select().from(editorialPrimaryCategories);
+  const bySlug = new Map(primaries.map((row) => [row.slug, row.id]));
+  const secondaries = await db.select().from(editorialSecondaryCategories);
+  if (secondaries.length === 0) {
+    for (const secondary of SECONDARY_TAXONOMY) {
+      const primaryId = bySlug.get(secondary.primary);
+      if (!primaryId) continue;
+      await db.insert(editorialSecondaryCategories).values({
+        primaryCategoryId: primaryId,
+        slug: secondary.slug,
+        name: secondary.name,
+        description: null,
+        enabled: true,
+      });
+    }
   }
 }
