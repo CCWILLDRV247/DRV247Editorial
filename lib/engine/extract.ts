@@ -86,6 +86,18 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
           confidence: 0.9,
         });
       }
+      for (const variant of model.variants ?? []) {
+        if (!includesToken(text, variant)) continue;
+        variants.add(variant);
+        entities.push({
+          kind: "variant",
+          name: variant,
+          slug: slugify(variant),
+          make: record.make,
+          model: model.name,
+          confidence: 0.8,
+        });
+      }
     }
 
     if (makeHit || modelHit) {

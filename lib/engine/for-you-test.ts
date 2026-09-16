@@ -190,6 +190,7 @@ export function buildForYouTestCatalog(live?: LiveTaxonomy): ForYouTestCatalog {
     for (const model of record.models) {
       const node = upsertModel(make, model.name);
       for (const generation of model.generations ?? []) upsertValue(node?.generations ?? [], generation);
+      for (const variant of model.variants ?? []) upsertValue(node?.variants ?? [], variant);
     }
   }
   const porsche = upsertMake(makes, "Porsche");
