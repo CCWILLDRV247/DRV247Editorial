@@ -9,24 +9,24 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const db = getDb();
-  const enabled = db.select().from(mediaSources).all().filter((source) => source.enabled);
-  const sources = WAVE1_SOURCE_IDS.map((id) => {
+  const db = await getDb();
+  const enabled = (await db.select().from(mediaSources)).filter((source) => source.enabled);
+  const sources = [];
+  for (const id of WAVE1_SOURCE_IDS) {
     const source = enabled.find((row) => row.id === id);
-    const [{ value }] = db
+    const [{ value }] = await db
       .select({ value: count() })
       .from(articles)
-      .where(eq(articles.sourceId, id))
-      .all();
-    return {
+      .where(eq(articles.sourceId, id));
+    sources.push({
       id,
       publication: source?.publication ?? null,
       enabled: Boolean(source?.enabled),
       lastMethod: source?.lastMethod ?? null,
       lastError: source?.lastError ?? null,
       articleCount: value,
-    };
-  });
+    });
+  }
   return NextResponse.json(
     {
       engine: ENGINE_WAVE,

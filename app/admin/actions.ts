@@ -11,11 +11,10 @@ export async function toggleStoryHidden(formData: FormData) {
   const id = Number(formData.get("id"));
   const hidden = formData.get("hidden") === "true";
   if (!id) return;
-  getDb()
+  await (await getDb())
     .update(stories)
     .set({ hidden })
-    .where(eq(stories.id, id))
-    .run();
+    .where(eq(stories.id, id));
   revalidatePath("/admin");
   revalidatePath("/");
 }
@@ -25,11 +24,10 @@ export async function recategorizeStory(formData: FormData) {
   const id = Number(formData.get("id"));
   const categoryId = Number(formData.get("categoryId"));
   if (!id || !categoryId) return;
-  getDb()
+  await (await getDb())
     .update(stories)
     .set({ categoryId })
-    .where(eq(stories.id, id))
-    .run();
+    .where(eq(stories.id, id));
   revalidatePath("/admin");
   revalidatePath("/");
   revalidatePath("/category");

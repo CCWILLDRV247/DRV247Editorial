@@ -1,4 +1,4 @@
-export const ENGINE_BRANCH = "explore/ingest-personalization";
+export const ENGINE_BRANCH = "cursor/persistent-turso-9d2e";
 export const ENGINE_WAVE = "wave-1-10";
 
 export function engineCommit() {

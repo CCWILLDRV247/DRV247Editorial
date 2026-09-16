@@ -1,6 +1,5 @@
 import { and, desc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { ensureStories } from "@/lib/db/ensure";
 import { categories, sources, stories } from "@/lib/db/schema";
 
 export type StoryDto = {
@@ -42,24 +41,21 @@ function toDto(row: {
 }
 
 export async function listCategories() {
-  await ensureStories();
-  const db = getDb();
-  return db.select().from(categories).all();
+  const db = await getDb();
+  return db.select().from(categories);
 }
 
 export async function getCategoryBySlug(slug: string) {
-  await ensureStories();
-  const db = getDb();
-  return db.select().from(categories).where(eq(categories.slug, slug)).get();
+  const db = await getDb();
+  return (await db.select().from(categories).where(eq(categories.slug, slug)).limit(1))[0];
 }
 
 export async function listPublicStories(options?: {
   categoryId?: number;
   limit?: number;
 }) {
-  await ensureStories();
-  const db = getDb();
-  const rows = db
+  const db = await getDb();
+  const rows = await db
     .select({
       story: stories,
       category: categories,
@@ -74,33 +70,32 @@ export async function listPublicStories(options?: {
         : eq(stories.hidden, false),
     )
     .orderBy(desc(stories.publishedAt))
-    .limit(options?.limit ?? 40)
-    .all();
+    .limit(options?.limit ?? 40);
 
   return rows.map(toDto);
 }
 
 export async function getPublicStory(id: number) {
-  await ensureStories();
-  const db = getDb();
-  const row = db
-    .select({
-      story: stories,
-      category: categories,
-      source: sources,
-    })
-    .from(stories)
-    .innerJoin(categories, eq(stories.categoryId, categories.id))
-    .innerJoin(sources, eq(stories.sourceId, sources.id))
-    .where(and(eq(stories.id, id), eq(stories.hidden, false)))
-    .get();
+  const db = await getDb();
+  const row = (
+    await db
+      .select({
+        story: stories,
+        category: categories,
+        source: sources,
+      })
+      .from(stories)
+      .innerJoin(categories, eq(stories.categoryId, categories.id))
+      .innerJoin(sources, eq(stories.sourceId, sources.id))
+      .where(and(eq(stories.id, id), eq(stories.hidden, false)))
+      .limit(1)
+  )[0];
   return row ? toDto(row) : null;
 }
 
 export async function listAdminStories() {
-  await ensureStories();
-  const db = getDb();
-  const rows = db
+  const db = await getDb();
+  const rows = await db
     .select({
       story: stories,
       category: categories,
@@ -110,13 +105,11 @@ export async function listAdminStories() {
     .innerJoin(categories, eq(stories.categoryId, categories.id))
     .innerJoin(sources, eq(stories.sourceId, sources.id))
     .orderBy(desc(stories.publishedAt))
-    .limit(200)
-    .all();
+    .limit(200);
   return rows.map(toDto);
 }
 
 export async function listAdminSources() {
-  await ensureStories();
-  const db = getDb();
-  return db.select().from(sources).all();
+  const db = await getDb();
+  return db.select().from(sources);
 }

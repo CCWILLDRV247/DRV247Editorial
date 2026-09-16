@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { eq } from "drizzle-orm";
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { WAVE1_SOURCE_SET } from "../../config/wave1-sources";
 import {
   demoUserInterests,
@@ -15,14 +15,19 @@ import { VEHICLE_CATALOG } from "./catalog";
 import { parseCsv } from "./csv";
 import { slugify } from "./normalize";
 
-type Db = BetterSQLite3Database<typeof schema>;
+type Db = LibSQLDatabase<typeof schema>;
 
 export function loadCsvSources(cwd = process.cwd()) {
   const file = path.join(cwd, "config/drv247_uk_eu_automotive_media_sources.csv");
   return parseCsv(fs.readFileSync(file, "utf8"));
 }
 
-export function seedEngine(db: Db) {
+export async function seedEngine(db: Db) {
+  const already = await db.select({ id: mediaSources.id }).from(mediaSources).limit(1);
+  if (already.length) {
+    return;
+  }
+
   const rows = loadCsvSources();
   const nowPriority = (id: string) => {
     const order = [...WAVE1_SOURCE_SET];
@@ -53,9 +58,12 @@ export function seedEngine(db: Db) {
       allowExcerpt: true,
       allowImage: true,
     };
-    const existing = db.select().from(mediaSources).where(eq(mediaSources.id, row.id)).get();
+    const existing = (
+      await db.select().from(mediaSources).where(eq(mediaSources.id, row.id)).limit(1)
+    )[0];
     if (existing) {
-      db.update(mediaSources)
+      await db
+        .update(mediaSources)
         .set({
           ...values,
           lastSuccessAt: existing.lastSuccessAt,
@@ -66,85 +74,74 @@ export function seedEngine(db: Db) {
           lastMethod: existing.lastMethod,
           lastArticleCount: existing.lastArticleCount,
         })
-        .where(eq(mediaSources.id, row.id))
-        .run();
+        .where(eq(mediaSources.id, row.id));
     } else {
-      db.insert(mediaSources).values(values).run();
+      await db.insert(mediaSources).values(values);
     }
   }
 
-  const catalogCount = db.select().from(vehicleEntities).all().length;
+  const catalogCount = (await db.select().from(vehicleEntities)).length;
   if (catalogCount === 0) {
     for (const record of VEHICLE_CATALOG) {
-      db.insert(vehicleEntities)
-        .values({
-          kind: "make",
-          name: record.make,
-          slug: slugify(record.make),
-          make: record.make,
-        })
-        .run();
+      await db.insert(vehicleEntities).values({
+        kind: "make",
+        name: record.make,
+        slug: slugify(record.make),
+        make: record.make,
+      });
       for (const model of record.models) {
-        db.insert(vehicleEntities)
-          .values({
-            kind: "model",
-            name: model.name,
-            slug: slugify(model.name),
-            make: record.make,
-            model: model.name,
-          })
-          .run();
+        await db.insert(vehicleEntities).values({
+          kind: "model",
+          name: model.name,
+          slug: slugify(model.name),
+          make: record.make,
+          model: model.name,
+        });
       }
     }
   }
 
-  if (!db.select().from(demoUsers).where(eq(demoUsers.id, "demo-chris")).get()) {
-    db.insert(demoUsers)
-      .values([
-        { id: "demo-chris", name: "Chris", location: "Goodwood" },
-        { id: "demo-355", name: "355 Desk", location: "Milan" },
-        { id: "demo-m3", name: "Modified Desk", location: "London" },
-      ])
-      .run();
-    db.insert(demoVehicles)
-      .values([
-        {
-          id: "veh-964",
-          userId: "demo-chris",
-          make: "Porsche",
-          model: "911",
-          generation: "964",
-          variant: "Carrera RS",
-        },
-        {
-          id: "veh-355",
-          userId: "demo-355",
-          make: "Ferrari",
-          model: "F355",
-          generation: "F355",
-          variant: null,
-        },
-        {
-          id: "veh-e46",
-          userId: "demo-m3",
-          make: "BMW",
-          model: "M3",
-          generation: "E46",
-          variant: null,
-        },
-      ])
-      .run();
-    db.insert(demoUserInterests)
-      .values([
-        { userId: "demo-chris", interest: "Classic" },
-        { userId: "demo-chris", interest: "Collector Cars" },
-        { userId: "demo-chris", interest: "Photography" },
-        { userId: "demo-355", interest: "Performance" },
-        { userId: "demo-355", interest: "Sports Cars" },
-        { userId: "demo-355", interest: "Design" },
-        { userId: "demo-m3", interest: "Modified" },
-        { userId: "demo-m3", interest: "Performance" },
-      ])
-      .run();
+  if (!(await db.select().from(demoUsers).where(eq(demoUsers.id, "demo-chris")).limit(1))[0]) {
+    await db.insert(demoUsers).values([
+      { id: "demo-chris", name: "Chris", location: "Goodwood" },
+      { id: "demo-355", name: "355 Desk", location: "Milan" },
+      { id: "demo-m3", name: "Modified Desk", location: "London" },
+    ]);
+    await db.insert(demoVehicles).values([
+      {
+        id: "veh-964",
+        userId: "demo-chris",
+        make: "Porsche",
+        model: "911",
+        generation: "964",
+        variant: "Carrera RS",
+      },
+      {
+        id: "veh-355",
+        userId: "demo-355",
+        make: "Ferrari",
+        model: "F355",
+        generation: "F355",
+        variant: null,
+      },
+      {
+        id: "veh-e46",
+        userId: "demo-m3",
+        make: "BMW",
+        model: "M3",
+        generation: "E46",
+        variant: null,
+      },
+    ]);
+    await db.insert(demoUserInterests).values([
+      { userId: "demo-chris", interest: "Classic" },
+      { userId: "demo-chris", interest: "Collector Cars" },
+      { userId: "demo-chris", interest: "Photography" },
+      { userId: "demo-355", interest: "Performance" },
+      { userId: "demo-355", interest: "Sports Cars" },
+      { userId: "demo-355", interest: "Design" },
+      { userId: "demo-m3", interest: "Modified" },
+      { userId: "demo-m3", interest: "Performance" },
+    ]);
   }
 }

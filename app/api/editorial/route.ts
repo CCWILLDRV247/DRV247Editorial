@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
-import { ensureCultureArticles } from "@/lib/db/ensure";
 import { listEditorial } from "@/lib/engine/queries";
 import { ENGINE_BRANCH, ENGINE_WAVE, engineCommit } from "@/lib/engine/version";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
 
 export async function GET(request: Request) {
-  await ensureCultureArticles();
   const { searchParams } = new URL(request.url);
-  const articles = listEditorial({
+  const articles = await listEditorial({
     userId: searchParams.get("user") ?? "demo-chris",
     section: searchParams.get("section") ?? "for-you",
     sourceId: searchParams.get("source") ?? undefined,

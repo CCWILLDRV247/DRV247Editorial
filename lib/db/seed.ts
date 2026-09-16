@@ -1,9 +1,9 @@
-import { count, eq } from "drizzle-orm";
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { count } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { categories, sources, type SourceType } from "./schema";
 import * as schema from "./schema";
 
-type Db = BetterSQLite3Database<typeof schema>;
+type Db = LibSQLDatabase<typeof schema>;
 
 export const STARTING_CATEGORIES = [
   { slug: "racing", name: "Racing" },
@@ -146,46 +146,29 @@ export const CATEGORY_COPY: Record<
   },
 };
 
-export function seedIfEmpty(db: Db) {
-  const [{ value }] = db.select({ value: count() }).from(categories).all();
+export async function seedIfEmpty(db: Db) {
+  const [{ value }] = await db.select({ value: count() }).from(categories);
   if (value === 0) {
-    db.insert(categories).values([...STARTING_CATEGORIES]).run();
+    await db.insert(categories).values([...STARTING_CATEGORIES]);
   }
 
-  const rows = db.select().from(categories).all();
+  const existing = await db.select().from(sources);
+  if (existing.length) return;
+
+  const rows = await db.select().from(categories);
   const bySlug = new Map(rows.map((row) => [row.slug, row.id]));
-  const existing = db.select().from(sources).all();
-  const byName = new Map(existing.map((row) => [row.name, row]));
   const now = Date.now();
 
   for (const source of SEED_SOURCES) {
-    const current =
-      byName.get(source.name) ??
-      (source.replaces ? byName.get(source.replaces) : undefined);
     const categoryId = bySlug.get(source.categorySlug) ?? bySlug.get("desk")!;
-    if (current) {
-      db.update(sources)
-        .set({
-          name: source.name,
-          type: source.type,
-          identifier: source.identifier,
-          defaultCategoryId: categoryId,
-          enabled: true,
-        })
-        .where(eq(sources.id, current.id))
-        .run();
-    } else {
-      db.insert(sources)
-        .values({
-          name: source.name,
-          type: source.type,
-          identifier: source.identifier,
-          defaultCategoryId: categoryId,
-          enabled: true,
-          lastFetchStatus: "idle",
-          createdAt: now,
-        })
-        .run();
-    }
+    await db.insert(sources).values({
+      name: source.name,
+      type: source.type,
+      identifier: source.identifier,
+      defaultCategoryId: categoryId,
+      enabled: true,
+      lastFetchStatus: "idle",
+      createdAt: now,
+    });
   }
 }

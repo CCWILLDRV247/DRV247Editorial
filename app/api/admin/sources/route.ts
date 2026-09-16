@@ -30,20 +30,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Default category is required" }, { status: 400 });
   }
 
-  const db = getDb();
-  const result = db
-    .insert(sources)
-    .values({
-      name: body.name.trim(),
-      type: body.type as SourceType,
-      identifier: body.identifier.trim(),
-      defaultCategoryId: body.defaultCategoryId,
-      enabled: body.enabled ?? true,
-      lastFetchStatus: "idle",
-      createdAt: Date.now(),
-    })
-    .returning()
-    .get();
+  const db = await getDb();
+  const result = (
+    await db
+      .insert(sources)
+      .values({
+        name: body.name.trim(),
+        type: body.type as SourceType,
+        identifier: body.identifier.trim(),
+        defaultCategoryId: body.defaultCategoryId,
+        enabled: body.enabled ?? true,
+        lastFetchStatus: "idle",
+        createdAt: Date.now(),
+      })
+      .returning()
+  )[0];
 
   return NextResponse.json({ source: result });
 }
@@ -71,8 +72,10 @@ export async function PATCH(request: Request) {
   }
   if (typeof body.enabled === "boolean") patch.enabled = body.enabled;
 
-  const db = getDb();
-  const updated = db.update(sources).set(patch).where(eq(sources.id, body.id)).returning().get();
+  const db = await getDb();
+  const updated = (
+    await db.update(sources).set(patch).where(eq(sources.id, body.id)).returning()
+  )[0];
   if (!updated) {
     return NextResponse.json({ error: "Source not found" }, { status: 404 });
   }

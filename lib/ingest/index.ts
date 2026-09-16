@@ -27,13 +27,13 @@ async function itemsForSource(
   return ingestNewsApi(source.identifier);
 }
 
-function insertItems(source: Source, items: IngestedItem[]) {
-  const db = getDb();
+async function insertItems(source: Source, items: IngestedItem[]) {
+  const db = await getDb();
   const now = Date.now();
   let inserted = 0;
 
   for (const item of items) {
-    const result = db
+    const created = await db
       .insert(stories)
       .values({
         sourceId: source.id,
@@ -47,16 +47,16 @@ function insertItems(source: Source, items: IngestedItem[]) {
         createdAt: now,
       })
       .onConflictDoNothing({ target: stories.canonicalUrl })
-      .run();
-    inserted += result.changes;
+      .returning({ id: stories.id });
+    if (created.length) inserted += 1;
   }
 
   return inserted;
 }
 
 export async function ingestSource(sourceId: number): Promise<IngestResult> {
-  const db = getDb();
-  const source = db.select().from(sources).where(eq(sources.id, sourceId)).get();
+  const db = await getDb();
+  const source = (await db.select().from(sources).where(eq(sources.id, sourceId)).limit(1))[0];
   if (!source) {
     return {
       sourceId,
@@ -78,25 +78,25 @@ export async function ingestSource(sourceId: number): Promise<IngestResult> {
     };
   }
 
-  db.update(sources)
+  await db
+    .update(sources)
     .set({ lastFetchStatus: "running", lastFetchError: null })
-    .where(eq(sources.id, source.id))
-    .run();
+    .where(eq(sources.id, source.id));
 
   try {
     const { items, usedMock } = await itemsForSource(source);
-    const inserted = insertItems(source, items);
+    const inserted = await insertItems(source, items);
     const note = usedMock
       ? "Used local mock (no API key). Add YOUTUBE_API_KEY or NEWSAPI_KEY for live data."
       : null;
-    db.update(sources)
+    await db
+      .update(sources)
       .set({
         lastFetchAt: Date.now(),
         lastFetchStatus: "ok",
         lastFetchError: note,
       })
-      .where(eq(sources.id, source.id))
-      .run();
+      .where(eq(sources.id, source.id));
     return {
       sourceId: source.id,
       sourceName: source.name,
@@ -107,14 +107,14 @@ export async function ingestSource(sourceId: number): Promise<IngestResult> {
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Ingest failed";
-    db.update(sources)
+    await db
+      .update(sources)
       .set({
         lastFetchAt: Date.now(),
         lastFetchStatus: "error",
         lastFetchError: message,
       })
-      .where(eq(sources.id, source.id))
-      .run();
+      .where(eq(sources.id, source.id));
     return {
       sourceId: source.id,
       sourceName: source.name,
@@ -127,8 +127,7 @@ export async function ingestSource(sourceId: number): Promise<IngestResult> {
 }
 
 export async function ingestAll(): Promise<IngestResult[]> {
-  const db = getDb();
-  const enabled = db.select().from(sources).where(eq(sources.enabled, true)).all();
-  // Parallel fetches so a Vercel cold start can fill the magazine before timeout.
+  const db = await getDb();
+  const enabled = await db.select().from(sources).where(eq(sources.enabled, true));
   return Promise.all(enabled.map((source) => ingestSource(source.id)));
 }
