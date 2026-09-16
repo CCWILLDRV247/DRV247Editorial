@@ -124,8 +124,8 @@ describe("enabled sources", () => {
     assert.equal(WAVE1_SOURCE_IDS.length, 10);
     assert.equal(WAVE2_SOURCE_IDS.length, 11);
     assert.equal(ENABLED_SOURCE_IDS.length, 21);
-    assert.ok(WAVE2_SOURCE_IDS.includes("auto_051"));
-    assert.ok(!WAVE2_SOURCE_IDS.includes("auto_011"));
+    assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
+    assert.equal((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
   });
 });
 
