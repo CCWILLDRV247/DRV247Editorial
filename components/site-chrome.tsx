@@ -2,16 +2,22 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "cn";
-import { getMagazineNav } from "@/lib/engine/magazine";
+import { MOBILE_NAV_SLUGS, PRIMARY_NAV } from "@/config/magazine-nav";
 
-export async function SiteHeader({
+const mobileNav = PRIMARY_NAV.filter((item) =>
+  (MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
+);
+const moreNav = PRIMARY_NAV.filter(
+  (item) => !(MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
+);
+
+export function SiteHeader({
   title,
   backHref,
 }: {
   title: string;
   backHref?: string;
 }) {
-  const nav = await getMagazineNav();
   return (
     <header className="sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 md:h-16 md:px-6">
@@ -42,7 +48,7 @@ export async function SiteHeader({
         </Link>
       </div>
       <nav className="mx-auto hidden max-w-6xl items-center gap-6 overflow-x-auto px-6 pb-3 md:flex">
-        {nav.desktop.map((item) => (
+        {PRIMARY_NAV.map((item) => (
           <Link
             key={item.slug}
             href={item.href}
@@ -53,7 +59,7 @@ export async function SiteHeader({
         ))}
       </nav>
       <nav className="flex items-center gap-4 overflow-x-auto px-4 pb-3 md:hidden">
-        {nav.mobile.map((item) => (
+        {mobileNav.map((item) => (
           <Link
             key={item.slug}
             href={item.href}
@@ -62,13 +68,13 @@ export async function SiteHeader({
             {item.name}
           </Link>
         ))}
-        {nav.more.length > 0 ? (
+        {moreNav.length > 0 ? (
           <details className="relative shrink-0">
             <summary className="cursor-pointer list-none font-display text-base font-bold uppercase text-[#1b1d1f]/70 marker:content-none [&::-webkit-details-marker]:hidden">
               More
             </summary>
             <div className="absolute right-0 z-50 mt-2 min-w-[10rem] border border-[#1b1d1f]/10 bg-white p-3 shadow-sm">
-              {nav.more.map((item) => (
+              {moreNav.map((item) => (
                 <Link
                   key={item.slug}
                   href={item.href}

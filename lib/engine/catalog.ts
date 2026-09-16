@@ -152,3 +152,18 @@ export const EDITORIAL_CATEGORIES = [
 
 export type Interest = (typeof INTEREST_TAXONOMY)[number];
 export type EditorialCategory = (typeof EDITORIAL_CATEGORIES)[number];
+
+export const EDITORIAL_LOCATIONS = [
+  "Goodwood",
+  "Monza",
+  "Le Mans",
+  "Spa",
+  "Nürburgring",
+  "London",
+  "Milan",
+  "Paris",
+  "Monaco",
+  "Villa d'Este",
+  "Retromobile",
+  "Amelia Island",
+] as const;

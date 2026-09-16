@@ -1,5 +1,4 @@
-import { EDITORIAL_LOCATIONS, isKnownInterest } from "./extract";
-import { INTEREST_TAXONOMY, VEHICLE_CATALOG } from "./catalog";
+import { EDITORIAL_LOCATIONS, INTEREST_TAXONOMY, VEHICLE_CATALOG } from "./catalog";
 
 export const FOR_YOU_TEST_STORAGE_KEY = "drv247-for-you-test";
 
@@ -43,7 +42,13 @@ export function parseForYouTestProfile(
   const model = catalogModel(make, get("model"));
   const generation = catalogGeneration(make, model, get("generation"));
   const interests = [
-    ...new Set(getAll("interest").map((item) => item.trim()).filter((item) => isKnownInterest(item))),
+    ...new Set(
+      getAll("interest")
+        .map((item) => item.trim())
+        .filter((item): item is (typeof INTEREST_TAXONOMY)[number] =>
+          (INTEREST_TAXONOMY as readonly string[]).includes(item),
+        ),
+    ),
   ];
   const location = catalogLocation(get("location"));
   return {
@@ -99,6 +104,26 @@ export function catalogInterests() {
 
 export function catalogLocations() {
   return [...EDITORIAL_LOCATIONS];
+}
+
+export type ForYouTestCatalog = {
+  makes: { name: string; models: { name: string; generations: string[] }[] }[];
+  interests: string[];
+  locations: string[];
+};
+
+export function forYouTestCatalog(): ForYouTestCatalog {
+  return {
+    makes: VEHICLE_CATALOG.map((record) => ({
+      name: record.make,
+      models: record.models.map((model) => ({
+        name: model.name,
+        generations: model.generations ?? [],
+      })),
+    })),
+    interests: [...INTEREST_TAXONOMY],
+    locations: [...EDITORIAL_LOCATIONS],
+  };
 }
 
 function catalogMake(value: string) {

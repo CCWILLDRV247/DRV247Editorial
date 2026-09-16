@@ -1,46 +1,79 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  FOR_YOU_TEST_STORAGE_KEY,
-  catalogGenerations,
-  catalogInterests,
-  catalogLocations,
-  catalogMakes,
-  catalogModels,
-  forYouTestIsActive,
-  forYouTestSearchString,
-  forYouTestSummary,
-  type ForYouTestProfile,
-} from "@/lib/engine/for-you-test";
+
+const STORAGE_KEY = "drv247-for-you-test";
 
 const selectClass =
-  "h-9 min-w-0 flex-1 rounded-[5px] border border-[#1b1d1f] bg-white px-2 font-display text-sm font-bold uppercase text-[#1b1d1f]";
+  "h-9 min-w-0 w-full rounded-[5px] border border-[#1b1d1f] bg-white px-2 font-display text-sm font-bold uppercase text-[#1b1d1f]";
 
-export function ForYouTestFilter({ initial }: { initial: ForYouTestProfile }) {
+export type ForYouTestFilterProfile = {
+  make?: string;
+  model?: string;
+  generation?: string;
+  interests: string[];
+  location?: string;
+};
+
+export type ForYouTestFilterCatalog = {
+  makes: { name: string; models: { name: string; generations: string[] }[] }[];
+  interests: string[];
+  locations: string[];
+};
+
+function isActive(profile: ForYouTestFilterProfile) {
+  return Boolean(profile.make || profile.model || profile.interests.length || profile.location);
+}
+
+function summary(profile: ForYouTestFilterProfile) {
+  return [
+    [profile.make, profile.model, profile.generation].filter(Boolean).join(" "),
+    profile.interests.join(" · "),
+    profile.location,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function searchString(profile: ForYouTestFilterProfile) {
+  const params = new URLSearchParams();
+  if (profile.make) params.set("make", profile.make);
+  if (profile.model) params.set("model", profile.model);
+  if (profile.generation) params.set("generation", profile.generation);
+  for (const interest of profile.interests) params.append("interest", interest);
+  if (profile.location) params.set("location", profile.location);
+  return params.toString();
+}
+
+export function ForYouTestFilter({
+  initial,
+  catalog,
+}: {
+  initial: ForYouTestFilterProfile;
+  catalog: ForYouTestFilterCatalog;
+}) {
   const router = useRouter();
   const pathname = usePathname();
-  const [open, setOpen] = useState(forYouTestIsActive(initial));
-  const [profile, setProfile] = useState<ForYouTestProfile>(initial);
-  const models = useMemo(() => catalogModels(profile.make), [profile.make]);
-  const generations = useMemo(
-    () => catalogGenerations(profile.make, profile.model),
-    [profile.make, profile.model],
-  );
+  const [open, setOpen] = useState(isActive(initial));
+  const [profile, setProfile] = useState<ForYouTestFilterProfile>(initial);
+  const makeRecord = catalog.makes.find((item) => item.name === profile.make);
+  const models = makeRecord?.models ?? [];
+  const generations = models.find((item) => item.name === profile.model)?.generations ?? [];
+  const initialQuery = searchString(initial);
 
   useEffect(() => {
-    if (forYouTestIsActive(initial)) {
-      window.localStorage.setItem(FOR_YOU_TEST_STORAGE_KEY, forYouTestSearchString(initial));
+    if (initialQuery) {
+      window.localStorage.setItem(STORAGE_KEY, initialQuery);
       return;
     }
-    const stored = window.localStorage.getItem(FOR_YOU_TEST_STORAGE_KEY);
+    const stored = window.localStorage.getItem(STORAGE_KEY);
     if (!stored) return;
     router.replace(`${pathname}?${stored}`);
-  }, [initial, pathname, router]);
+  }, [initialQuery, pathname, router]);
 
-  function apply(next: ForYouTestProfile) {
-    const cleaned: ForYouTestProfile = {
+  function apply(next: ForYouTestFilterProfile) {
+    const cleaned: ForYouTestFilterProfile = {
       make: next.make,
       model: next.make ? next.model : undefined,
       generation: next.make && next.model ? next.generation : undefined,
@@ -48,14 +81,13 @@ export function ForYouTestFilter({ initial }: { initial: ForYouTestProfile }) {
       location: next.location,
     };
     setProfile(cleaned);
-    const query = forYouTestSearchString(cleaned);
-    if (query) window.localStorage.setItem(FOR_YOU_TEST_STORAGE_KEY, query);
-    else window.localStorage.removeItem(FOR_YOU_TEST_STORAGE_KEY);
+    const query = searchString(cleaned);
+    if (query) window.localStorage.setItem(STORAGE_KEY, query);
+    else window.localStorage.removeItem(STORAGE_KEY);
     router.replace(query ? `${pathname}?${query}` : pathname);
   }
 
-  const active = forYouTestIsActive(profile);
-  const summary = forYouTestSummary(profile);
+  const active = isActive(profile);
 
   return (
     <section className="mx-auto w-full max-w-3xl px-4 pt-3 md:max-w-6xl md:px-6">
@@ -67,10 +99,12 @@ export function ForYouTestFilter({ initial }: { initial: ForYouTestProfile }) {
             </p>
             <p className="mt-1 text-[13px] leading-5 text-[#1b1d1f]/70">
               Not a garage. Ranks For You from make/model, interests, and location already on the
-              story. No invented matches.
+              story. No invented matches. Saved in the URL and on this phone.
             </p>
             {active ? (
-              <p className="mt-1 font-display text-sm font-bold uppercase text-[#1b1d1f]">{summary}</p>
+              <p className="mt-1 font-display text-sm font-bold uppercase text-[#1b1d1f]">
+                {summary(profile)}
+              </p>
             ) : null}
           </div>
           <button
@@ -95,13 +129,18 @@ export function ForYouTestFilter({ initial }: { initial: ForYouTestProfile }) {
                 className={selectClass}
                 value={profile.make ?? ""}
                 onChange={(event) =>
-                  apply({ ...profile, make: event.target.value || undefined, model: undefined, generation: undefined })
+                  apply({
+                    ...profile,
+                    make: event.target.value || undefined,
+                    model: undefined,
+                    generation: undefined,
+                  })
                 }
               >
                 <option value="">Any make</option>
-                {catalogMakes().map((make) => (
-                  <option key={make} value={make}>
-                    {make}
+                {catalog.makes.map((make) => (
+                  <option key={make.name} value={make.name}>
+                    {make.name}
                   </option>
                 ))}
               </select>
@@ -111,13 +150,17 @@ export function ForYouTestFilter({ initial }: { initial: ForYouTestProfile }) {
                 value={profile.model ?? ""}
                 disabled={!profile.make}
                 onChange={(event) =>
-                  apply({ ...profile, model: event.target.value || undefined, generation: undefined })
+                  apply({
+                    ...profile,
+                    model: event.target.value || undefined,
+                    generation: undefined,
+                  })
                 }
               >
                 <option value="">Any model</option>
                 {models.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
+                  <option key={model.name} value={model.name}>
+                    {model.name}
                   </option>
                 ))}
               </select>
@@ -145,7 +188,7 @@ export function ForYouTestFilter({ initial }: { initial: ForYouTestProfile }) {
               onChange={(event) => apply({ ...profile, location: event.target.value || undefined })}
             >
               <option value="">Any location</option>
-              {catalogLocations().map((location) => (
+              {catalog.locations.map((location) => (
                 <option key={location} value={location}>
                   {location}
                 </option>
@@ -156,7 +199,7 @@ export function ForYouTestFilter({ initial }: { initial: ForYouTestProfile }) {
                 Interests
               </p>
               <div className="flex flex-wrap gap-2">
-                {catalogInterests().map((interest) => {
+                {catalog.interests.map((interest) => {
                   const on = profile.interests.includes(interest);
                   return (
                     <button

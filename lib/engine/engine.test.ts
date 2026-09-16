@@ -316,6 +316,13 @@ describe("for you test profile", () => {
     assert.equal(rejected.model, undefined);
     assert.deepEqual(rejected.interests, []);
     assert.equal(forYouTestIsActive(rejected), false);
+    const { forYouTestCatalog } = await import("./for-you-test");
+    const catalog = forYouTestCatalog();
+    assert.ok(catalog.makes.some((item) => item.name === "Porsche"));
+    assert.equal(
+      catalog.makes.some((item) => item.name === "Honda"),
+      false,
+    );
   });
 
   it("does not invent a vehicle match when the story has no entities", async () => {

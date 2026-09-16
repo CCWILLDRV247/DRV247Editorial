@@ -1,4 +1,5 @@
 import {
+  EDITORIAL_LOCATIONS,
   INTEREST_TAXONOMY,
   VEHICLE_CATALOG,
   type EditorialCategory,
@@ -172,21 +173,6 @@ function extractCategories(text: string): EditorialCategory[] {
   if (!hits.length) hits.push("Car Culture");
   return hits;
 }
-
-export const EDITORIAL_LOCATIONS = [
-  "Goodwood",
-  "Monza",
-  "Le Mans",
-  "Spa",
-  "Nürburgring",
-  "London",
-  "Milan",
-  "Paris",
-  "Monaco",
-  "Villa d'Este",
-  "Retromobile",
-  "Amelia Island",
-] as const;
 
 function extractLocations(text: string): string[] {
   return EDITORIAL_LOCATIONS.filter((place) => text.includes(place.toLowerCase()));
