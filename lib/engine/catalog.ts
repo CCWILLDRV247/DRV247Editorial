@@ -1,7 +1,15 @@
+export type VehicleModel = {
+  name: string;
+  aliases: string[];
+  generations?: string[];
+  /** Generation codes that uniquely identify this model (964 → 911). */
+  generationImpliesModel?: boolean;
+};
+
 export type VehicleRecord = {
   make: string;
   aliases: string[];
-  models: { name: string; aliases: string[]; generations?: string[] }[];
+  models: VehicleModel[];
 };
 
 export const VEHICLE_CATALOG: VehicleRecord[] = [
@@ -11,8 +19,9 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
     models: [
       {
         name: "911",
-        aliases: ["911", "nine eleven", "carrera"],
+        aliases: ["911", "nine eleven", "carrera", "gt2", "gt3", "gt3 rs", "911 gt3"],
         generations: ["964", "993", "996", "997", "991", "992"],
+        generationImpliesModel: true,
       },
       { name: "356", aliases: ["356"] },
       { name: "Cayman", aliases: ["cayman", "718 cayman"] },
@@ -28,7 +37,7 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
     models: [
       {
         name: "F355",
-        aliases: ["f355", "355", "ferrari 355"],
+        aliases: ["f355", "f 355", "355", "ferrari 355", "355 gtb", "355 berlinetta"],
         generations: ["F355"],
       },
       { name: "F40", aliases: ["f40"] },
@@ -152,3 +161,18 @@ export const EDITORIAL_CATEGORIES = [
 
 export type Interest = (typeof INTEREST_TAXONOMY)[number];
 export type EditorialCategory = (typeof EDITORIAL_CATEGORIES)[number];
+
+export const EDITORIAL_LOCATIONS = [
+  "Goodwood",
+  "Monza",
+  "Le Mans",
+  "Spa",
+  "Nürburgring",
+  "London",
+  "Milan",
+  "Paris",
+  "Monaco",
+  "Villa d'Este",
+  "Retromobile",
+  "Amelia Island",
+] as const;

@@ -1,6 +1,6 @@
 # DRV247 Editorial
 
-UK/EU automotive culture desk. Nineteen culture titles (original ten plus wave 2, including Turnpike; Flat 6 and AUTOMOBILSPORT stay dark), teasers and outbound links only — never full article bodies. Ingest keeps English teasers and skips non-English items.
+UK/EU automotive culture desk. Nineteen culture titles (original ten plus wave 2, including Turnpike; Flat 6 and AUTOMOBILSPORT stay dark), teasers and outbound links only — never full article bodies. Ingest keeps English teasers and skips non-English items. User-facing nav is For You, Cars, Culture, Driving, Motorsport, and Events.
 
 ## Run locally
 
@@ -41,8 +41,8 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 
 ## What you get
 
-- **Home** — ranked teasers from the enabled culture titles, plus category carousels
-- **Category** — same visual system, filtered lane
+- **Home / For You** — curated mix by source quality and recency, plus a labeled test personalization filter
+- **Category** — Cars, Culture, Driving, Motorsport, Events, with the same test filter (old Racing/Classic/Modified/Concourse URLs redirect)
 - **Story** — hero, source tag, title, feed teaser, short extract from the original, **Read on [outlet]**
 - **Admin** (`/admin/engine`) — ingest now, source health
 - **JSON** — `GET /api/editorial`, `GET /api/editorial/status`
@@ -53,5 +53,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 Desk **Ingest now** runs the enabled culture pipeline (19 titles). Non-English items are skipped; mixed-language titles such as ramp stay enabled. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds.
+
+On **For You** and every primary (Cars, Culture, Driving, Motorsport, Events), tap **Set test** to pick make, model, generation, variant, interests, and location. The picker lists every value present on stories plus the gazetteer — including off-catalog marques such as Honda/Civic if they appear on a teaser or in the URL. That selection is stored in the URL and in `localStorage` (`drv247-for-you-test`) and rides along in the nav. Those pages **hide** stories that miss any set dimension (AND across make, model, generation, variant, location; OR among selected interests). Unset fields do not constrain. Empty sections hide. **Clear test** returns the unfiltered mix for that page. Extraction is rule-based from title, teaser, and the stored first-paragraph extract: 964/993/996/GT3 count as 911, 355 GTB as Ferrari F355. This is a placeholder until the real DRV247 personalization string exists. No real garage.
 
 Story pages show a short **extract** from the original, taken at ingest: fetch the URL, persist standfirst / meta description / first substantial paragraph only, then discard the HTML. If the fetch 403s/fails, or that extract is empty or just repeats the RSS teaser, the block is hidden. No LLM key. Desk ingest-now and weekly cron backfill every story still missing an extract.

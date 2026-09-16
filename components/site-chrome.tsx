@@ -2,21 +2,35 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "cn";
-import { MAGAZINE_NAV } from "@/config/magazine-nav";
+import { MOBILE_NAV_SLUGS, PRIMARY_NAV } from "@/config/magazine-nav";
+
+const mobileNav = PRIMARY_NAV.filter((item) =>
+  (MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
+);
+const moreNav = PRIMARY_NAV.filter(
+  (item) => !(MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
+);
+
+function withQuery(href: string, query?: string) {
+  if (!query) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}${query}`;
+}
 
 export function SiteHeader({
   title,
   backHref,
+  testQuery,
 }: {
   title: string;
   backHref?: string;
+  testQuery?: string;
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 md:h-16 md:px-6">
         {backHref ? (
           <Link
-            href={backHref}
+            href={withQuery(backHref, testQuery)}
             aria-label="Back"
             className="flex size-8 items-center justify-center text-[#1b1d1f]"
           >
@@ -24,7 +38,7 @@ export function SiteHeader({
           </Link>
         ) : (
           <Link
-            href="/"
+            href={withQuery("/", testQuery)}
             className="font-display text-xl font-black uppercase tracking-[-0.04em] text-[#1b1d1f]"
           >
             DRV247
@@ -41,26 +55,44 @@ export function SiteHeader({
         </Link>
       </div>
       <nav className="mx-auto hidden max-w-6xl items-center gap-6 overflow-x-auto px-6 pb-3 md:flex">
-        {MAGAZINE_NAV.map((category) => (
+        {PRIMARY_NAV.map((item) => (
           <Link
-            key={category.slug}
-            href={`/category/${category.slug}`}
+            key={item.slug}
+            href={withQuery(item.href, testQuery)}
             className="font-display text-lg font-bold uppercase tracking-[-0.02em] text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
           >
-            {category.name}
+            {item.name}
           </Link>
         ))}
       </nav>
-      <nav className="flex gap-4 overflow-x-auto px-4 pb-3 md:hidden">
-        {MAGAZINE_NAV.map((category) => (
+      <nav className="flex items-center gap-4 overflow-x-auto px-4 pb-3 md:hidden">
+        {mobileNav.map((item) => (
           <Link
-            key={category.slug}
-            href={`/category/${category.slug}`}
+            key={item.slug}
+            href={withQuery(item.href, testQuery)}
             className="shrink-0 font-display text-base font-bold uppercase text-[#1b1d1f]/70"
           >
-            {category.name}
+            {item.name}
           </Link>
         ))}
+        {moreNav.length > 0 ? (
+          <details className="relative shrink-0">
+            <summary className="cursor-pointer list-none font-display text-base font-bold uppercase text-[#1b1d1f]/70 marker:content-none [&::-webkit-details-marker]:hidden">
+              More
+            </summary>
+            <div className="absolute right-0 z-50 mt-2 min-w-[10rem] border border-[#1b1d1f]/10 bg-white p-3 shadow-sm">
+              {moreNav.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={withQuery(item.href, testQuery)}
+                  className="block py-1 font-display text-base font-bold uppercase text-[#1b1d1f]"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </details>
+        ) : null}
       </nav>
     </header>
   );

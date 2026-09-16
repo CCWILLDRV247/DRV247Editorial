@@ -90,10 +90,72 @@ describe("entities and ranking", () => {
     assert.ok(extracted.models.includes("911"));
     assert.ok(extracted.generations.includes("964"));
   });
+  it("maps 993 and 996 to the 911 family without the word 911", () => {
+    const air = extractEntities("Porsche 993: Your DNHC questions answered");
+    assert.ok(air.makes.includes("Porsche"));
+    assert.ok(air.models.includes("911"));
+    assert.ok(air.generations.includes("993"));
+    const water = extractEntities("996 Carrera v 4S: which is best?");
+    assert.ok(water.models.includes("911"));
+    assert.ok(water.generations.includes("996"));
+    const plural = extractEntities("Why have Porsche 993s exploded in value?");
+    assert.ok(plural.models.includes("911"));
+    assert.ok(plural.generations.includes("993"));
+  });
+  it("maps GT3 and 355 GTB via aliases", () => {
+    const gt3 = extractEntities("Porsche GT3 Bergsport");
+    assert.ok(gt3.makes.includes("Porsche"));
+    assert.ok(gt3.models.includes("911"));
+    assert.ok(gt3.variants.includes("GT3"));
+    const f355 = extractEntities("A restored 355 GTB on the autostrada");
+    assert.ok(f355.makes.includes("Ferrari"));
+    assert.ok(f355.models.includes("F355"));
+  });
+  it("reads the extracted paragraph, not title-only", () => {
+    const extracted = extractEntities(
+      "Weekend drive",
+      "A short teaser with no marque.",
+      "The 964 remains the last analogue 911, and it still feels special on a damp B-road.",
+    );
+    assert.ok(extracted.makes.includes("Porsche"));
+    assert.ok(extracted.models.includes("911"));
+    assert.ok(extracted.generations.includes("964"));
+  });
+  it("does not treat 1996 as a 996", () => {
+    const extracted = extractEntities("The best of 1996", "A year in review for collectors.");
+    assert.equal(extracted.models.includes("911"), false);
+    assert.equal(extracted.generations.includes("996"), false);
+  });
   it("maps Ferrari 355 aliases to F355", () => {
     const extracted = extractEntities("Ferrari 355 on the autostrada");
     assert.ok(extracted.makes.includes("Ferrari"));
     assert.ok(extracted.models.includes("F355"));
+  });
+  it("scores a For You 911 pick against 964/993 stories as a model match", () => {
+    const gen = extractEntities("Air-cooled 993 values keep climbing");
+    const garage = [{ make: "Porsche", model: "911" }];
+    const modelScore = scoreArticle({
+      ...gen,
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garage,
+      userInterests: [],
+    });
+    const makeOnly = scoreArticle({
+      makes: ["Porsche"],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: [],
+      categories: [],
+      locations: [],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garage,
+      userInterests: [],
+    });
+    assert.ok(gen.models.includes("911"));
+    assert.ok(modelScore > makeOnly);
   });
   it("scores exact garage vehicle above generic news", () => {
     const porsche = extractEntities("Porsche 964 Carrera RS at Goodwood");
@@ -215,21 +277,284 @@ describe("admin login path", () => {
 });
 
 describe("magazine mapping", () => {
-  it("maps classic interests onto the Classic desk", async () => {
-    const { articleMatchesNav, tagForArticle, resolveImageUrl } = await import("./magazine");
+  it("maps classic restoration onto Cars, not Motorsport", async () => {
+    const { articleMatchesNav, tagForArticle, primaryForArticle, resolveImageUrl } = await import(
+      "./magazine"
+    );
     const article = {
       categories: ["Classic"],
       interests: ["Restoration"],
       publication: "Octane",
       title: "E-Type restoration",
+      excerpt: "A barn-find Jaguar E-Type restoration.",
     };
+    assert.equal(primaryForArticle(article as never), "cars");
+    assert.equal(articleMatchesNav(article as never, "cars"), true);
     assert.equal(articleMatchesNav(article as never, "classic"), true);
-    assert.equal(articleMatchesNav(article as never, "modified"), false);
+    assert.equal(articleMatchesNav(article as never, "motorsport"), false);
     assert.equal(tagForArticle(article as never), "Classic");
     assert.equal(
       resolveImageUrl("/img/hero.jpg", "https://octane.example/story"),
       "https://octane.example/img/hero.jpg",
     );
+  });
+});
+
+describe("primary taxonomy", () => {
+  it("assigns exactly one primary from the brief examples", async () => {
+    const { classifyPrimary } = await import("./taxonomy");
+    assert.equal(
+      classifyPrimary({
+        title: "Why the Porsche 964 is the ultimate analogue 911",
+        excerpt: "The last of the air-cooled cars still feels like a collector performance 911.",
+        categories: ["Classic", "Collector", "Performance"],
+      }),
+      "cars",
+    );
+    assert.equal(
+      classifyPrimary({
+        title: "The designers who changed Ferrari forever",
+        excerpt: "An interview with the people who shaped Ferrari design history.",
+        categories: ["Design", "People", "History"],
+      }),
+      "culture",
+    );
+    assert.equal(
+      classifyPrimary({
+        title: "Driving the Stelvio Pass in a Porsche 911",
+        excerpt: "A road trip through the Alpine passes worth touring.",
+        categories: ["Road Trips", "Driving", "Travel"],
+      }),
+      "driving",
+    );
+    assert.equal(
+      classifyPrimary({
+        title: "Ferrari racing history at Le Mans",
+        excerpt: "The championship years and the drivers who won them.",
+        categories: ["Motorsport", "History"],
+      }),
+      "motorsport",
+    );
+    assert.equal(
+      classifyPrimary({
+        title: "New concours announced at Villa d'Este",
+        excerpt: "The gathering returns to the lawns this summer.",
+        categories: ["Events", "News"],
+      }),
+      "events",
+    );
+  });
+
+  it("maps the old magazine lanes onto the new primaries", async () => {
+    const { LEGACY_NAV_TO_PRIMARY } = await import("../../config/magazine-nav");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.racing, "motorsport");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.classic, "cars");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.modified, "cars");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.concourse, "events");
+    assert.equal(LEGACY_NAV_TO_PRIMARY.culture, "culture");
+  });
+});
+
+describe("for you test profile", () => {
+  it("keeps off-catalog marques, models, and interests", async () => {
+    const { parseForYouTestProfile, forYouTestIsActive, forYouTestCatalog, withProfileInCatalog } =
+      await import("./for-you-test");
+    const profile = parseForYouTestProfile({
+      make: "Porsche",
+      model: "911",
+      generation: "964",
+      variant: "Carrera RS",
+      interest: ["Classic", "NotAThing"],
+      location: "Goodwood",
+    });
+    assert.deepEqual(profile, {
+      make: "Porsche",
+      model: "911",
+      generation: "964",
+      variant: "Carrera RS",
+      interests: ["Classic", "NotAThing"],
+      location: "Goodwood",
+    });
+    assert.equal(forYouTestIsActive(profile), true);
+    const honda = parseForYouTestProfile({ make: "Honda", model: "Civic", interest: "Vibes" });
+    assert.equal(honda.make, "Honda");
+    assert.equal(honda.model, "Civic");
+    assert.deepEqual(honda.interests, ["Vibes"]);
+    assert.equal(forYouTestIsActive(honda), true);
+    const gazetteer = forYouTestCatalog();
+    assert.ok(gazetteer.makes.some((item) => item.name === "Porsche"));
+    assert.ok(gazetteer.makes.some((item) => item.name === "Ferrari"));
+    assert.equal(
+      gazetteer.makes.some((item) => item.name === "Honda"),
+      false,
+    );
+    const live = forYouTestCatalog({
+      entities: [
+        { kind: "make", name: "Honda", make: "Honda" },
+        { kind: "model", name: "Civic", make: "Honda", model: "Civic" },
+        { kind: "generation", name: "EK9", make: "Honda", model: "Civic" },
+        { kind: "variant", name: "Type R", make: "Honda", model: "Civic" },
+      ],
+      interests: ["Vibes"],
+      locations: ["Suzuka"],
+    });
+    assert.ok(live.makes.some((item) => item.name === "Honda"));
+    const civic = live.makes.find((item) => item.name === "Honda")?.models.find((item) => item.name === "Civic");
+    assert.ok(civic?.generations.includes("EK9"));
+    assert.ok(civic?.variants.includes("Type R"));
+    assert.ok(live.interests.includes("Vibes"));
+    assert.ok(live.locations.includes("Suzuka"));
+    const injected = withProfileInCatalog(gazetteer, honda);
+    assert.ok(injected.makes.some((item) => item.name === "Honda"));
+    assert.ok(
+      injected.makes
+        .find((item) => item.name === "Honda")
+        ?.models.some((item) => item.name === "Civic"),
+    );
+    assert.ok(injected.makes.some((item) => item.name === "Ferrari"));
+  });
+
+  it("hard-filters each set dimension and leaves unset ones open", async () => {
+    const { articleMatchesForYouTest, parseForYouTestProfile } = await import("./for-you-test");
+    const porsche911 = parseForYouTestProfile({ make: "Porsche", model: "911" });
+    const merch = {
+      makes: [] as string[],
+      models: [] as string[],
+      generations: [] as string[],
+      variants: [] as string[],
+      interests: ["Modified", "Car Culture"],
+      locations: [] as string[],
+    };
+    const airCooled = {
+      makes: ["Porsche"],
+      models: ["911"],
+      generations: ["993"],
+      variants: ["Carrera RS"],
+      interests: [] as string[],
+      locations: [] as string[],
+    };
+    const porscheOnly = {
+      makes: ["Porsche"],
+      models: ["Cayenne"],
+      generations: [] as string[],
+      variants: [] as string[],
+      interests: [] as string[],
+      locations: [] as string[],
+    };
+    const ferrari = {
+      makes: ["Ferrari"],
+      models: ["F355"],
+      generations: ["F355"],
+      variants: [] as string[],
+      interests: ["Classic"],
+      locations: ["Monza"],
+    };
+    const honda = {
+      makes: ["Honda"],
+      models: ["Civic"],
+      generations: ["EK9"],
+      variants: ["Type R"],
+      interests: ["Vibes"],
+      locations: ["Suzuka"],
+    };
+    assert.equal(articleMatchesForYouTest(merch, porsche911), false);
+    assert.equal(articleMatchesForYouTest(airCooled, porsche911), true);
+    assert.equal(articleMatchesForYouTest(porscheOnly, porsche911), false);
+    assert.equal(articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche" })), true);
+    assert.equal(
+      articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche", interest: "Classic" })),
+      false,
+    );
+    assert.equal(
+      articleMatchesForYouTest(
+        { ...airCooled, interests: ["Classic"] },
+        parseForYouTestProfile({ make: "Porsche", model: "911", interest: "Classic" }),
+      ),
+      true,
+    );
+    assert.equal(articleMatchesForYouTest(ferrari, parseForYouTestProfile({ make: "Ferrari" })), true);
+    assert.equal(articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Ferrari" })), false);
+    assert.equal(articleMatchesForYouTest(honda, parseForYouTestProfile({ make: "Honda", model: "Civic" })), true);
+    assert.equal(articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Honda", model: "Civic" })), false);
+    assert.equal(
+      articleMatchesForYouTest(ferrari, parseForYouTestProfile({ interest: "Classic" })),
+      true,
+    );
+    assert.equal(articleMatchesForYouTest(merch, parseForYouTestProfile({ interest: "Classic" })), false);
+    assert.equal(
+      articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche", model: "911", generation: "993" })),
+      true,
+    );
+    assert.equal(
+      articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche", model: "911", generation: "996" })),
+      false,
+    );
+    assert.equal(
+      articleMatchesForYouTest(
+        airCooled,
+        parseForYouTestProfile({ make: "Porsche", model: "911", variant: "Carrera RS" }),
+      ),
+      true,
+    );
+    assert.equal(
+      articleMatchesForYouTest(airCooled, parseForYouTestProfile({ make: "Porsche", model: "911", variant: "GT3" })),
+      false,
+    );
+    assert.equal(
+      articleMatchesForYouTest(ferrari, parseForYouTestProfile({ location: "Monza" })),
+      true,
+    );
+    assert.equal(
+      articleMatchesForYouTest(ferrari, parseForYouTestProfile({ location: "Goodwood" })),
+      false,
+    );
+    assert.equal(
+      articleMatchesForYouTest(
+        { ...ferrari, interests: ["Classic", "Design"] },
+        parseForYouTestProfile({ interest: ["Classic", "Modified"] }),
+      ),
+      true,
+    );
+  });
+
+  it("keeps the test query on primary nav hrefs", async () => {
+    const { withTestQuery, forYouTestSearchString, parseForYouTestProfile } = await import("./for-you-test");
+    const query = forYouTestSearchString(parseForYouTestProfile({ make: "Porsche", model: "911" }));
+    assert.equal(withTestQuery("/", query), "/?make=Porsche&model=911");
+    assert.equal(withTestQuery("/category/cars", query), "/category/cars?make=Porsche&model=911");
+    assert.equal(withTestQuery("/category/culture", query), "/category/culture?make=Porsche&model=911");
+    assert.equal(withTestQuery("/category/cars", undefined), "/category/cars");
+  });
+
+  it("does not invent a vehicle match when the story has no entities", async () => {
+    const { scoreArticle } = await import("./rank");
+    const unmatched = scoreArticle({
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: ["Design"],
+      categories: ["Design"],
+      locations: [],
+      excerpt: "A design essay with no car entities.",
+      relevance: "Excellent",
+      vehicles: [{ make: "Porsche", model: "911", generation: "964" }],
+      userInterests: ["Classic"],
+    });
+    const matched = scoreArticle({
+      makes: ["Porsche"],
+      models: ["911"],
+      generations: ["964"],
+      variants: [],
+      interests: ["Classic"],
+      categories: ["Classic"],
+      locations: [],
+      excerpt: "Why the Porsche 964 is the ultimate analogue 911.",
+      relevance: "Excellent",
+      vehicles: [{ make: "Porsche", model: "911", generation: "964" }],
+      userInterests: ["Classic"],
+    });
+    assert.ok(matched > unmatched);
   });
 });
 

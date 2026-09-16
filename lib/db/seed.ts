@@ -131,6 +131,31 @@ export const CATEGORY_COPY: Record<
       "The essays, columns, and oddities that make this more than a results sheet.",
     interstitial: "DRIVE IT LIKE YOU STOLE IT",
   },
+  cars: {
+    kicker: "This week's stories",
+    dek: "The cars themselves",
+    blurb:
+      "Classics, new metal, restorations, and the machines the desk keeps coming back to.",
+    interstitial: "THEIR LAST FAST DAYS",
+  },
+  driving: {
+    kicker: "This week's stories",
+    dek: "Roads worth taking",
+    blurb: "Tours, owner miles, and the drives that stay with you after the keys go back.",
+    interstitial: "IF IN DOUBT FLAT OUT",
+  },
+  motorsport: {
+    kicker: "This week's stories",
+    dek: "Grid, rally, and historic racing",
+    blurb: "Competition stories kept apart from road-car performance.",
+    interstitial: "IF IN DOUBT FLAT OUT",
+  },
+  events: {
+    kicker: "This week's stories",
+    dek: "Shows, lawns, and judging days",
+    blurb: "A hand-picked selection of gatherings — enjoy the car, share the passion.",
+    interstitial: "THE TRUTH SHALL SET YOU FREE",
+  },
   desk: {
     kicker: "Unfiled",
     dek: "Stories waiting on a category",

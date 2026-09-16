@@ -13,7 +13,10 @@ import {
   mediaSources,
   type Article,
 } from "@/lib/db/schema";
-import { loadRankWeights, scoreArticle, type GarageVehicle } from "./rank";
+import { loadRankWeights, recencyBonus, scoreArticle, scoreForYou, type GarageVehicle } from "./rank";
+import { classifyPrimary, isContentPrimary } from "./taxonomy";
+import { loadArticlePrimaries } from "./article-primary";
+import { articleMatchesForYouTest, buildForYouTestCatalog, forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
 
 export type EditorialDto = {
   id: number;
@@ -39,6 +42,7 @@ export type EditorialDto = {
   interests: string[];
   locations: string[];
   duplicateGroupId: string | null;
+  primaryCategory: string;
 };
 
 function toDto(
@@ -52,6 +56,7 @@ function toDto(
     interests: string[];
     locations: string[];
     rankScore: number;
+    primaryCategory: string;
   },
 ): EditorialDto {
   return {
@@ -78,6 +83,7 @@ function toDto(
     interests: extras.interests,
     locations: extras.locations,
     duplicateGroupId: article.duplicateGroupId,
+    primaryCategory: extras.primaryCategory,
   };
 }
 
@@ -166,6 +172,7 @@ export async function listEditorial(options?: {
   interest?: string;
   q?: string;
   section?: string;
+  testProfile?: ForYouTestProfile;
   limit?: number;
 }): Promise<EditorialDto[]> {
   const db = await getDb();
@@ -181,15 +188,32 @@ export async function listEditorial(options?: {
     );
   }
 
-  const [sourceRows, extrasMap] = await Promise.all([
+  const [sourceRows, extrasMap, primaryMap] = await Promise.all([
     db.select().from(mediaSources),
     extrasByArticleIds(rows.map((row) => row.id)),
+    loadArticlePrimaries(rows.map((row) => row.id)),
   ]);
   const sourceMap = new Map(sourceRows.map((source) => [source.id, source]));
+  const testProfile = options?.testProfile;
+  const useTestProfile = Boolean(testProfile && forYouTestIsActive(testProfile));
+  const curated = options?.section === "for-you" || (!options?.userId && !options?.vehicleId);
   let vehicles: GarageVehicle[] = [];
   let userInterests: string[] = [];
   let userLocation: string | null = null;
-  if (options?.userId) {
+  if (useTestProfile && testProfile) {
+    if (testProfile.make || testProfile.model) {
+      vehicles = [
+        {
+          make: testProfile.make ?? "",
+          model: testProfile.model ?? "",
+          generation: testProfile.generation,
+          variant: testProfile.variant,
+        },
+      ];
+    }
+    userInterests = testProfile.interests;
+    userLocation = testProfile.location ?? null;
+  } else if (options?.userId) {
     const user = await getDemoUser(options.userId);
     if (user) {
       vehicles = user.vehicles;
@@ -197,7 +221,7 @@ export async function listEditorial(options?: {
       userLocation = user.location;
     }
   }
-  if (options?.vehicleId) {
+  if (!useTestProfile && options?.vehicleId) {
     const vehicle = (
       await db.select().from(demoVehicles).where(eq(demoVehicles.id, options.vehicleId)).limit(1)
     )[0];
@@ -212,41 +236,78 @@ export async function listEditorial(options?: {
   const weights = loadRankWeights();
   const ranked = rows.map((article) => {
     const extras = extrasMap.get(article.id) ?? {
-      makes: [],
-      models: [],
-      generations: [],
-      variants: [],
-      categories: [],
-      interests: [],
-      locations: [],
+      makes: [] as string[],
+      models: [] as string[],
+      generations: [] as string[],
+      variants: [] as string[],
+      categories: [] as string[],
+      interests: [] as string[],
+      locations: [] as string[],
     };
-    if (options?.make && !extras.makes.some((make) => make.toLowerCase() === options.make!.toLowerCase())) {
+    const primaryCategory =
+      primaryMap.get(article.id) ??
+      classifyPrimary({
+        title: article.title,
+        excerpt: article.excerpt,
+        publication: article.publication,
+        categories: extras.categories,
+        interests: extras.interests,
+      });
+    if (options?.section && isContentPrimary(options.section) && primaryCategory !== options.section) {
       return null;
     }
-    if (options?.model && !extras.models.some((model) => model.toLowerCase() === options.model!.toLowerCase())) {
+    if (useTestProfile && testProfile && !articleMatchesForYouTest(extras, testProfile)) {
       return null;
     }
-    if (
-      options?.generation &&
-      !extras.generations.some((generation) => generation.toLowerCase() === options.generation!.toLowerCase())
-    ) {
-      return null;
+    if (!useTestProfile) {
+      if (options?.make && !extras.makes.some((make) => make.toLowerCase() === options.make!.toLowerCase())) {
+        return null;
+      }
+      if (options?.model && !extras.models.some((model) => model.toLowerCase() === options.model!.toLowerCase())) {
+        return null;
+      }
+      if (
+        options?.generation &&
+        !extras.generations.some((generation) => generation.toLowerCase() === options.generation!.toLowerCase())
+      ) {
+        return null;
+      }
     }
     if (options?.category && !extras.categories.includes(options.category)) return null;
-    if (options?.interest && !extras.interests.includes(options.interest)) return null;
+    if (!useTestProfile && options?.interest && !extras.interests.includes(options.interest)) return null;
     const source = sourceMap.get(article.sourceId);
-    const rankScore = scoreArticle(
-      {
-        ...extras,
-        excerpt: article.excerpt,
-        relevance: source?.relevance ?? "",
-        vehicles,
-        userInterests,
-        userLocation,
-      },
-      weights,
-    );
-    return toDto(article, { ...extras, rankScore });
+    const relevance = source?.relevance ?? "";
+    const rankScore =
+      useTestProfile || (curated && vehicles.length)
+        ? scoreArticle(
+            {
+              ...extras,
+              excerpt: article.excerpt,
+              relevance,
+              vehicles,
+              userInterests,
+              userLocation,
+            },
+            weights,
+          ) + recencyBonus(article.publishedAt)
+        : curated
+          ? scoreForYou({
+              relevance,
+              publishedAt: article.publishedAt,
+              excerptLength: article.excerpt.length,
+            })
+          : scoreArticle(
+              {
+                ...extras,
+                excerpt: article.excerpt,
+                relevance,
+                vehicles,
+                userInterests,
+                userLocation,
+              },
+              weights,
+            );
+    return toDto(article, { ...extras, rankScore, primaryCategory });
   });
 
   const list = ranked.filter((row): row is EditorialDto => Boolean(row));
@@ -267,6 +328,7 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
   const article = (await db.select().from(articles).where(eq(articles.id, id)).limit(1))[0];
   if (!article) return null;
   const extras = (await extrasByArticleIds([article.id])).get(article.id)!;
+  const primaryMap = await loadArticlePrimaries([article.id]);
   const source = (
     await db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1)
   )[0];
@@ -277,5 +339,36 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
     vehicles: [],
     userInterests: [],
   });
-  return toDto(article, { ...extras, rankScore });
+  const primaryCategory =
+    primaryMap.get(article.id) ??
+    classifyPrimary({
+      title: article.title,
+      excerpt: article.excerpt,
+      publication: article.publication,
+      categories: extras.categories,
+      interests: extras.interests,
+    });
+  return toDto(article, { ...extras, rankScore, primaryCategory });
+}
+
+/** Gazetteer plus every make/model/generation/variant/interest/location on live stories. */
+export async function loadForYouTestCatalog() {
+  const db = await getDb();
+  const [entities, interests, locations] = await Promise.all([
+    db
+      .select({
+        kind: articleEntities.kind,
+        name: articleEntities.name,
+        make: articleEntities.make,
+        model: articleEntities.model,
+      })
+      .from(articleEntities),
+    db.select({ interest: articleInterests.interest }).from(articleInterests),
+    db.select({ location: articleLocations.location }).from(articleLocations),
+  ]);
+  return buildForYouTestCatalog({
+    entities,
+    interests: interests.map((row) => row.interest),
+    locations: locations.map((row) => row.location),
+  });
 }

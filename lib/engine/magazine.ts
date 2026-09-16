@@ -1,25 +1,41 @@
 import type { StoryDto } from "@/lib/stories";
-import { MAGAZINE_NAV, NAV_KEYWORDS } from "../../config/magazine-nav";
+import {
+  LEGACY_NAV_TO_PRIMARY,
+  MAGAZINE_NAV,
+  MOBILE_MOTORSPORT_MORE_BELOW,
+  PRIMARY_NAV,
+  contentPrimaryBySlug,
+  type ContentPrimary,
+} from "../../config/magazine-nav";
+import { countArticlesByPrimary } from "./article-primary";
+import { forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
 import { getEditorial, listEditorial, type EditorialDto } from "./queries";
+import { classifyPrimary } from "./taxonomy";
 
-export { MAGAZINE_NAV } from "../../config/magazine-nav";
+export { MAGAZINE_NAV, PRIMARY_NAV } from "../../config/magazine-nav";
 
-function haystack(article: EditorialDto) {
-  return [...article.categories, ...article.interests, article.publication, article.title]
-    .join(" ")
-    .toLowerCase();
+export function primaryForArticle(article: EditorialDto): ContentPrimary {
+  if (article.primaryCategory) {
+    const known = contentPrimaryBySlug(article.primaryCategory);
+    if (known) return known.slug as ContentPrimary;
+  }
+  return classifyPrimary({
+    title: article.title,
+    excerpt: article.excerpt,
+    publication: article.publication,
+    categories: article.categories,
+    interests: article.interests,
+  });
 }
 
 export function articleMatchesNav(article: EditorialDto, slug: string) {
-  const keywords = NAV_KEYWORDS[slug];
-  if (!keywords) return true;
-  const text = haystack(article);
-  return keywords.some((keyword) => text.includes(keyword));
+  if (slug === "for-you") return true;
+  const target = LEGACY_NAV_TO_PRIMARY[slug] ?? slug;
+  return primaryForArticle(article) === target;
 }
 
 export function navForArticle(article: EditorialDto) {
-  const match = MAGAZINE_NAV.find((item) => articleMatchesNav(article, item.slug));
-  return match ?? MAGAZINE_NAV[4];
+  return contentPrimaryBySlug(primaryForArticle(article)) ?? MAGAZINE_NAV[1];
 }
 
 export function tagForArticle(article: EditorialDto) {
@@ -39,7 +55,7 @@ export function toMagazineStory(article: EditorialDto): StoryDto {
     canonicalUrl: article.canonicalUrl,
     publishedAt: article.publishedAt,
     hidden: false,
-    category: { id: 0, slug: nav.slug, name: tagForArticle(article) },
+    category: { id: 0, slug: nav.slug, name: nav.name },
     source: { id: 0, name: article.publication, type: article.ingestionMethod },
   };
 }
@@ -55,17 +71,17 @@ export function resolveImageUrl(raw: string | null | undefined, baseUrl: string)
 
 export async function listMagazineStories(options?: {
   navSlug?: string;
-  userId?: string;
+  testProfile?: ForYouTestProfile;
   limit?: number;
 }): Promise<StoryDto[]> {
   const articles = await listEditorial({
-    userId: options?.userId ?? "demo-chris",
+    section: options?.navSlug && options.navSlug !== "for-you" ? options.navSlug : "for-you",
+    testProfile: forYouTestIsActive(options?.testProfile ?? { interests: [] })
+      ? options?.testProfile
+      : undefined,
     limit: 80,
   });
-  const filtered = options?.navSlug
-    ? articles.filter((article) => articleMatchesNav(article, options.navSlug!))
-    : articles;
-  return filtered.slice(0, options?.limit ?? 24).map(toMagazineStory);
+  return articles.slice(0, options?.limit ?? 24).map(toMagazineStory);
 }
 
 export async function getMagazineStory(id: number): Promise<StoryDto | null> {
@@ -82,8 +98,12 @@ function uniqueStories(stories: StoryDto[]) {
   });
 }
 
-export async function getMagazineHome() {
-  const ranked = await listEditorial({ userId: "demo-chris", limit: 80 });
+export async function getMagazineHome(testProfile?: ForYouTestProfile) {
+  const ranked = await listEditorial({
+    section: "for-you",
+    testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
+    limit: 80,
+  });
   const stories = uniqueStories(ranked.map(toMagazineStory)).slice(0, 24);
   const featuredIds = new Set(stories.slice(0, 6).map((story) => story.id));
   const carousels = MAGAZINE_NAV.map((nav) => {
@@ -97,6 +117,18 @@ export async function getMagazineHome() {
       name: nav.name,
       stories: uniqueStories([...fresh, ...lane]).slice(0, 8),
     };
-  });
+  }).filter((lane) => lane.stories.length > 0);
   return { stories, carousels };
+}
+
+export async function getMagazineNav() {
+  const counts = await countArticlesByPrimary();
+  const motorsportCount = counts.motorsport ?? 0;
+  const motorsportInMore = motorsportCount < MOBILE_MOTORSPORT_MORE_BELOW;
+  const desktop = PRIMARY_NAV;
+  const mobile = motorsportInMore
+    ? PRIMARY_NAV.filter((item) => item.slug !== "motorsport")
+    : PRIMARY_NAV;
+  const more = motorsportInMore ? PRIMARY_NAV.filter((item) => item.slug === "motorsport") : [];
+  return { desktop, mobile, more, counts, motorsportInMore };
 }
