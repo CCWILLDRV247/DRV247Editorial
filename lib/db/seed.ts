@@ -165,8 +165,7 @@ export const CATEGORY_COPY: Record<
   home: {
     kicker: "This week's stories",
     dek: "Catch up on what's been happening out there",
-    blurb:
-      "UK and EU automotive culture from ten titles — teasers, images, and the original link. Never the full article.",
+    blurb: "A personalised mix for your car and interests.",
     interstitial: "THE TRUTH SHALL SET YOU FREE",
   },
 };
