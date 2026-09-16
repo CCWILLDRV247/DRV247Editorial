@@ -1,0 +1,41 @@
+import { count, eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { WAVE1_SOURCE_IDS } from "@/config/wave1-sources";
+import { getDb } from "@/lib/db";
+import { articles, mediaSources } from "@/lib/db/schema";
+import { ENGINE_BRANCH, ENGINE_WAVE, engineCommit } from "@/lib/engine/version";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const db = getDb();
+  const enabled = db.select().from(mediaSources).all().filter((source) => source.enabled);
+  const sources = WAVE1_SOURCE_IDS.map((id) => {
+    const source = enabled.find((row) => row.id === id);
+    const [{ value }] = db
+      .select({ value: count() })
+      .from(articles)
+      .where(eq(articles.sourceId, id))
+      .all();
+    return {
+      id,
+      publication: source?.publication ?? null,
+      enabled: Boolean(source?.enabled),
+      lastMethod: source?.lastMethod ?? null,
+      lastError: source?.lastError ?? null,
+      articleCount: value,
+    };
+  });
+  return NextResponse.json(
+    {
+      engine: ENGINE_WAVE,
+      branch: ENGINE_BRANCH,
+      commit: engineCommit(),
+      enabledCount: enabled.length,
+      publications: sources.filter((row) => row.articleCount > 0).map((row) => row.publication),
+      sources,
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
