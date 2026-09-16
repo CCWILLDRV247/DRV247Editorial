@@ -6,6 +6,7 @@ export type StoryDto = {
   id: number;
   title: string;
   summary: string;
+  aiSummary: string | null;
   imageUrl: string | null;
   canonicalUrl: string;
   publishedAt: string;
@@ -23,6 +24,7 @@ function toDto(row: {
     id: row.story.id,
     title: row.story.title,
     summary: row.story.summary,
+    aiSummary: null,
     imageUrl: row.story.imageUrl,
     canonicalUrl: row.story.canonicalUrl,
     publishedAt: new Date(row.story.publishedAt).toISOString(),

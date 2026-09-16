@@ -34,6 +34,7 @@ export function toMagazineStory(article: EditorialDto): StoryDto {
     id: article.id,
     title: article.title,
     summary: article.excerpt,
+    aiSummary: article.aiSummary,
     imageUrl: article.imageUrl,
     canonicalUrl: article.canonicalUrl,
     publishedAt: article.publishedAt,

@@ -163,3 +163,49 @@ describe("dedupe", () => {
     );
   });
 });
+
+describe("page summary extract", () => {
+  it("prefers a standfirst over later paragraphs", async () => {
+    const { extractPageSummary } = await import("./article-text");
+    const html = `<html><body>
+      <p class="standfirst">A hand-built revival of the 1965 Le Mans class winner is done.</p>
+      <article>
+        <p>The last of the Bizzarrini 5300 GT Corsa Revival cars has been completed in the UK.</p>
+      </article>
+    </body></html>`;
+    assert.equal(
+      extractPageSummary(html, { title: "Bizzarrini Corsa", teaser: "RSS teaser about a hypercar." }),
+      "A hand-built revival of the 1965 Le Mans class winner is done.",
+    );
+  });
+
+  it("skips a meta description that duplicates the RSS teaser and uses the first paragraph", async () => {
+    const { extractPageSummary } = await import("./article-text");
+    const teaser =
+      "With 24 homages to a 1965 Le Mans class winner now finished, the next project for Bizzarrini is a hypercar.";
+    const html = `<html><head>
+      <meta property="og:description" content="${teaser}"/>
+    </head><body><article>
+      <p class="credits">Words: James Elliott</p>
+      <p>The last of the Bizzarrini 5300 GT Corsa Revival cars has been completed, barely two years after the project began to hand-build two dozen clones of the 1965 Le Mans class winner.</p>
+      <p>Never miss out on the latest classic car news from Octane, subscribe today!</p>
+    </article></body></html>`;
+    const extract = extractPageSummary(html, { title: "Bizzarrini finishes Corsa Revival", teaser });
+    assert.match(extract ?? "", /last of the Bizzarrini 5300 GT Corsa Revival/);
+    assert.doesNotMatch(extract ?? "", /24 homages/);
+  });
+
+  it("hides empty, title-only, or teaser-duplicate extracts", async () => {
+    const { extractPageSummary, acceptExtract } = await import("./article-text");
+    const teaser = "A classic feature about the Jaguar E-Type restoration.";
+    assert.equal(acceptExtract("A classic feature about the Jaguar E-Type restoration.", "E-Type", teaser), null);
+    assert.equal(acceptExtract("E-Type restoration", "E-Type restoration", teaser), null);
+    assert.equal(
+      extractPageSummary(
+        `<html><head><meta name="description" content="${teaser}"/></head><body><p>Subscribe.</p></body></html>`,
+        { title: "E-Type restoration", teaser },
+      ),
+      null,
+    );
+  });
+});

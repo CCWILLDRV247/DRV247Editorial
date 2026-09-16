@@ -17,6 +17,8 @@ export default async function StoryPage({
   const { id } = await params;
   const story = await getMagazineStory(Number(id));
   if (!story) notFound();
+  const intro = storyIntro(story.title, story.summary);
+  const extract = storyExtract(story.aiSummary, story.title, intro);
 
   return (
     <div className="min-h-full bg-white">
@@ -37,12 +39,14 @@ export default async function StoryPage({
           <p className="mt-2 font-display text-lg font-bold uppercase text-[#1b1d1f]/70">
             {formatStoryDate(story.publishedAt)} · {story.category.name}
           </p>
-          <p className="mt-6 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
-            Read the original — we only hold the teaser.
-          </p>
-          {story.summary ? (
-            <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
-              {story.summary}
+          {intro ? (
+            <p className="mt-6 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
+              {intro}
+            </p>
+          ) : null}
+          {extract ? (
+            <p className="mt-8 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
+              {extract}
             </p>
           ) : null}
           <a
@@ -54,8 +58,8 @@ export default async function StoryPage({
             Read on {story.source.name}
           </a>
           <p className="mt-4 text-[14px] leading-5 text-[#1b1d1f]/70">
-            DRV247 is an aggregator. We store a headline, a short feed excerpt, and the outbound
-            link — never the full third-party article.
+            DRV247 is an aggregator. We store a headline, a short feed excerpt, a short extract from
+            the original, and the outbound link — never the full third-party article.
           </p>
           <Link
             href={`/category/${story.category.slug}`}
@@ -67,4 +71,24 @@ export default async function StoryPage({
       </article>
     </div>
   );
+}
+
+function storyIntro(title: string, summary: string | null | undefined) {
+  const intro = summary?.trim() ?? "";
+  if (!intro) return null;
+  if (intro.toLowerCase() === title.trim().toLowerCase()) return null;
+  return intro;
+}
+
+function storyExtract(
+  summary: string | null | undefined,
+  title: string,
+  intro: string | null,
+) {
+  const text = summary?.trim() ?? "";
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  if (lower === title.trim().toLowerCase()) return null;
+  if (intro && lower === intro.toLowerCase()) return null;
+  return text;
 }

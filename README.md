@@ -43,7 +43,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 
 - **Home** — ranked teasers from the ten culture titles, plus category carousels
 - **Category** — same visual system, filtered lane
-- **Story** — hero, source tag, excerpt, **Read on [outlet]**
+- **Story** — hero, source tag, title, feed teaser, short extract from the original, **Read on [outlet]**
 - **Admin** (`/admin/engine`) — ingest now, source health
 - **JSON** — `GET /api/editorial`, `GET /api/editorial/status`
 - **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
@@ -53,3 +53,5 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 Desk **Ingest now** still runs the 10-title culture pipeline. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds.
+
+Story pages show a short **extract** from the original, taken at ingest: fetch the URL, persist standfirst / meta description / first substantial paragraph only, then discard the HTML. If the fetch 403s/fails, or that extract is empty or just repeats the RSS teaser, the block is hidden. No LLM key. Desk ingest-now and weekly cron backfill every story still missing an extract.
