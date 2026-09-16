@@ -1,6 +1,6 @@
 # DRV247 Editorial
 
-UK/EU automotive culture desk. Ten wave-1 titles, teasers and outbound links only — never full article bodies.
+UK/EU automotive culture desk. Twenty-one culture titles (original ten plus wave 2, including Turnpike), teasers and outbound links only — never full article bodies.
 
 ## Run locally
 
@@ -41,7 +41,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 
 ## What you get
 
-- **Home** — ranked teasers from the ten culture titles, plus category carousels
+- **Home** — ranked teasers from the enabled culture titles, plus category carousels
 - **Category** — same visual system, filtered lane
 - **Story** — hero, source tag, title, feed teaser, short extract from the original, **Read on [outlet]**
 - **Admin** (`/admin/engine`) — ingest now, source health
@@ -50,7 +50,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 
 ## Ingest
 
-Desk **Ingest now** still runs the 10-title culture pipeline. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
+Desk **Ingest now** runs the enabled culture pipeline (21 titles). The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds.
 

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { eq } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
-import { WAVE1_SOURCE_SET } from "../../config/wave1-sources";
+import { ENABLED_SOURCE_IDS, ENABLED_SOURCE_SET } from "../../config/wave1-sources";
 import {
   demoUserInterests,
   demoUsers,
@@ -23,20 +23,16 @@ export function loadCsvSources(cwd = process.cwd()) {
 }
 
 export async function seedEngine(db: Db) {
-  const already = await db.select({ id: mediaSources.id }).from(mediaSources).limit(1);
-  if (already.length) {
-    return;
-  }
-
   const rows = loadCsvSources();
+  const existingRows = await db.select().from(mediaSources);
+  const byId = new Map(existingRows.map((row) => [row.id, row]));
   const nowPriority = (id: string) => {
-    const order = [...WAVE1_SOURCE_SET];
-    const index = order.indexOf(id);
+    const index = (ENABLED_SOURCE_IDS as readonly string[]).indexOf(id);
     return index === -1 ? 80 : index + 1;
   };
 
   for (const row of rows) {
-    const enabled = WAVE1_SOURCE_SET.has(row.id);
+    const enabled = ENABLED_SOURCE_SET.has(row.id);
     const values = {
       id: row.id,
       publication: row.publication,
@@ -58,9 +54,7 @@ export async function seedEngine(db: Db) {
       allowExcerpt: true,
       allowImage: true,
     };
-    const existing = (
-      await db.select().from(mediaSources).where(eq(mediaSources.id, row.id)).limit(1)
-    )[0];
+    const existing = byId.get(row.id);
     if (existing) {
       await db
         .update(mediaSources)

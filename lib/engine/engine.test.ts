@@ -116,6 +116,19 @@ describe("entities and ranking", () => {
   });
 });
 
+describe("enabled sources", () => {
+  it("keeps wave 1 and adds ten CSV titles plus Turnpike", async () => {
+    const { WAVE1_SOURCE_IDS, WAVE2_SOURCE_IDS, ENABLED_SOURCE_IDS } = await import(
+      "../../config/wave1-sources"
+    );
+    assert.equal(WAVE1_SOURCE_IDS.length, 10);
+    assert.equal(WAVE2_SOURCE_IDS.length, 11);
+    assert.equal(ENABLED_SOURCE_IDS.length, 21);
+    assert.ok(WAVE2_SOURCE_IDS.includes("auto_051"));
+    assert.ok(!WAVE2_SOURCE_IDS.includes("auto_011"));
+  });
+});
+
 describe("admin ingest routing", () => {
   it("sends a bare ingest click to the culture engine", async () => {
     const { adminIngestMode } = await import("./admin-ingest");

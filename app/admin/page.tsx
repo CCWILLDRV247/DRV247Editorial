@@ -16,11 +16,11 @@ export default async function AdminPage() {
     <div className="min-h-full bg-white">
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
         <p className="mb-4 rounded-md border border-[#1b1d1f] bg-[#f4f1ea] px-3 py-2 text-sm">
-          Wave-1 culture ingest lives on{" "}
+          Culture ingest lives on{" "}
           <a href="/admin/engine" className="font-display font-bold uppercase underline">
             /admin/engine
           </a>
-          . The button below labelled Ingest 10 culture titles hits that pipeline. v1 RSS leftover
+          . The button below labelled Ingest culture titles hits that pipeline. v1 RSS leftover
           is a separate control.
         </p>
         <AdminDesk categories={categories} sources={sources} stories={stories} />

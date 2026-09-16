@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "tsx --test lib/engine/engine.test.ts",
     "ingest:wave1": "tsx scripts/ingest-wave1.ts",
+    "ingest:wave2": "tsx scripts/ingest-wave2.ts",
     "extract:summaries": "tsx scripts/extract-summaries.ts"
   },
   "dependencies": {

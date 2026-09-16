@@ -66,11 +66,11 @@ export function EngineDesk({ sources, runs, articles }: Props) {
             Automotive Culture Engine
           </p>
           <h1 className="font-display text-4xl font-black uppercase tracking-[-0.04em]">
-            Wave 1 — 10 titles
+            Wave 2 — 21 titles
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-[#1b1d1f]/70">
-            CSV is the source of truth. Only these ten are enabled. Remaining ~40 stay dark until the pipeline is proven.{" "}
-            {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
+            Original ten stay live. Eleven more (ten from the UK/EU sheet plus Turnpike) are enabled.
+            Remaining titles stay dark. {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>
         <div className="flex gap-2">
@@ -84,7 +84,7 @@ export function EngineDesk({ sources, runs, articles }: Props) {
             Reprocess
           </Button>
           <Button disabled={Boolean(busy)} onClick={() => void ingest()}>
-            {busy === "all" ? "Ingesting…" : "Ingest 10"}
+            {busy === "all" ? "Ingesting…" : "Ingest enabled"}
           </Button>
         </div>
       </div>
