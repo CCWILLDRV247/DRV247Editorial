@@ -27,24 +27,29 @@ export type Extraction = {
   locations: string[];
 };
 
-function haystack(title: string, excerpt: string): string {
-  return ` ${title} ${excerpt} `.toLowerCase();
+function haystack(title: string, excerpt: string, paragraph: string): string {
+  return ` ${[title, excerpt, paragraph].filter(Boolean).join(" ")} `.toLowerCase();
 }
 
 function includesToken(text: string, alias: string): boolean {
-  const needle = alias.toLowerCase();
-  if (needle.length <= 2) {
-    return new RegExp(`(?:^|[^a-z0-9])${escapeReg(needle)}(?:[^a-z0-9]|$)`, "i").test(text);
-  }
-  return text.includes(needle);
+  const parts = alias
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(escapeReg);
+  if (!parts.length) return false;
+  const body = parts.join("[\\s-]+");
+  return new RegExp(`(?:^|[^a-z0-9])${body}(?:[^a-z0-9]|$)`, "i").test(text);
 }
 
 function escapeReg(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export function extractEntities(title: string, excerpt = ""): Extraction {
-  const text = haystack(title, excerpt);
+/** Gazetteer over title + teaser + extracted first paragraph. No LLM. */
+export function extractEntities(title: string, excerpt = "", paragraph = ""): Extraction {
+  const text = haystack(title, excerpt, paragraph);
   const entities: ExtractedEntity[] = [];
   const makes = new Set<string>();
   const models = new Set<string>();
@@ -54,34 +59,35 @@ export function extractEntities(title: string, excerpt = ""): Extraction {
   for (const record of VEHICLE_CATALOG) {
     const makeHit = record.aliases.some((alias) => includesToken(text, alias));
     let modelHit: string | null = null;
-    let generationHit: string | null = null;
 
     for (const model of record.models) {
-      if (model.aliases.some((alias) => includesToken(text, alias))) {
-        modelHit = model.name;
-        models.add(model.name);
+      const aliasHit = model.aliases.some((alias) => includesToken(text, alias));
+      const matchedGens = (model.generations ?? []).filter((generation) =>
+        includesToken(text, generation),
+      );
+      const impliedByGeneration = Boolean(model.generationImpliesModel && matchedGens.length);
+      if (!aliasHit && !impliedByGeneration) continue;
+
+      modelHit = model.name;
+      models.add(model.name);
+      entities.push({
+        kind: "model",
+        name: model.name,
+        slug: slugify(model.name),
+        make: record.make,
+        model: model.name,
+        confidence: aliasHit ? 0.86 : 0.82,
+      });
+      for (const generation of matchedGens) {
+        generations.add(generation);
         entities.push({
-          kind: "model",
-          name: model.name,
-          slug: slugify(model.name),
+          kind: "generation",
+          name: generation,
+          slug: slugify(generation),
           make: record.make,
           model: model.name,
-          confidence: 0.86,
+          confidence: 0.9,
         });
-        for (const generation of model.generations ?? []) {
-          if (includesToken(text, generation)) {
-            generationHit = generation;
-            generations.add(generation);
-            entities.push({
-              kind: "generation",
-              name: generation,
-              slug: slugify(generation),
-              make: record.make,
-              model: model.name,
-              confidence: 0.9,
-            });
-          }
-        }
       }
     }
 
@@ -95,8 +101,10 @@ export function extractEntities(title: string, excerpt = ""): Extraction {
         confidence: makeHit ? 0.92 : 0.8,
       });
     }
+  }
 
-    if (generationHit === "964" || includesToken(text, "carrera rs")) {
+  if (models.has("911") && (includesToken(text, "carrera rs") || generations.has("964"))) {
+    if (includesToken(text, "carrera rs") || (generations.has("964") && includesToken(text, "rs"))) {
       variants.add("Carrera RS");
       entities.push({
         kind: "variant",
@@ -107,6 +115,17 @@ export function extractEntities(title: string, excerpt = ""): Extraction {
         confidence: 0.78,
       });
     }
+  }
+  if (models.has("911") && includesToken(text, "gt3")) {
+    variants.add("GT3");
+    entities.push({
+      kind: "variant",
+      name: "GT3",
+      slug: "gt3",
+      make: "Porsche",
+      model: "911",
+      confidence: 0.84,
+    });
   }
 
   return {

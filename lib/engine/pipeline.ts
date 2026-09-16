@@ -352,7 +352,6 @@ async function persistItems(
     }
     const group = byTitle.get(sameStoryKey(item.title)) ?? sameStoryKey(item.title);
     byTitle.set(sameStoryKey(item.title), group);
-    const extracted = extractEntities(item.title, item.excerpt);
     const created = await db
       .insert(articles)
       .values({
@@ -382,26 +381,6 @@ async function persistItems(
     const row = created[0];
     if (!row) continue;
     inserted += 1;
-    for (const entity of extracted.entities) {
-      await db.insert(articleEntities).values({
-        articleId: row.id,
-        kind: entity.kind,
-        name: entity.name,
-        slug: entity.slug,
-        make: entity.make ?? null,
-        model: entity.model ?? null,
-        confidence: Math.round(entity.confidence * 100),
-      });
-    }
-    for (const category of extracted.categories) {
-      await db.insert(articleCategories).values({ articleId: row.id, category });
-    }
-    for (const interest of extracted.interests) {
-      await db.insert(articleInterests).values({ articleId: row.id, interest });
-    }
-    for (const location of extracted.locations) {
-      await db.insert(articleLocations).values({ articleId: row.id, location });
-    }
     if (row.imageUrl) {
       await db.insert(articleImages).values({
         articleId: row.id,
@@ -416,13 +395,7 @@ async function persistItems(
       canonicalUrl: row.canonicalUrl,
       teaser: row.excerpt,
     });
-    await upsertArticlePrimary(row.id, {
-      title: row.title,
-      excerpt: row.excerpt,
-      publication: row.publication,
-      categories: extracted.categories,
-      interests: extracted.interests,
-    });
+    await persistArticleExtraction(row.id);
   }
   const summarized = await summarizePending(pendingSummaries);
   return { inserted, summarized, skippedNonEnglish };
@@ -480,6 +453,7 @@ async function summarizePending(
     for (const result of results) {
       if (!result.summary) continue;
       await db.update(articles).set({ aiSummary: result.summary }).where(eq(articles.id, result.id));
+      await persistArticleExtraction(result.id);
       summarized += 1;
     }
     await delay(150);
@@ -510,46 +484,56 @@ export async function extractMissingSummaries(): Promise<{
   };
 }
 
+async function persistArticleExtraction(articleId: number): Promise<void> {
+  const db = await getDb();
+  const row = (await db.select().from(articles).where(eq(articles.id, articleId)).limit(1))[0];
+  if (!row) return;
+  const extracted = extractEntities(row.title, row.excerpt, row.aiSummary ?? "");
+  await db.delete(articleEntities).where(eq(articleEntities.articleId, articleId));
+  await db.delete(articleCategories).where(eq(articleCategories.articleId, articleId));
+  await db.delete(articleInterests).where(eq(articleInterests.articleId, articleId));
+  await db.delete(articleLocations).where(eq(articleLocations.articleId, articleId));
+  for (const entity of extracted.entities) {
+    await db.insert(articleEntities).values({
+      articleId,
+      kind: entity.kind,
+      name: entity.name,
+      slug: entity.slug,
+      make: entity.make ?? null,
+      model: entity.model ?? null,
+      confidence: Math.round(entity.confidence * 100),
+    });
+  }
+  for (const category of extracted.categories) {
+    await db.insert(articleCategories).values({ articleId, category });
+  }
+  for (const interest of extracted.interests) {
+    await db.insert(articleInterests).values({ articleId, interest });
+  }
+  for (const location of extracted.locations) {
+    await db.insert(articleLocations).values({ articleId, location });
+  }
+  await upsertArticlePrimary(articleId, {
+    title: row.title,
+    excerpt: row.excerpt,
+    publication: row.publication,
+    categories: extracted.categories,
+    interests: extracted.interests,
+  });
+}
+
 export async function reprocessArticles(): Promise<number> {
+  await extractMissingSummaries();
   const db = await getDb();
   const rows = await db.select().from(articles);
   let count = 0;
   for (const row of rows) {
-    await db.delete(articleEntities).where(eq(articleEntities.articleId, row.id));
-    await db.delete(articleCategories).where(eq(articleCategories.articleId, row.id));
-    await db.delete(articleInterests).where(eq(articleInterests.articleId, row.id));
-    await db.delete(articleLocations).where(eq(articleLocations.articleId, row.id));
-    const extracted = extractEntities(row.title, row.excerpt);
-    for (const entity of extracted.entities) {
-      await db.insert(articleEntities).values({
-        articleId: row.id,
-        kind: entity.kind,
-        name: entity.name,
-        slug: entity.slug,
-        make: entity.make ?? null,
-        model: entity.model ?? null,
-        confidence: Math.round(entity.confidence * 100),
-      });
-    }
-    for (const category of extracted.categories) {
-      await db.insert(articleCategories).values({ articleId: row.id, category });
-    }
-    for (const interest of extracted.interests) {
-      await db.insert(articleInterests).values({ articleId: row.id, interest });
-    }
-    await upsertArticlePrimary(row.id, {
-      title: row.title,
-      excerpt: row.excerpt,
-      publication: row.publication,
-      categories: extracted.categories,
-      interests: extracted.interests,
-    });
+    await persistArticleExtraction(row.id);
     await db
       .update(articles)
       .set({ processed: true, lastProcessed: Date.now() })
       .where(eq(articles.id, row.id));
     count += 1;
   }
-  await extractMissingSummaries();
   return count;
 }

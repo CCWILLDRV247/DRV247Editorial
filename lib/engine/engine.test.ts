@@ -90,10 +90,69 @@ describe("entities and ranking", () => {
     assert.ok(extracted.models.includes("911"));
     assert.ok(extracted.generations.includes("964"));
   });
+  it("maps 993 and 996 to the 911 family without the word 911", () => {
+    const air = extractEntities("Porsche 993: Your DNHC questions answered");
+    assert.ok(air.makes.includes("Porsche"));
+    assert.ok(air.models.includes("911"));
+    assert.ok(air.generations.includes("993"));
+    const water = extractEntities("996 Carrera v 4S: which is best?");
+    assert.ok(water.models.includes("911"));
+    assert.ok(water.generations.includes("996"));
+  });
+  it("maps GT3 and 355 GTB via aliases", () => {
+    const gt3 = extractEntities("Porsche GT3 Bergsport");
+    assert.ok(gt3.makes.includes("Porsche"));
+    assert.ok(gt3.models.includes("911"));
+    assert.ok(gt3.variants.includes("GT3"));
+    const f355 = extractEntities("A restored 355 GTB on the autostrada");
+    assert.ok(f355.makes.includes("Ferrari"));
+    assert.ok(f355.models.includes("F355"));
+  });
+  it("reads the extracted paragraph, not title-only", () => {
+    const extracted = extractEntities(
+      "Weekend drive",
+      "A short teaser with no marque.",
+      "The 964 remains the last analogue 911, and it still feels special on a damp B-road.",
+    );
+    assert.ok(extracted.makes.includes("Porsche"));
+    assert.ok(extracted.models.includes("911"));
+    assert.ok(extracted.generations.includes("964"));
+  });
+  it("does not treat 1996 as a 996", () => {
+    const extracted = extractEntities("The best of 1996", "A year in review for collectors.");
+    assert.equal(extracted.models.includes("911"), false);
+    assert.equal(extracted.generations.includes("996"), false);
+  });
   it("maps Ferrari 355 aliases to F355", () => {
     const extracted = extractEntities("Ferrari 355 on the autostrada");
     assert.ok(extracted.makes.includes("Ferrari"));
     assert.ok(extracted.models.includes("F355"));
+  });
+  it("scores a For You 911 pick against 964/993 stories as a model match", () => {
+    const gen = extractEntities("Air-cooled 993 values keep climbing");
+    const garage = [{ make: "Porsche", model: "911" }];
+    const modelScore = scoreArticle({
+      ...gen,
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garage,
+      userInterests: [],
+    });
+    const makeOnly = scoreArticle({
+      makes: ["Porsche"],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: [],
+      categories: [],
+      locations: [],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garage,
+      userInterests: [],
+    });
+    assert.ok(gen.models.includes("911"));
+    assert.ok(modelScore > makeOnly);
   });
   it("scores exact garage vehicle above generic news", () => {
     const porsche = extractEntities("Porsche 964 Carrera RS at Goodwood");
