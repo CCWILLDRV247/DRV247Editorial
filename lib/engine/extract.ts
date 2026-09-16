@@ -32,15 +32,12 @@ function haystack(title: string, excerpt: string, paragraph: string): string {
 }
 
 function includesToken(text: string, alias: string): boolean {
-  const parts = alias
-    .toLowerCase()
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(escapeReg);
+  const needle = alias.toLowerCase().trim();
+  const parts = needle.split(/\s+/).filter(Boolean).map(escapeReg);
   if (!parts.length) return false;
   const body = parts.join("[\\s-]+");
-  return new RegExp(`(?:^|[^a-z0-9])${body}(?:[^a-z0-9]|$)`, "i").test(text);
+  const plural = /^[0-9]+$/.test(needle.replace(/[\s-]/g, "")) ? "s?" : "";
+  return new RegExp(`(?:^|[^a-z0-9])${body}${plural}(?:[^a-z0-9]|$)`, "i").test(text);
 }
 
 function escapeReg(value: string): string {

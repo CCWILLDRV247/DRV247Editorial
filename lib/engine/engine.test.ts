@@ -98,6 +98,9 @@ describe("entities and ranking", () => {
     const water = extractEntities("996 Carrera v 4S: which is best?");
     assert.ok(water.models.includes("911"));
     assert.ok(water.generations.includes("996"));
+    const plural = extractEntities("Why have Porsche 993s exploded in value?");
+    assert.ok(plural.models.includes("911"));
+    assert.ok(plural.generations.includes("993"));
   });
   it("maps GT3 and 355 GTB via aliases", () => {
     const gt3 = extractEntities("Porsche GT3 Bergsport");
