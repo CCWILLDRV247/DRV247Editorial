@@ -33,8 +33,8 @@ export type SourceIngestResult = {
 };
 
 export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngestResult[]> {
-  const db = getDb();
-  const sources = db.select().from(mediaSources).all().filter((source) => {
+  const db = await getDb();
+  const sources = (await db.select().from(mediaSources)).filter((source) => {
     if (!source.enabled) return false;
     if (!ids?.length) return true;
     return ids.includes(source.id);
@@ -47,7 +47,7 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
 }
 
 export async function ingestMediaSource(source: MediaSource): Promise<SourceIngestResult> {
-  const db = getDb();
+  const db = await getDb();
   const startedAt = Date.now();
   let method: string | null = null;
   let httpStatus: number | null = null;
@@ -89,22 +89,21 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
     }
 
     items = items.slice(0, source.maxArticles);
-    const inserted = persistItems(source, items, method ?? "none");
+    const inserted = await persistItems(source, items, method ?? "none");
     const ok = items.length > 0;
-    db.insert(ingestionRuns)
-      .values({
-        sourceId: source.id,
-        startedAt,
-        finishedAt: Date.now(),
-        method,
-        status: ok ? "ok" : "error",
-        httpStatus,
-        errorMessage: ok ? null : error ?? "No articles found",
-        fetched: items.length,
-        inserted,
-      })
-      .run();
-    db.update(mediaSources)
+    await db.insert(ingestionRuns).values({
+      sourceId: source.id,
+      startedAt,
+      finishedAt: Date.now(),
+      method,
+      status: ok ? "ok" : "error",
+      httpStatus,
+      errorMessage: ok ? null : error ?? "No articles found",
+      fetched: items.length,
+      inserted,
+    });
+    await db
+      .update(mediaSources)
       .set(
         ok
           ? {
@@ -124,8 +123,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
               lastArticleCount: 0,
             },
       )
-      .where(eq(mediaSources.id, source.id))
-      .run();
+      .where(eq(mediaSources.id, source.id));
     return {
       sourceId: source.id,
       publication: source.publication,
@@ -137,20 +135,19 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
     };
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : "Ingest failed";
-    db.insert(ingestionRuns)
-      .values({
-        sourceId: source.id,
-        startedAt,
-        finishedAt: Date.now(),
-        method,
-        status: "error",
-        httpStatus,
-        errorMessage: message,
-        fetched: 0,
-        inserted: 0,
-      })
-      .run();
-    db.update(mediaSources)
+    await db.insert(ingestionRuns).values({
+      sourceId: source.id,
+      startedAt,
+      finishedAt: Date.now(),
+      method,
+      status: "error",
+      httpStatus,
+      errorMessage: message,
+      fetched: 0,
+      inserted: 0,
+    });
+    await db
+      .update(mediaSources)
       .set({
         lastFailureAt: Date.now(),
         lastError: message,
@@ -158,8 +155,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
         lastHttpStatus: httpStatus,
         lastMethod: method,
       })
-      .where(eq(mediaSources.id, source.id))
-      .run();
+      .where(eq(mediaSources.id, source.id));
     return {
       sourceId: source.id,
       publication: source.publication,
@@ -292,33 +288,33 @@ async function tryScrape(source: MediaSource): Promise<{
   };
 }
 
-function persistItems(source: MediaSource, items: EngineItem[], method: string): number {
-  const db = getDb();
+async function persistItems(source: MediaSource, items: EngineItem[], method: string): Promise<number> {
+  const db = await getDb();
   const now = Date.now();
   const weights = loadRankWeights();
   let inserted = 0;
-  const existing = db.select().from(articles).all();
-  const byTitle = new Map(existing.map((row) => [sameStoryKey(row.title), row.duplicateGroupId ?? sameStoryKey(row.title)]));
+  const existing = await db.select().from(articles);
+  const byTitle = new Map(
+    existing.map((row) => [sameStoryKey(row.title), row.duplicateGroupId ?? sameStoryKey(row.title)]),
+  );
 
   for (const item of items) {
-    const seen = db
-      .select()
-      .from(articles)
-      .where(eq(articles.canonicalUrl, item.canonicalUrl))
-      .get();
+    const seen = (
+      await db.select().from(articles).where(eq(articles.canonicalUrl, item.canonicalUrl)).limit(1)
+    )[0];
     if (seen) {
       const imageUrl =
         seen.imageUrl || (source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null);
-      db.update(articles)
+      await db
+        .update(articles)
         .set({ lastSeen: now, imageUrl: imageUrl ?? seen.imageUrl })
-        .where(eq(articles.id, seen.id))
-        .run();
+        .where(eq(articles.id, seen.id));
       continue;
     }
     const group = byTitle.get(sameStoryKey(item.title)) ?? sameStoryKey(item.title);
     byTitle.set(sameStoryKey(item.title), group);
     const extracted = extractEntities(item.title, item.excerpt);
-    const result = db
+    const created = await db
       .insert(articles)
       .values({
         sourceId: source.id,
@@ -343,90 +339,73 @@ function persistItems(source: MediaSource, items: EngineItem[], method: string):
         metadata: JSON.stringify({ duplicateKey: duplicateKey(source.publication, item.title) }),
       })
       .onConflictDoNothing({ target: articles.canonicalUrl })
-      .run();
-    if (!result.changes) continue;
-    inserted += 1;
-    const row = db
-      .select()
-      .from(articles)
-      .where(eq(articles.canonicalUrl, item.canonicalUrl))
-      .get();
+      .returning();
+    const row = created[0];
     if (!row) continue;
+    inserted += 1;
     for (const entity of extracted.entities) {
-      db.insert(articleEntities)
-        .values({
-          articleId: row.id,
-          kind: entity.kind,
-          name: entity.name,
-          slug: entity.slug,
-          make: entity.make ?? null,
-          model: entity.model ?? null,
-          confidence: Math.round(entity.confidence * 100),
-        })
-        .run();
+      await db.insert(articleEntities).values({
+        articleId: row.id,
+        kind: entity.kind,
+        name: entity.name,
+        slug: entity.slug,
+        make: entity.make ?? null,
+        model: entity.model ?? null,
+        confidence: Math.round(entity.confidence * 100),
+      });
     }
     for (const category of extracted.categories) {
-      db.insert(articleCategories)
-        .values({ articleId: row.id, category })
-        .run();
+      await db.insert(articleCategories).values({ articleId: row.id, category });
     }
     for (const interest of extracted.interests) {
-      db.insert(articleInterests)
-        .values({ articleId: row.id, interest })
-        .run();
+      await db.insert(articleInterests).values({ articleId: row.id, interest });
     }
     for (const location of extracted.locations) {
-      db.insert(articleLocations)
-        .values({ articleId: row.id, location })
-        .run();
+      await db.insert(articleLocations).values({ articleId: row.id, location });
     }
     if (row.imageUrl) {
-      db.insert(articleImages)
-        .values({
-          articleId: row.id,
-          url: row.imageUrl,
-          source: source.publication,
-          alt: row.title,
-        })
-        .run();
+      await db.insert(articleImages).values({
+        articleId: row.id,
+        url: row.imageUrl,
+        source: source.publication,
+        alt: row.title,
+      });
     }
   }
   return inserted;
 }
 
 export async function reprocessArticles(): Promise<number> {
-  const db = getDb();
-  const rows = db.select().from(articles).all();
+  const db = await getDb();
+  const rows = await db.select().from(articles);
   let count = 0;
   for (const row of rows) {
-    db.delete(articleEntities).where(eq(articleEntities.articleId, row.id)).run();
-    db.delete(articleCategories).where(eq(articleCategories.articleId, row.id)).run();
-    db.delete(articleInterests).where(eq(articleInterests.articleId, row.id)).run();
-    db.delete(articleLocations).where(eq(articleLocations.articleId, row.id)).run();
+    await db.delete(articleEntities).where(eq(articleEntities.articleId, row.id));
+    await db.delete(articleCategories).where(eq(articleCategories.articleId, row.id));
+    await db.delete(articleInterests).where(eq(articleInterests.articleId, row.id));
+    await db.delete(articleLocations).where(eq(articleLocations.articleId, row.id));
     const extracted = extractEntities(row.title, row.excerpt);
     for (const entity of extracted.entities) {
-      db.insert(articleEntities)
-        .values({
-          articleId: row.id,
-          kind: entity.kind,
-          name: entity.name,
-          slug: entity.slug,
-          make: entity.make ?? null,
-          model: entity.model ?? null,
-          confidence: Math.round(entity.confidence * 100),
-        })
-        .run();
+      await db.insert(articleEntities).values({
+        articleId: row.id,
+        kind: entity.kind,
+        name: entity.name,
+        slug: entity.slug,
+        make: entity.make ?? null,
+        model: entity.model ?? null,
+        confidence: Math.round(entity.confidence * 100),
+      });
     }
     for (const category of extracted.categories) {
-      db.insert(articleCategories).values({ articleId: row.id, category }).run();
+      await db.insert(articleCategories).values({ articleId: row.id, category });
     }
     for (const interest of extracted.interests) {
-      db.insert(articleInterests).values({ articleId: row.id, interest }).run();
+      await db.insert(articleInterests).values({ articleId: row.id, interest });
     }
-    db.update(articles)
+    await db
+      .update(articles)
       .set({ processed: true, lastProcessed: Date.now() })
-      .where(eq(articles.id, row.id))
-      .run();
+      .where(eq(articles.id, row.id));
     count += 1;
   }
   return count;

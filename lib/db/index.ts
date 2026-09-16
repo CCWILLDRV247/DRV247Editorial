@@ -1,26 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient, type Client } from "@libsql/client";
+import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 import { seedIfEmpty } from "./seed";
 import { seedEngine } from "@/lib/engine/seed";
 
-const onVercel = Boolean(process.env.VERCEL);
-const DATA_DIR = onVercel
-  ? path.join("/tmp", "drv247-data")
-  : path.join(process.cwd(), "data");
-const DB_PATH = path.join(DATA_DIR, "drv247.sqlite");
-
-function createSchema(sqlite: Database.Database) {
-  sqlite.exec(`
-    CREATE TABLE IF NOT EXISTS categories (
+const SCHEMA_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       slug TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS sources (
+    )`,
+  `CREATE TABLE IF NOT EXISTS sources (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -31,9 +23,8 @@ function createSchema(sqlite: Database.Database) {
       last_fetch_status TEXT NOT NULL DEFAULT 'idle',
       last_fetch_error TEXT,
       created_at INTEGER NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS stories (
+    )`,
+  `CREATE TABLE IF NOT EXISTS stories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       source_id INTEGER NOT NULL REFERENCES sources(id),
       category_id INTEGER NOT NULL REFERENCES categories(id),
@@ -44,13 +35,11 @@ function createSchema(sqlite: Database.Database) {
       published_at INTEGER NOT NULL,
       hidden INTEGER NOT NULL DEFAULT 0,
       created_at INTEGER NOT NULL
-    );
-
-    CREATE INDEX IF NOT EXISTS stories_category_published_idx
-      ON stories (category_id, published_at);
-    CREATE INDEX IF NOT EXISTS stories_source_idx ON stories (source_id);
-
-    CREATE TABLE IF NOT EXISTS media_sources (
+    )`,
+  `CREATE INDEX IF NOT EXISTS stories_category_published_idx
+      ON stories (category_id, published_at)`,
+  `CREATE INDEX IF NOT EXISTS stories_source_idx ON stories (source_id)`,
+  `CREATE TABLE IF NOT EXISTS media_sources (
       id TEXT PRIMARY KEY,
       publication TEXT NOT NULL,
       country TEXT NOT NULL,
@@ -77,9 +66,8 @@ function createSchema(sqlite: Database.Database) {
       last_error TEXT,
       last_method TEXT,
       last_article_count INTEGER NOT NULL DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS articles (
+    )`,
+  `CREATE TABLE IF NOT EXISTS articles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       source_id TEXT NOT NULL REFERENCES media_sources(id),
       publication TEXT NOT NULL,
@@ -101,13 +89,11 @@ function createSchema(sqlite: Database.Database) {
       why_it_matters TEXT,
       ai_summary TEXT,
       metadata TEXT
-    );
-
-    CREATE INDEX IF NOT EXISTS articles_source_idx ON articles (source_id);
-    CREATE INDEX IF NOT EXISTS articles_published_idx ON articles (published_at);
-    CREATE INDEX IF NOT EXISTS articles_dupe_idx ON articles (duplicate_group_id);
-
-    CREATE TABLE IF NOT EXISTS article_entities (
+    )`,
+  `CREATE INDEX IF NOT EXISTS articles_source_idx ON articles (source_id)`,
+  `CREATE INDEX IF NOT EXISTS articles_published_idx ON articles (published_at)`,
+  `CREATE INDEX IF NOT EXISTS articles_dupe_idx ON articles (duplicate_group_id)`,
+  `CREATE TABLE IF NOT EXISTS article_entities (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       article_id INTEGER NOT NULL REFERENCES articles(id),
       kind TEXT NOT NULL,
@@ -116,41 +102,35 @@ function createSchema(sqlite: Database.Database) {
       make TEXT,
       model TEXT,
       confidence INTEGER NOT NULL DEFAULT 80
-    );
-
-    CREATE TABLE IF NOT EXISTS vehicle_entities (
+    )`,
+  `CREATE TABLE IF NOT EXISTS vehicle_entities (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       kind TEXT NOT NULL,
       name TEXT NOT NULL,
       slug TEXT NOT NULL,
       make TEXT,
       model TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS article_categories (
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_categories (
       article_id INTEGER NOT NULL REFERENCES articles(id),
       category TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS article_interests (
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_interests (
       article_id INTEGER NOT NULL REFERENCES articles(id),
       interest TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS article_locations (
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_locations (
       article_id INTEGER NOT NULL REFERENCES articles(id),
       location TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS article_images (
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_images (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       article_id INTEGER NOT NULL REFERENCES articles(id),
       url TEXT NOT NULL,
       source TEXT,
       alt TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS ingestion_runs (
+    )`,
+  `CREATE TABLE IF NOT EXISTS ingestion_runs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       source_id TEXT NOT NULL REFERENCES media_sources(id),
       started_at INTEGER NOT NULL,
@@ -161,56 +141,81 @@ function createSchema(sqlite: Database.Database) {
       error_message TEXT,
       fetched INTEGER NOT NULL DEFAULT 0,
       inserted INTEGER NOT NULL DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS demo_users (
+    )`,
+  `CREATE TABLE IF NOT EXISTS demo_users (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       location TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS demo_vehicles (
+    )`,
+  `CREATE TABLE IF NOT EXISTS demo_vehicles (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL REFERENCES demo_users(id),
       make TEXT NOT NULL,
       model TEXT NOT NULL,
       generation TEXT,
       variant TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS demo_user_interests (
+    )`,
+  `CREATE TABLE IF NOT EXISTS demo_user_interests (
       user_id TEXT NOT NULL REFERENCES demo_users(id),
       interest TEXT NOT NULL
-    );
-  `);
-}
+    )`,
+];
+
+export type AppDb = LibSQLDatabase<typeof schema>;
 
 const globalForDb = globalThis as unknown as {
-  drvSqlite?: Database.Database;
-  drvDb?: ReturnType<typeof drizzle<typeof schema>>;
+  drvLibsql?: Client;
+  drvDb?: AppDb;
+  drvDbReady?: Promise<AppDb>;
 };
 
-function getSqlite() {
-  if (!globalForDb.drvSqlite) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    const sqlite = new Database(DB_PATH);
-    // WAL extra files are fine locally; DELETE is simpler on Vercel's /tmp.
-    sqlite.pragma(onVercel ? "journal_mode = DELETE" : "journal_mode = WAL");
-    sqlite.pragma("foreign_keys = ON");
-    createSchema(sqlite);
-    globalForDb.drvSqlite = sqlite;
+function connection() {
+  const url = process.env.TURSO_DATABASE_URL || process.env.LIBSQL_URL;
+  const authToken = process.env.TURSO_AUTH_TOKEN || process.env.LIBSQL_AUTH_TOKEN;
+  if (url) {
+    return { url, authToken };
   }
-  return globalForDb.drvSqlite;
+  if (process.env.VERCEL) {
+    throw new Error(
+      "Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN. Ephemeral /tmp SQLite and ingest-on-homepage-load are disabled.",
+    );
+  }
+  const dir = path.join(process.cwd(), "data");
+  fs.mkdirSync(dir, { recursive: true });
+  return { url: `file:${path.join(dir, "drv247.sqlite")}` };
 }
 
-export function getDb() {
-  if (!globalForDb.drvDb) {
-    const sqlite = getSqlite();
-    globalForDb.drvDb = drizzle(sqlite, { schema });
-    seedIfEmpty(globalForDb.drvDb);
-    seedEngine(globalForDb.drvDb);
+async function ensureSchema(client: Client) {
+  try {
+    await client.execute("SELECT 1 FROM media_sources LIMIT 1");
+    return;
+  } catch {
+    for (const sql of SCHEMA_STATEMENTS) {
+      await client.execute(sql);
+    }
   }
-  return globalForDb.drvDb;
+}
+
+async function createDb() {
+  const client = globalForDb.drvLibsql ?? createClient(connection());
+  globalForDb.drvLibsql = client;
+  await ensureSchema(client);
+  const db = drizzle(client, { schema });
+  await seedIfEmpty(db);
+  await seedEngine(db);
+  globalForDb.drvDb = db;
+  return db;
+}
+
+export async function getDb(): Promise<AppDb> {
+  if (globalForDb.drvDb) return globalForDb.drvDb;
+  if (!globalForDb.drvDbReady) {
+    globalForDb.drvDbReady = createDb().catch((error) => {
+      globalForDb.drvDbReady = undefined;
+      throw error;
+    });
+  }
+  return globalForDb.drvDbReady;
 }
 
 export { schema };

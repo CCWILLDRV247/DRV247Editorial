@@ -52,12 +52,12 @@ export function resolveImageUrl(raw: string | null | undefined, baseUrl: string)
   }
 }
 
-export function listMagazineStories(options?: {
+export async function listMagazineStories(options?: {
   navSlug?: string;
   userId?: string;
   limit?: number;
-}): StoryDto[] {
-  const articles = listEditorial({
+}): Promise<StoryDto[]> {
+  const articles = await listEditorial({
     userId: options?.userId ?? "demo-chris",
     limit: 80,
   });
@@ -67,7 +67,35 @@ export function listMagazineStories(options?: {
   return filtered.slice(0, options?.limit ?? 24).map(toMagazineStory);
 }
 
-export function getMagazineStory(id: number): StoryDto | null {
-  const article = getEditorial(id);
+export async function getMagazineStory(id: number): Promise<StoryDto | null> {
+  const article = await getEditorial(id);
   return article ? toMagazineStory(article) : null;
+}
+
+function uniqueStories(stories: StoryDto[]) {
+  const seen = new Set<number>();
+  return stories.filter((story) => {
+    if (seen.has(story.id)) return false;
+    seen.add(story.id);
+    return true;
+  });
+}
+
+export async function getMagazineHome() {
+  const ranked = await listEditorial({ userId: "demo-chris", limit: 80 });
+  const stories = uniqueStories(ranked.map(toMagazineStory)).slice(0, 24);
+  const featuredIds = new Set(stories.slice(0, 6).map((story) => story.id));
+  const carousels = MAGAZINE_NAV.map((nav) => {
+    const lane = ranked
+      .filter((article) => articleMatchesNav(article, nav.slug))
+      .slice(0, 16)
+      .map(toMagazineStory);
+    const fresh = lane.filter((story) => !featuredIds.has(story.id));
+    return {
+      slug: nav.slug,
+      name: nav.name,
+      stories: uniqueStories([...fresh, ...lane]).slice(0, 8),
+    };
+  });
+  return { stories, carousels };
 }

@@ -2,14 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryImage } from "@/components/story-image";
-import { ensureCultureArticles } from "@/lib/db/ensure";
 import { getMagazineStory } from "@/lib/engine/magazine";
 import { formatStoryDate } from "@/lib/format";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
-export const maxDuration = 300;
 
 export default async function StoryPage({
   params,
@@ -17,8 +15,7 @@ export default async function StoryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await ensureCultureArticles();
-  const story = getMagazineStory(Number(id));
+  const story = await getMagazineStory(Number(id));
   if (!story) notFound();
 
   return (

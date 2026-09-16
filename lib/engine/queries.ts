@@ -79,64 +79,81 @@ function toDto(
   };
 }
 
-function articleExtras(articleId: number) {
-  const db = getDb();
-  const entities = db
-    .select()
-    .from(articleEntities)
-    .where(eq(articleEntities.articleId, articleId))
-    .all();
-  return {
-    makes: entities.filter((row) => row.kind === "make").map((row) => row.name),
-    models: entities.filter((row) => row.kind === "model").map((row) => row.name),
-    generations: entities.filter((row) => row.kind === "generation").map((row) => row.name),
-    variants: entities.filter((row) => row.kind === "variant").map((row) => row.name),
-    categories: db
-      .select()
-      .from(articleCategories)
-      .where(eq(articleCategories.articleId, articleId))
-      .all()
-      .map((row) => row.category),
-    interests: db
-      .select()
-      .from(articleInterests)
-      .where(eq(articleInterests.articleId, articleId))
-      .all()
-      .map((row) => row.interest),
-    locations: db
-      .select()
-      .from(articleLocations)
-      .where(eq(articleLocations.articleId, articleId))
-      .all()
-      .map((row) => row.location),
+async function extrasByArticleIds(articleIds: number[]) {
+  const empty = {
+    makes: [] as string[],
+    models: [] as string[],
+    generations: [] as string[],
+    variants: [] as string[],
+    categories: [] as string[],
+    interests: [] as string[],
+    locations: [] as string[],
   };
+  const map = new Map<number, typeof empty>();
+  for (const id of articleIds) {
+    map.set(id, {
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      categories: [],
+      interests: [],
+      locations: [],
+    });
+  }
+  if (!articleIds.length) return map;
+
+  const db = await getDb();
+  const [entities, cats, interests, locations] = await Promise.all([
+    db.select().from(articleEntities),
+    db.select().from(articleCategories),
+    db.select().from(articleInterests),
+    db.select().from(articleLocations),
+  ]);
+  const wanted = new Set(articleIds);
+  for (const row of entities) {
+    if (!wanted.has(row.articleId)) continue;
+    const extras = map.get(row.articleId);
+    if (!extras) continue;
+    if (row.kind === "make") extras.makes.push(row.name);
+    if (row.kind === "model") extras.models.push(row.name);
+    if (row.kind === "generation") extras.generations.push(row.name);
+    if (row.kind === "variant") extras.variants.push(row.name);
+  }
+  for (const row of cats) {
+    map.get(row.articleId)?.categories.push(row.category);
+  }
+  for (const row of interests) {
+    map.get(row.articleId)?.interests.push(row.interest);
+  }
+  for (const row of locations) {
+    map.get(row.articleId)?.locations.push(row.location);
+  }
+  return map;
 }
 
-export function listEngineSources() {
-  const db = getDb();
-  return db.select().from(mediaSources).all();
+export async function listEngineSources() {
+  const db = await getDb();
+  return db.select().from(mediaSources);
 }
 
-export function listIngestionRuns(limit = 40) {
-  const db = getDb();
-  return db.select().from(ingestionRuns).orderBy(desc(ingestionRuns.startedAt)).limit(limit).all();
+export async function listIngestionRuns(limit = 40) {
+  const db = await getDb();
+  return db.select().from(ingestionRuns).orderBy(desc(ingestionRuns.startedAt)).limit(limit);
 }
 
-export function getDemoUser(userId: string) {
-  const db = getDb();
-  const user = db.select().from(demoUsers).where(eq(demoUsers.id, userId)).get();
+export async function getDemoUser(userId: string) {
+  const db = await getDb();
+  const user = (await db.select().from(demoUsers).where(eq(demoUsers.id, userId)).limit(1))[0];
   if (!user) return null;
-  const vehicles = db.select().from(demoVehicles).where(eq(demoVehicles.userId, userId)).all();
-  const interests = db
-    .select()
-    .from(demoUserInterests)
-    .where(eq(demoUserInterests.userId, userId))
-    .all()
-    .map((row) => row.interest);
+  const vehicles = await db.select().from(demoVehicles).where(eq(demoVehicles.userId, userId));
+  const interests = (
+    await db.select().from(demoUserInterests).where(eq(demoUserInterests.userId, userId))
+  ).map((row) => row.interest);
   return { ...user, vehicles, interests };
 }
 
-export function listEditorial(options?: {
+export async function listEditorial(options?: {
   userId?: string;
   sourceId?: string;
   vehicleId?: string;
@@ -148,9 +165,9 @@ export function listEditorial(options?: {
   q?: string;
   section?: string;
   limit?: number;
-}): EditorialDto[] {
-  const db = getDb();
-  let rows = db.select().from(articles).orderBy(desc(articles.publishedAt)).all();
+}): Promise<EditorialDto[]> {
+  const db = await getDb();
+  let rows = await db.select().from(articles).orderBy(desc(articles.publishedAt));
   if (options?.sourceId) rows = rows.filter((row) => row.sourceId === options.sourceId);
   if (options?.q) {
     const q = options.q.toLowerCase();
@@ -162,14 +179,16 @@ export function listEditorial(options?: {
     );
   }
 
-  const sourceMap = new Map(
-    db.select().from(mediaSources).all().map((source) => [source.id, source]),
-  );
+  const [sourceRows, extrasMap] = await Promise.all([
+    db.select().from(mediaSources),
+    extrasByArticleIds(rows.map((row) => row.id)),
+  ]);
+  const sourceMap = new Map(sourceRows.map((source) => [source.id, source]));
   let vehicles: GarageVehicle[] = [];
   let userInterests: string[] = [];
   let userLocation: string | null = null;
   if (options?.userId) {
-    const user = getDemoUser(options.userId);
+    const user = await getDemoUser(options.userId);
     if (user) {
       vehicles = user.vehicles;
       userInterests = user.interests;
@@ -177,10 +196,12 @@ export function listEditorial(options?: {
     }
   }
   if (options?.vehicleId) {
-    const vehicle = db.select().from(demoVehicles).where(eq(demoVehicles.id, options.vehicleId)).get();
+    const vehicle = (
+      await db.select().from(demoVehicles).where(eq(demoVehicles.id, options.vehicleId)).limit(1)
+    )[0];
     if (vehicle) {
       vehicles = [vehicle];
-      const user = getDemoUser(vehicle.userId);
+      const user = await getDemoUser(vehicle.userId);
       userInterests = user?.interests ?? [];
       userLocation = user?.location ?? null;
     }
@@ -188,7 +209,15 @@ export function listEditorial(options?: {
 
   const weights = loadRankWeights();
   const ranked = rows.map((article) => {
-    const extras = articleExtras(article.id);
+    const extras = extrasMap.get(article.id) ?? {
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      categories: [],
+      interests: [],
+      locations: [],
+    };
     if (options?.make && !extras.makes.some((make) => make.toLowerCase() === options.make!.toLowerCase())) {
       return null;
     }
@@ -231,12 +260,14 @@ export function listEditorial(options?: {
   return deduped.slice(0, options?.limit ?? 40);
 }
 
-export function getEditorial(id: number): EditorialDto | null {
-  const db = getDb();
-  const article = db.select().from(articles).where(eq(articles.id, id)).get();
+export async function getEditorial(id: number): Promise<EditorialDto | null> {
+  const db = await getDb();
+  const article = (await db.select().from(articles).where(eq(articles.id, id)).limit(1))[0];
   if (!article) return null;
-  const extras = articleExtras(article.id);
-  const source = db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).get();
+  const extras = (await extrasByArticleIds([article.id])).get(article.id)!;
+  const source = (
+    await db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1)
+  )[0];
   const rankScore = scoreArticle({
     ...extras,
     excerpt: article.excerpt,

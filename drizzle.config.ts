@@ -3,8 +3,9 @@ import { defineConfig } from "drizzle-kit";
 export default defineConfig({
   schema: "./lib/db/schema.ts",
   out: "./drizzle",
-  dialect: "sqlite",
+  dialect: "turso",
   dbCredentials: {
-    url: "./data/drv247.sqlite",
+    url: process.env.TURSO_DATABASE_URL ?? "file:./data/drv247.sqlite",
+    authToken: process.env.TURSO_AUTH_TOKEN,
   },
 });

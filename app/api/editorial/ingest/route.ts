@@ -9,7 +9,7 @@ export const maxDuration = 300;
 
 export async function POST(request: Request) {
   await requireAdmin();
-  getDb();
+  await getDb();
   const body = (await request.json().catch(() => null)) as
     | { sourceId?: string; sourceIds?: string[] }
     | null;

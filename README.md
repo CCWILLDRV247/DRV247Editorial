@@ -1,8 +1,6 @@
 # DRV247 Editorial
 
-Drive 24/7 public desk: browse automotive stories by category, open a teaser detail page, and run a password-gated ingest from RSS (plus YouTube / NewsAPI with local mocks).
-
-We store a headline, a short feed excerpt, a remote image URL, and the outbound link. We do not republish full articles.
+UK/EU automotive culture desk. Ten wave-1 titles, teasers and outbound links only — never full article bodies.
 
 ## Run locally
 
@@ -16,31 +14,42 @@ Open [http://localhost:43127](http://localhost:43127).
 
 Default desk password (when `ADMIN_PASSWORD` is unset): `desk247`.
 
-Optional keys in `.env`:
+Locally the app uses a file SQLite database at `data/drv247.sqlite` via libSQL. On Vercel it must use **Turso**.
 
-- `YOUTUBE_API_KEY` — live YouTube channel ingest
-- `NEWSAPI_KEY` — live NewsAPI ingest
+## Vercel env vars
 
-Without those keys the YouTube and NewsAPI sources still ingest via built-in mock items so the app runs cold.
+Set these on the `drv247-editorial` project (Preview and Production):
+
+| Name | Why |
+| --- | --- |
+| `TURSO_DATABASE_URL` | libSQL URL, e.g. `libsql://drv247-editorial-….turso.io` |
+| `TURSO_AUTH_TOKEN` | Turso database token |
+| `CRON_SECRET` | Shared secret for weekly ingest (`Authorization: Bearer …`) |
+| `ADMIN_PASSWORD` | Desk login (already set) |
+
+Create the database in **Dublin (`dub1`)** so it sits with the Vercel functions (`regions: ["dub1"]` in `vercel.json`):
+
+```bash
+vercel integration add tursocloud/database --name drv247-editorial --plan starter -m region=dub1
+```
+
+That command needs a one-time marketplace terms accept:
+
+https://vercel.com/drv-247/~/integrations/accept-terms/tursocloud?source=cli
+
+Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Homepage no longer ingests on load.
 
 ## What you get
 
-- **Home** — latest stories across Racing, Classic, Modified, Concourse, Culture
-- **Category** — Figma-matched magazine list (hero, stacked cards, our picks)
-- **Story** — hero, summary, **Read on [outlet]** outbound link
-- **Admin** (`/admin`) — add/edit/disable sources, ingest now, hide/recategorize, last-fetch errors
-- **JSON** — `GET /api/stories`, `GET /api/stories/:id`, `GET /api/categories` for a later iOS/Android client
-- Scheduled pull every 15 minutes (`INGEST_INTERVAL_MS`) plus `GET|POST /api/cron/ingest`
+- **Home** — ranked teasers from the ten culture titles, plus category carousels
+- **Category** — same visual system, filtered lane
+- **Story** — hero, source tag, excerpt, **Read on [outlet]**
+- **Admin** (`/admin/engine`) — ingest now, source health
+- **JSON** — `GET /api/editorial`, `GET /api/editorial/status`
+- **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
 
-SQLite lives in `data/drv247.sqlite` (gitignored). Schema is Drizzle so Postgres can swap in later.
+## Ingest
 
-## Preview on Vercel
+Desk **Ingest now** still runs the 10-title culture pipeline. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
-The GitHub default branch `cursor/editorial-v1-c83d` is what production should track.
-
-**SQLite does not persist on Vercel.** Each serverless instance uses an ephemeral file in `/tmp`. On a cold start the app seeds sources and ingests RSS (YouTube/NewsAPI stay mocked without keys) so the magazine is not blank. Edits in `/admin` (hide, recategorize, extra sources) can vanish when the instance recycles. A later swap to Turso or Postgres is the durable fix.
-
-Desk password for this preview: `desk247` (`ADMIN_PASSWORD`).
-
-The Automotive Culture Engine (wave-1 UK/EU titles, ranked teasers) lives on branch `explore/ingest-personalization`. See [docs/editorial-aggregation.md](docs/editorial-aggregation.md).
-
+Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds.

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
 import { getDemoUser, listEditorial } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
@@ -9,13 +8,12 @@ export async function GET(
   _request: Request,
   context: { params: Promise<{ userId: string }> },
 ) {
-  getDb();
   const { userId } = await context.params;
-  const user = getDemoUser(userId);
+  const user = await getDemoUser(userId);
   if (!user) {
     return NextResponse.json({ error: "Unknown demo user" }, { status: 404 });
   }
-  const articles = listEditorial({ userId, limit: 40 });
+  const articles = await listEditorial({ userId, limit: 40 });
   return NextResponse.json({
     user: {
       id: user.id,
