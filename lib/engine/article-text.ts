@@ -1,51 +1,110 @@
-import { stripHtml } from "../text";
+import { capSummary, stripHtml } from "../text";
 
-const MIN_ARTICLE_CHARS = 400;
-const MAX_LLM_CHARS = 8000;
+const MIN_EXTRACT_CHARS = 40;
 
 const BOILERPLATE =
   /subscribe today|never miss out|share with your network|accept (all )?cookies|cookie policy|sign in to continue|log in to continue|create an account|this site uses cookies/i;
 
-export function extractArticleText(html: string): string | null {
+const BYLINE = /^(words|by|author|photography|photos|written by|pictured)\b/i;
+
+export function extractPageSummary(
+  html: string,
+  options: { title: string; teaser?: string | null },
+): string | null {
+  const title = options.title.trim();
+  const teaser = options.teaser?.trim() ?? "";
+  const candidates = [
+    ...standfirsts(html),
+    metaDescription(html),
+    firstSubstantialParagraph(html),
+  ];
+  for (const candidate of candidates) {
+    const accepted = acceptExtract(candidate, title, teaser);
+    if (accepted) return accepted;
+  }
+  return null;
+}
+
+export function acceptExtract(
+  text: string,
+  title: string,
+  teaser = "",
+): string | null {
+  const cleaned = stripHtml(text).replace(/\s+/g, " ").trim();
+  if (cleaned.length < MIN_EXTRACT_CHARS) return null;
+  if (sameCopy(cleaned, title) || sameCopy(cleaned, teaser)) return null;
+  if (cleaned.length <= 320) return cleaned;
+  const sentence = cleaned.match(/^[\s\S]{40,}?[.!?](?=\s|$)/)?.[0]?.trim();
+  if (sentence && sentence.length <= 320 && !sameCopy(sentence, title) && !sameCopy(sentence, teaser)) {
+    return sentence;
+  }
+  return capSummary(cleaned);
+}
+
+function standfirsts(html: string): string[] {
+  const matches = [
+    ...html.matchAll(
+      /<(p|div|span|h2|h3)\b[^>]*(?:class|id)=["'][^"']*(?:stand-?first|\bdek\b|\blede\b|sub-?head(?:ing)?)[^"']*["'][^>]*>([\s\S]*?)<\/\1>/gi,
+    ),
+  ];
+  return matches.map((match) => stripHtml(match[2])).filter(Boolean);
+}
+
+function metaDescription(html: string): string {
+  return (
+    metaContent(html, "og:description") ||
+    metaContent(html, "twitter:description") ||
+    metaContent(html, "description")
+  );
+}
+
+function firstSubstantialParagraph(html: string): string {
   const cleaned = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
     .replace(/<nav[\s\S]*?<\/nav>/gi, " ")
     .replace(/<footer[\s\S]*?<\/footer>/gi, " ")
-    .replace(/<header[\s\S]*?<\/header>/gi, " ")
     .replace(/<!--[\s\S]*?-->/g, " ");
-
   const article =
     isolate(cleaned, "article") ||
     isolateAttr(cleaned, "itemprop", "articleBody") ||
     isolate(cleaned, "main") ||
     cleaned;
-
-  const paragraphs = [...article.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
-    .map((match) => stripHtml(match[1]))
-    .map((text) => text.replace(/\s+/g, " ").trim())
-    .filter((text) => text.length > 40 && !BOILERPLATE.test(text));
-
-  let text = paragraphs.join("\n\n");
-  if (text.length < MIN_ARTICLE_CHARS) {
-    text = stripHtml(article);
+  for (const match of article.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)) {
+    const text = stripHtml(match[1]).replace(/\s+/g, " ").trim();
+    if (text.length < MIN_EXTRACT_CHARS) continue;
+    if (BOILERPLATE.test(text) || BYLINE.test(text)) continue;
+    return text;
   }
-  text = text.replace(/\s+/g, " ").trim();
-  if (text.length < MIN_ARTICLE_CHARS) return null;
-  return text.slice(0, MAX_LLM_CHARS);
+  return "";
 }
 
-export function acceptAiSummary(text: string, title: string): string | null {
-  const cleaned = text.replace(/\s+/g, " ").trim();
-  if (!cleaned) return null;
-  if (/^none\.?$/i.test(cleaned)) return null;
-  if (cleaned.toLowerCase() === title.trim().toLowerCase()) return null;
-  if (cleaned.length < 40) return null;
-  if (cleaned.length <= 420) return cleaned;
-  const sliced = cleaned.slice(0, 420);
-  const lastStop = Math.max(sliced.lastIndexOf(". "), sliced.lastIndexOf("? "));
-  return `${(lastStop > 80 ? sliced.slice(0, lastStop + 1) : sliced).trim()}`;
+function sameCopy(left: string, right: string): boolean {
+  const a = fold(left);
+  const b = fold(right);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  return a.startsWith(b) || b.startsWith(a);
+}
+
+function fold(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/&[a-z]+;/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function metaContent(html: string, name: string): string {
+  const property = html.match(
+    new RegExp(`<meta[^>]+(?:property|name)=["']${name}["'][^>]+content=["']([^"']*)["']`, "i"),
+  );
+  const contentFirst = html.match(
+    new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:property|name)=["']${name}["']`, "i"),
+  );
+  return stripHtml(property?.[1] || contentFirst?.[1] || "");
 }
 
 function isolate(html: string, tag: string): string | null {

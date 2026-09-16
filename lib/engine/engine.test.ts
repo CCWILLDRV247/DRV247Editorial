@@ -164,41 +164,47 @@ describe("dedupe", () => {
   });
 });
 
-describe("article text for AI summaries", () => {
-  it("extracts article paragraphs and ignores boilerplate", async () => {
-    const { extractArticleText, acceptAiSummary } = await import("./article-text");
-    const html = `<html><head><title>Bizzarrini Corsa</title></head>
-      <body>
-        <article>
-          <p>Words: James Elliott</p>
-          <p>The last of the Bizzarrini 5300 GT Corsa Revival cars has been completed, barely two years after the project began to hand-build two dozen clones of the 1965 Le Mans class winner.</p>
-          <p>Each Revival car uses a single-piece composite body over a steel frame, while there is a six-point roll-cage inside and a safety fuel cell that meets FIA Appendix K.</p>
-          <p>The cars have been built in the UK and the company will now embark on its next project, the Giotto hypercar.</p>
-          <p>Simon Busby, Bizzarrini CMO, said the Revival was envisioned as a reintroduction of the brand to the elite tiers of the automotive world.</p>
-          <p>Never miss out on the latest classic car news from Octane, subscribe today!</p>
-        </article>
-        <script>document.title = "track this"</script>
-      </body></html>`;
-    const text = extractArticleText(html);
-    assert.ok(text);
-    assert.match(text!, /Giotto hypercar/);
-    assert.doesNotMatch(text!, /subscribe today/);
-    assert.doesNotMatch(text!, /track this/);
-    assert.equal(acceptAiSummary("NONE", "Bizzarrini Corsa"), null);
-    assert.equal(acceptAiSummary("Bizzarrini Corsa", "Bizzarrini Corsa"), null);
-    assert.match(
-      acceptAiSummary(
-        "The last Revival cars are done in the UK. Bizzarrini now turns to the Giotto hypercar.",
-        "Bizzarrini Corsa",
-      ) ?? "",
-      /Giotto/,
+describe("page summary extract", () => {
+  it("prefers a standfirst over later paragraphs", async () => {
+    const { extractPageSummary } = await import("./article-text");
+    const html = `<html><body>
+      <p class="standfirst">A hand-built revival of the 1965 Le Mans class winner is done.</p>
+      <article>
+        <p>The last of the Bizzarrini 5300 GT Corsa Revival cars has been completed in the UK.</p>
+      </article>
+    </body></html>`;
+    assert.equal(
+      extractPageSummary(html, { title: "Bizzarrini Corsa", teaser: "RSS teaser about a hypercar." }),
+      "A hand-built revival of the 1965 Le Mans class winner is done.",
     );
   });
 
-  it("returns null when the page is too thin to summarize", async () => {
-    const { extractArticleText } = await import("./article-text");
+  it("skips a meta description that duplicates the RSS teaser and uses the first paragraph", async () => {
+    const { extractPageSummary } = await import("./article-text");
+    const teaser =
+      "With 24 homages to a 1965 Le Mans class winner now finished, the next project for Bizzarrini is a hypercar.";
+    const html = `<html><head>
+      <meta property="og:description" content="${teaser}"/>
+    </head><body><article>
+      <p class="credits">Words: James Elliott</p>
+      <p>The last of the Bizzarrini 5300 GT Corsa Revival cars has been completed, barely two years after the project began to hand-build two dozen clones of the 1965 Le Mans class winner.</p>
+      <p>Never miss out on the latest classic car news from Octane, subscribe today!</p>
+    </article></body></html>`;
+    const extract = extractPageSummary(html, { title: "Bizzarrini finishes Corsa Revival", teaser });
+    assert.match(extract ?? "", /last of the Bizzarrini 5300 GT Corsa Revival/);
+    assert.doesNotMatch(extract ?? "", /24 homages/);
+  });
+
+  it("hides empty, title-only, or teaser-duplicate extracts", async () => {
+    const { extractPageSummary, acceptExtract } = await import("./article-text");
+    const teaser = "A classic feature about the Jaguar E-Type restoration.";
+    assert.equal(acceptExtract("A classic feature about the Jaguar E-Type restoration.", "E-Type", teaser), null);
+    assert.equal(acceptExtract("E-Type restoration", "E-Type restoration", teaser), null);
     assert.equal(
-      extractArticleText("<html><head><title>Paywall</title></head><body><p>Subscribe.</p></body></html>"),
+      extractPageSummary(
+        `<html><head><meta name="description" content="${teaser}"/></head><body><p>Subscribe.</p></body></html>`,
+        { title: "E-Type restoration", teaser },
+      ),
       null,
     );
   });

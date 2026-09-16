@@ -19,7 +19,7 @@ import { fetchText, looksLikeFeed } from "./http";
 import { resolveImageUrl } from "./magazine";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
-import { llmConfigured, summarizeOriginalArticle } from "./summarize";
+import { extractOriginalSummary } from "./summarize";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -318,7 +318,12 @@ async function persistItems(
   const now = Date.now();
   const weights = loadRankWeights();
   let inserted = 0;
-  const pendingSummaries: { id: number; title: string; canonicalUrl: string }[] = [];
+  const pendingSummaries: {
+    id: number;
+    title: string;
+    canonicalUrl: string;
+    teaser: string;
+  }[] = [];
   const existing = await db.select().from(articles);
   const byTitle = new Map(
     existing.map((row) => [sameStoryKey(row.title), row.duplicateGroupId ?? sameStoryKey(row.title)]),
@@ -340,6 +345,7 @@ async function persistItems(
           id: seen.id,
           title: seen.title,
           canonicalUrl: seen.canonicalUrl,
+          teaser: seen.excerpt,
         });
       }
       continue;
@@ -408,6 +414,7 @@ async function persistItems(
       id: row.id,
       title: row.title,
       canonicalUrl: row.canonicalUrl,
+      teaser: row.excerpt,
     });
   }
   const summarized = await summarizePending(pendingSummaries, summaryBudget);
@@ -415,10 +422,10 @@ async function persistItems(
 }
 
 async function summarizePending(
-  pending: { id: number; title: string; canonicalUrl: string }[],
+  pending: { id: number; title: string; canonicalUrl: string; teaser: string }[],
   budget: number,
 ): Promise<number> {
-  if (!pending.length || !llmConfigured() || budget <= 0) return 0;
+  if (!pending.length || budget <= 0) return 0;
   const db = await getDb();
   const seen = new Set<number>();
   let summarized = 0;
@@ -426,7 +433,7 @@ async function summarizePending(
     if (seen.has(item.id)) continue;
     seen.add(item.id);
     if (summarized >= Math.min(MAX_SUMMARIES_PER_SOURCE, budget)) break;
-    const summary = await summarizeOriginalArticle(item.canonicalUrl, item.title);
+    const summary = await extractOriginalSummary(item.canonicalUrl, item.title, item.teaser);
     if (!summary) continue;
     await db.update(articles).set({ aiSummary: summary }).where(eq(articles.id, item.id));
     summarized += 1;
@@ -436,14 +443,19 @@ async function summarizePending(
 }
 
 export async function summarizeMissingArticles(limit: number): Promise<number> {
-  if (!llmConfigured() || limit <= 0) return 0;
+  if (limit <= 0) return 0;
   const db = await getDb();
   const rows = await db.select().from(articles);
   const missing = rows
     .filter((row) => !row.aiSummary?.trim())
     .sort((a, b) => b.publishedAt - a.publishedAt)
     .slice(0, limit)
-    .map((row) => ({ id: row.id, title: row.title, canonicalUrl: row.canonicalUrl }));
+    .map((row) => ({
+      id: row.id,
+      title: row.title,
+      canonicalUrl: row.canonicalUrl,
+      teaser: row.excerpt,
+    }));
   return summarizePending(missing, limit);
 }
 
