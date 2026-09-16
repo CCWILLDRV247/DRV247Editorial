@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "tsx --test lib/engine/engine.test.ts",
     "ingest:wave1": "tsx scripts/ingest-wave1.ts",
-    "extract:summaries": "tsx scripts/extract-summaries.ts"
+    "ingest:wave2": "tsx scripts/ingest-wave2.ts",
+    "extract:summaries": "tsx scripts/extract-summaries.ts",
+    "purge:non-english": "tsx scripts/purge-non-english.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -1,6 +1,6 @@
 import { count, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { WAVE1_SOURCE_IDS } from "@/config/wave1-sources";
+import { ENABLED_SOURCE_IDS } from "@/config/wave1-sources";
 import { getDb } from "@/lib/db";
 import { articles, mediaSources } from "@/lib/db/schema";
 import { ENGINE_BRANCH, ENGINE_WAVE, engineCommit } from "@/lib/engine/version";
@@ -12,7 +12,7 @@ export async function GET() {
   const db = await getDb();
   const enabled = (await db.select().from(mediaSources)).filter((source) => source.enabled);
   const sources = [];
-  for (const id of WAVE1_SOURCE_IDS) {
+  for (const id of ENABLED_SOURCE_IDS) {
     const source = enabled.find((row) => row.id === id);
     const [{ value }] = await db
       .select({ value: count() })

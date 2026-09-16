@@ -19,6 +19,7 @@ import { fetchText, looksLikeFeed } from "./http";
 import { resolveImageUrl } from "./magazine";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
+import { isEnglish } from "./language";
 import { extractOriginalSummary } from "./summarize";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -30,12 +31,14 @@ export type SourceIngestResult = {
   fetched: number;
   inserted: number;
   summarized: number;
+  skippedNonEnglish: number;
   error: string | null;
   httpStatus: number | null;
 };
 
 export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngestResult[]> {
   const db = await getDb();
+  await purgeNonEnglishArticles();
   const sources = (await db.select().from(mediaSources)).filter((source) => {
     if (!source.enabled) return false;
     if (!ids?.length) return true;
@@ -92,7 +95,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
     }
 
     items = items.slice(0, source.maxArticles);
-    const { inserted, summarized } = await persistItems(
+    const { inserted, summarized, skippedNonEnglish } = await persistItems(
       source,
       items,
       method ?? "none",
@@ -138,6 +141,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       fetched: items.length,
       inserted,
       summarized,
+      skippedNonEnglish,
       error: ok ? null : error ?? "No articles found",
       httpStatus,
     };
@@ -171,6 +175,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       fetched: 0,
       inserted: 0,
       summarized: 0,
+      skippedNonEnglish: 0,
       error: message,
       httpStatus,
     };
@@ -301,11 +306,12 @@ async function persistItems(
   source: MediaSource,
   items: EngineItem[],
   method: string,
-): Promise<{ inserted: number; summarized: number }> {
+): Promise<{ inserted: number; summarized: number; skippedNonEnglish: number }> {
   const db = await getDb();
   const now = Date.now();
   const weights = loadRankWeights();
   let inserted = 0;
+  let skippedNonEnglish = 0;
   const pendingSummaries: {
     id: number;
     title: string;
@@ -318,6 +324,10 @@ async function persistItems(
   );
 
   for (const item of items) {
+    if (!isEnglish(item.title, item.excerpt)) {
+      skippedNonEnglish += 1;
+      continue;
+    }
     const seen = (
       await db.select().from(articles).where(eq(articles.canonicalUrl, item.canonicalUrl)).limit(1)
     )[0];
@@ -406,7 +416,32 @@ async function persistItems(
     });
   }
   const summarized = await summarizePending(pendingSummaries);
-  return { inserted, summarized };
+  return { inserted, summarized, skippedNonEnglish };
+}
+
+export async function deleteArticleById(id: number): Promise<void> {
+  const db = await getDb();
+  await db.delete(articleEntities).where(eq(articleEntities.articleId, id));
+  await db.delete(articleCategories).where(eq(articleCategories.articleId, id));
+  await db.delete(articleInterests).where(eq(articleInterests.articleId, id));
+  await db.delete(articleLocations).where(eq(articleLocations.articleId, id));
+  await db.delete(articleImages).where(eq(articleImages.articleId, id));
+  await db.delete(articles).where(eq(articles.id, id));
+}
+
+export async function purgeNonEnglishArticles(): Promise<{
+  removed: number;
+  ids: number[];
+}> {
+  const db = await getDb();
+  const rows = await db.select().from(articles);
+  const ids: number[] = [];
+  for (const row of rows) {
+    if (isEnglish(row.title, row.excerpt)) continue;
+    await deleteArticleById(row.id);
+    ids.push(row.id);
+  }
+  return { removed: ids.length, ids };
 }
 
 const EXTRACT_CONCURRENCY = 4;

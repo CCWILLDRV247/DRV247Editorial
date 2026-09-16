@@ -140,13 +140,13 @@ export function AdminDesk({ categories, sources, stories }: Props) {
             Editorial desk
           </h1>
           <p className="mt-2 max-w-xl text-sm text-[#1b1d1f]/70">
-            This branch&apos;s ingest is the 10-title culture engine. The leftover v1 RSS
-            sources below (Motorsport, RACER, Jalopnik…) are not the wave-1 pipeline.
+            This branch&apos;s ingest is the culture engine (original ten plus wave 2). The leftover v1 RSS
+            sources below (Motorsport, RACER, Jalopnik…) are not that pipeline.
           </p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => ingest()} disabled={busy !== null}>
-            {busy === "ingest-all" ? "Ingesting 10…" : "Ingest 10 culture titles"}
+            {busy === "ingest-all" ? "Ingesting…" : "Ingest culture titles"}
           </Button>
           <Button variant="outline" onClick={() => ingest(undefined, "v1")} disabled={busy !== null}>
             {busy === "ingest-v1" ? "Pulling v1…" : "v1 RSS leftover"}
