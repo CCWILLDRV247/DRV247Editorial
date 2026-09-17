@@ -282,7 +282,7 @@ describe("enabled sources", () => {
     assert.equal(WAVE1_SOURCE_IDS.length, 10);
     assert.equal(WAVE2_SOURCE_IDS.length, 11);
     assert.equal(WAVE3_SOURCE_IDS.length, 10);
-    assert.equal(ENABLED_SOURCE_IDS.length, 28);
+    assert.equal(ENABLED_SOURCE_IDS.length, 27);
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
     assert.equal((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
     assert.equal((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
@@ -294,9 +294,11 @@ describe("enabled sources", () => {
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_012"));
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_048"));
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_013"));
+    assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_049"));
     assert.equal(ENABLED_SOURCE_SET.has("auto_012"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_048"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_013"), false);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_049"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_008"), true);
   });
 });

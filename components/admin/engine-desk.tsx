@@ -66,12 +66,12 @@ export function EngineDesk({ sources, runs, articles }: Props) {
             Automotive Culture Engine
           </p>
           <h1 className="font-display text-4xl font-black uppercase tracking-[-0.04em]">
-            Wave 3 — 28 titles
+            Wave 3 — 27 titles
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-[#1b1d1f]/70">
             Original ten and live wave 2 stay on. Wave 3 adds Car & Classic, Classics World,
             Practical Classics, Fast Car, PistonHeads, evo, CAR Magazine, Autocar, Auto Express,
-            and Top Gear. Flat 6 (French), AUTOMOBILSPORT (German), and EuroStance (Shopify shop)
+            and Top Gear. Flat 6 (French), AUTOMOBILSPORT (German), 9WERKS (paywall), and EuroStance (Shopify shop)
             stay dark. Ingest skips non-English items and shop/product/collection/cart/merch URLs.{" "}
             {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>

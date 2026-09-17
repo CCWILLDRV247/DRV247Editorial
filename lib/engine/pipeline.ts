@@ -23,7 +23,7 @@ import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
 import { extractOriginalPage } from "./summarize";
-import { upsertArticlePrimary } from "./article-primary";
+import { DISABLED_SOURCE_SET, ENABLED_SOURCE_SET } from "@/config/wave1-sources";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -46,6 +46,8 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
   await purgeMerchArticles();
   const sources = (await db.select().from(mediaSources)).filter((source) => {
     if (!source.enabled) return false;
+    if (DISABLED_SOURCE_SET.has(source.id)) return false;
+    if (!ENABLED_SOURCE_SET.has(source.id)) return false;
     if (!ids?.length) return true;
     return ids.includes(source.id);
   });
@@ -451,6 +453,20 @@ export async function purgeMerchArticles(): Promise<{
   const ids: number[] = [];
   for (const row of rows) {
     if (!isMerchArticle(row)) continue;
+    await deleteArticleById(row.id);
+    ids.push(row.id);
+  }
+  return { removed: ids.length, ids };
+}
+
+export async function purgeArticlesBySourceId(sourceId: string): Promise<{
+  removed: number;
+  ids: number[];
+}> {
+  const db = await getDb();
+  const rows = await db.select().from(articles).where(eq(articles.sourceId, sourceId));
+  const ids: number[] = [];
+  for (const row of rows) {
     await deleteArticleById(row.id);
     ids.push(row.id);
   }
