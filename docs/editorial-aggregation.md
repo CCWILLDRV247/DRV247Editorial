@@ -8,8 +8,9 @@ CSV is the source of truth: [`config/drv247_uk_eu_automotive_media_sources.csv`]
 | --- | ---: |
 | Publications | 51 |
 | Wave 1 still live | **10** |
-| Wave 2 enabled this branch | **11** (10 from the sheet + Turnpike) |
-| Remaining dark | 30 |
+| Wave 2 live | **8** (11 listed; Flat 6, AUTOMOBILSPORT, EuroStance stay dark) |
+| Wave 3 live | **10** |
+| Remaining dark | 23 |
 
 Do not assume an unverified RSS URL is valid. The pipeline always validates a genuine RSS/Atom document before accepting it.
 
@@ -30,7 +31,9 @@ Autoitaliana (`auto_011`) is on the sheet but its hostname does not resolve, so 
 | auto_015 | Take to the Road | rss (verified) |
 | auto_016 | GTspirit | rss (verified) |
 
-## Wave 2 (enabled now)
+## Wave 2 (still live, three dark)
+
+The three dark wave-2 rows stay in the wave list so merch and language policy remain explicit.
 
 | ID | Title | Config method |
 | --- | --- | --- |
@@ -45,6 +48,23 @@ Autoitaliana (`auto_011`) is on the sheet but its hostname does not resolve, so 
 | auto_048 | Flat 6 Magazine | rss (`/feed`) |
 | auto_049 | 9WERKS | rss (`/feed`) |
 | auto_051 | Turnpike | rss (`https://turnpike.global/feed`) |
+
+## Wave 3 (enabled now)
+
+Autoitaliana (`auto_011`) still has no DNS, so it stays dark. EuroStance, Flat 6, and AUTOMOBILSPORT stay dark.
+
+| ID | Title | Config method |
+| --- | --- | --- |
+| auto_018 | Car & Classic | scrape |
+| auto_019 | Classics World | rss (`/feed`) |
+| auto_021 | Practical Classics | rss (`/rss`) |
+| auto_022 | Fast Car | rss (`/feed`) |
+| auto_023 | PistonHeads | rss (`/news/rss`) |
+| auto_024 | evo | rss then fallback (`/rss`) |
+| auto_025 | CAR Magazine | rss (`/rss/`) |
+| auto_026 | Autocar | rss (`/rss`) |
+| auto_027 | Auto Express | rss (`/rss`) |
+| auto_028 | Top Gear | scrape |
 
 ## Pipeline
 

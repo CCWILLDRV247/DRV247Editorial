@@ -252,19 +252,27 @@ describe("entities and ranking", () => {
 });
 
 describe("enabled sources", () => {
-  it("keeps wave 1 and adds ten CSV titles plus Turnpike", async () => {
+  it("keeps wave 1–2 live titles and adds the next ten CSV titles", async () => {
     const {
       WAVE1_SOURCE_IDS,
       WAVE2_SOURCE_IDS,
+      WAVE3_SOURCE_IDS,
       ENABLED_SOURCE_IDS,
       DISABLED_SOURCE_IDS,
       ENABLED_SOURCE_SET,
     } = await import("../../config/wave1-sources");
     assert.equal(WAVE1_SOURCE_IDS.length, 10);
     assert.equal(WAVE2_SOURCE_IDS.length, 11);
-    assert.equal(ENABLED_SOURCE_IDS.length, 18);
+    assert.equal(WAVE3_SOURCE_IDS.length, 10);
+    assert.equal(ENABLED_SOURCE_IDS.length, 28);
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
     assert.equal((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
+    assert.equal((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
+    assert.equal((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_013"), false);
+    assert.equal((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_012"), false);
+    assert.equal((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_048"), false);
+    assert.ok((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_018"));
+    assert.ok((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_028"));
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_012"));
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_048"));
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_013"));

@@ -1,6 +1,6 @@
 # DRV247 Editorial
 
-UK/EU automotive culture desk. Eighteen live culture titles (original ten plus wave 2, including Turnpike; Flat 6, AUTOMOBILSPORT, and EuroStance stay dark — EuroStance is a shop). Teasers and outbound links only — never full article bodies. Ingest keeps English teasers, skips non-English items, and skips shop URLs. User-facing nav is For You, Cars, Culture, Driving, Motorsport, and Events.
+UK/EU automotive culture desk. Twenty-eight live culture titles (original ten, wave 2 including Turnpike, and wave 3). Flat 6, AUTOMOBILSPORT, and EuroStance stay dark — EuroStance is a shop. Autoitaliana has no DNS. Teasers and outbound links only — never full article bodies. Ingest keeps English teasers, skips non-English items, and skips shop URLs. User-facing nav is For You, Cars, Culture, Driving, Motorsport, and Events.
 
 ## Run locally
 
@@ -50,7 +50,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 
 ## Ingest
 
-Desk **Ingest now** runs the enabled culture pipeline (18 titles). Non-English items are skipped; shop/product/collection/cart/merch URLs are skipped; mixed-language titles such as ramp stay enabled. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
+Desk **Ingest now** runs the enabled culture pipeline (28 titles). Non-English items are skipped; shop/product/collection/cart/merch URLs are skipped; mixed-language titles such as ramp stay enabled. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds.
 
