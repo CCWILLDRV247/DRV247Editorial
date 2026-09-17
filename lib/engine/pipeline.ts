@@ -19,6 +19,7 @@ import { extractEntities } from "./extract";
 import { fetchText, looksLikeFeed } from "./http";
 import { resolveImageUrl } from "./magazine";
 import { isMerchArticle, isMerchUrl } from "./merch";
+import { isNonEditorialArticle, isNonEditorialUrl } from "./non-editorial";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
@@ -37,6 +38,7 @@ export type SourceIngestResult = {
   summarized: number;
   skippedNonEnglish: number;
   skippedMerch: number;
+  skippedNonEditorial: number;
   error: string | null;
   httpStatus: number | null;
 };
@@ -45,6 +47,7 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
   const db = await getDb();
   await purgeNonEnglishArticles();
   await purgeMerchArticles();
+  await purgeNonEditorialArticles();
   const sources = (await db.select().from(mediaSources)).filter((source) => {
     if (!source.enabled) return false;
     if (DISABLED_SOURCE_SET.has(source.id)) return false;
@@ -103,13 +106,16 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       }
     }
 
-    items = items.filter((item) => !isMerchUrl(item.canonicalUrl) && !isMerchUrl(item.url));
-    items = items.slice(0, source.maxArticles);
-    const { inserted, summarized, skippedNonEnglish, skippedMerch } = await persistItems(
-      source,
-      items,
-      method ?? "none",
+    items = items.filter(
+      (item) =>
+        !isMerchUrl(item.canonicalUrl) &&
+        !isMerchUrl(item.url) &&
+        !isNonEditorialUrl(item.canonicalUrl, source.url) &&
+        !isNonEditorialUrl(item.url, source.url),
     );
+    items = items.slice(0, source.maxArticles);
+    const { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial } =
+      await persistItems(source, items, method ?? "none");
     const ok = items.length > 0;
     await db.insert(ingestionRuns).values({
       sourceId: source.id,
@@ -153,6 +159,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       summarized,
       skippedNonEnglish,
       skippedMerch,
+      skippedNonEditorial,
       error: ok ? null : error ?? "No articles found",
       httpStatus,
     };
@@ -188,6 +195,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       summarized: 0,
       skippedNonEnglish: 0,
       skippedMerch: 0,
+      skippedNonEditorial: 0,
       error: message,
       httpStatus,
     };
@@ -318,13 +326,20 @@ async function persistItems(
   source: MediaSource,
   items: EngineItem[],
   method: string,
-): Promise<{ inserted: number; summarized: number; skippedNonEnglish: number; skippedMerch: number }> {
+): Promise<{
+  inserted: number;
+  summarized: number;
+  skippedNonEnglish: number;
+  skippedMerch: number;
+  skippedNonEditorial: number;
+}> {
   const db = await getDb();
   const now = Date.now();
   const weights = loadRankWeights();
   let inserted = 0;
   let skippedNonEnglish = 0;
   let skippedMerch = 0;
+  let skippedNonEditorial = 0;
   const pendingPages: PendingPage[] = [];
   const existing = await db.select().from(articles);
   const byTitle = new Map(
@@ -334,6 +349,10 @@ async function persistItems(
   for (const item of items) {
     if (isMerchUrl(item.canonicalUrl) || isMerchUrl(item.url)) {
       skippedMerch += 1;
+      continue;
+    }
+    if (isNonEditorialUrl(item.canonicalUrl, source.url) || isNonEditorialUrl(item.url, source.url)) {
+      skippedNonEditorial += 1;
       continue;
     }
     if (!isEnglish(item.title, item.excerpt)) {
@@ -416,7 +435,7 @@ async function persistItems(
     await persistArticleExtraction(row.id);
   }
   const summarized = await summarizePending(pendingPages);
-  return { inserted, summarized, skippedNonEnglish, skippedMerch };
+  return { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial };
 }
 
 export async function deleteArticleById(id: number): Promise<void> {
@@ -458,6 +477,42 @@ export async function purgeMerchArticles(): Promise<{
     ids.push(row.id);
   }
   return { removed: ids.length, ids };
+}
+
+export async function purgeNonEditorialArticles(): Promise<{
+  removed: number;
+  ids: number[];
+  rows: {
+    id: number;
+    publication: string;
+    title: string;
+    url: string;
+    canonicalUrl: string;
+  }[];
+}> {
+  const db = await getDb();
+  const sources = await db.select().from(mediaSources);
+  const sourceUrl = new Map(sources.map((source) => [source.id, source.url]));
+  const rows = await db.select().from(articles);
+  const removed: {
+    id: number;
+    publication: string;
+    title: string;
+    url: string;
+    canonicalUrl: string;
+  }[] = [];
+  for (const row of rows) {
+    if (!isNonEditorialArticle(row, sourceUrl.get(row.sourceId))) continue;
+    await deleteArticleById(row.id);
+    removed.push({
+      id: row.id,
+      publication: row.publication,
+      title: row.title,
+      url: row.url,
+      canonicalUrl: row.canonicalUrl,
+    });
+  }
+  return { removed: removed.length, ids: removed.map((row) => row.id), rows: removed };
 }
 
 export async function purgeArticlesBySourceId(sourceId: string): Promise<{

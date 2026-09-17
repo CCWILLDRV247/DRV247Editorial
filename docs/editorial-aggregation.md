@@ -109,7 +109,7 @@ Per source, isolated:
 2. Else sitemap.xml / sitemap_index / news sitemaps, then article-page metadata.
 3. Else homepage scrape: `robots.txt`, polite delay, article URLs only, Open Graph / canonical / excerpt. **No full body stored.**
 
-Shop feeds can be disabled (or pointed at editorial RSS) in `config/merch.ts`. Ingest also skips URLs whose path has a shop segment (`/shop`, `/product`, `/collection`, `/cart`, `/merch`, and close variants). Weekly cron and desk ingest-now both use this.
+Shop feeds can be disabled (or pointed at editorial RSS) in `config/merch.ts`. Ingest also skips URLs whose path has a shop segment (`/shop`, `/product`, `/collection`, `/cart`, `/merch`, and close variants). Non-editorial URL skip lives in `config/non-editorial.ts`: auction/subscribe path segments, empty or `/undefined` URLs, and off-site magazine-shop hosts such as `themagazineshop.com`. Not a title denylist. PistonHeads and Classic & Sports Car stay enabled. Weekly cron and desk ingest-now both use this.
 
 At ingest, fetch the original URL and persist a short extract (standfirst / meta description / first substantial paragraph). Discard the HTML.
 

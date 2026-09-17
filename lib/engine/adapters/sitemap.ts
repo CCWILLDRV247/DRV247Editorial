@@ -1,4 +1,5 @@
 import { isMerchUrl } from "../merch";
+import { isNonEditorialUrl } from "../non-editorial";
 
 export function parseSitemapXml(xml: string): string[] {
   const locs = [...xml.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/gi)].map((match) =>
@@ -24,6 +25,7 @@ export function looksLikeArticleUrl(url: string, siteOrigin: string): boolean {
     }
     if (/(login|account|privacy|cookie|contact|newsletter)/.test(path)) return false;
     if (isMerchUrl(url)) return false;
+    if (isNonEditorialUrl(url, siteOrigin)) return false;
     const depth = path.split("/").filter(Boolean).length;
     return depth >= 1;
   } catch {

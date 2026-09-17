@@ -76,6 +76,23 @@ describe("sitemap", () => {
     assert.equal(looksLikeArticleUrl("https://example.com/cart", "https://example.com"), false);
     assert.equal(looksLikeArticleUrl("https://example.com/merch", "https://example.com"), false);
     assert.equal(looksLikeArticleUrl("https://example.com/checkout", "https://example.com"), false);
+    assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/undefined", "https://www.pistonheads.com"), false);
+    assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/buy/auctions", "https://www.pistonheads.com"), false);
+    assert.equal(looksLikeArticleUrl("https://www.autosport.com/subscribe", "https://www.autosport.com"), false);
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.pistonheads.com/news/ph-plus/porsche-911-gt3",
+        "https://www.pistonheads.com",
+      ),
+      true,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://classicsworld.co.uk/classic-car-auctions/auction-review-manor-park",
+        "https://classicsworld.co.uk",
+      ),
+      true,
+    );
   });
 });
 
@@ -306,6 +323,8 @@ describe("enabled sources", () => {
     assert.equal(ENABLED_SOURCE_SET.has("auto_013"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_049"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_018"), true);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_020"), true);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_023"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_035"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_044"), true);
   });
@@ -337,6 +356,76 @@ describe("merch exclusion", () => {
         url: "https://www.euro-stance.com/pages/about",
         canonicalUrl: "https://www.euro-stance.com/pages/about",
       }),
+      true,
+    );
+  });
+});
+
+describe("non-editorial url skip", () => {
+  it("skips empty URLs, auction/subscribe paths, and magazine-shop hosts without a title denylist", async () => {
+    const {
+      isNonEditorialUrl,
+      isNonEditorialArticle,
+      isUnusableArticleUrl,
+    } = await import("./non-editorial");
+    const { NON_EDITORIAL_PATH_SEGMENTS, NON_EDITORIAL_HOSTS } = await import(
+      "../../config/non-editorial"
+    );
+    assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("auctions"));
+    assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("subscribe"));
+    assert.ok((NON_EDITORIAL_HOSTS as readonly string[]).includes("themagazineshop.com"));
+
+    assert.equal(isUnusableArticleUrl(""), true);
+    assert.equal(isUnusableArticleUrl("undefined"), true);
+    assert.equal(isUnusableArticleUrl("https://www.pistonheads.com/undefined"), true);
+    assert.equal(
+      isNonEditorialUrl("https://www.pistonheads.com/undefined", "https://www.pistonheads.com"),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl("https://www.pistonheads.com/buy/auctions", "https://www.pistonheads.com"),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl(
+        "https://www.themagazineshop.com/classic-sports-car",
+        "https://www.classicandsportscar.com",
+      ),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl(
+        "https://www.practicalclassics.co.uk/magazine/offers/subscribe-to-practical-classics",
+        "https://www.practicalclassics.co.uk",
+      ),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl("https://www.autosport.com/subscribe", "https://www.autosport.com"),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl(
+        "https://www.pistonheads.com/news/ph-plus/stop-dreaming-start-driving-feature",
+        "https://www.pistonheads.com",
+      ),
+      false,
+    );
+    assert.equal(
+      isNonEditorialUrl(
+        "https://classicsworld.co.uk/classic-car-auctions/auction-review-manor-park-classics-north-july-18",
+        "https://classicsworld.co.uk",
+      ),
+      false,
+    );
+    assert.equal(
+      isNonEditorialArticle(
+        {
+          url: "https://www.pistonheads.com/buy/auctions",
+          canonicalUrl: "https://www.pistonheads.com/buy/auctions",
+        },
+        "https://www.pistonheads.com",
+      ),
       true,
     );
   });
