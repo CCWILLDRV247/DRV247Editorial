@@ -64,7 +64,7 @@ export function canonicalizeUrl(raw: string): string | null {
   }
 }
 
-export function isUsableArticleImage(raw: string | null | undefined): boolean {
+export function isUsableArticleImage(raw: string | null | undefined): raw is string {
   if (!raw?.trim()) return false;
   const value = decodeXmlEntities(raw.trim());
   const lower = value.toLowerCase();
