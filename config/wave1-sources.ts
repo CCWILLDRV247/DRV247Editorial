@@ -1,3 +1,5 @@
+import { MERCH_SOURCE_POLICY, SHOP_DISABLED_SOURCE_IDS } from "./merch";
+
 /** First 10 high-priority titles from the Automotive Culture Engine spec. */
 export const WAVE1_SOURCE_IDS = [
   "auto_001", // Bonnet
@@ -27,10 +29,11 @@ export const WAVE2_SOURCE_IDS = [
   "auto_051", // Turnpike
 ] as const;
 
-/** Wave-2 titles whose ingested set is entirely non-English. Stay in the wave list, stay dark. */
+/** Wave-2 titles kept in the wave list but not ingested. */
 export const DISABLED_SOURCE_IDS = [
   "auto_012", // AUTOMOBILSPORT — German-only
   "auto_048", // Flat 6 Magazine — French-only
+  ...SHOP_DISABLED_SOURCE_IDS,
 ] as const;
 
 export const DISABLED_SOURCE_SET = new Set<string>(DISABLED_SOURCE_IDS);
@@ -45,3 +48,4 @@ export type EnabledSourceId = (typeof ENABLED_SOURCE_IDS)[number];
 
 export const WAVE1_SOURCE_SET = new Set<string>(WAVE1_SOURCE_IDS);
 export const ENABLED_SOURCE_SET = new Set<string>(ENABLED_SOURCE_IDS);
+export { MERCH_SOURCE_POLICY, SHOP_DISABLED_SOURCE_IDS };

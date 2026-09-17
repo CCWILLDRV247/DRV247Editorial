@@ -38,7 +38,7 @@ Autoitaliana (`auto_011`) is on the sheet but its hostname does not resolve, so 
 | auto_009 | Waft | rss (`/feed`) |
 | auto_010 | Curves | scrape / sitemap |
 | auto_012 | AUTOMOBILSPORT | scrape |
-| auto_013 | EuroStance | scrape / sitemap |
+| auto_013 | EuroStance | **dark** — Shopify shop, no editorial RSS |
 | auto_017 | Dyler | scrape / sitemap (listed blog RSS is stale) |
 | auto_020 | Classic & Sports Car | scrape |
 | auto_047 | The Automobile | rss (`/feed`) |
@@ -53,6 +53,8 @@ Per source, isolated:
 1. RSS/Atom URL if present — must parse as RSS 2.0 / 1.0 / Atom.
 2. Else sitemap.xml / sitemap_index / news sitemaps, then article-page metadata.
 3. Else homepage scrape: `robots.txt`, polite delay, article URLs only, Open Graph / canonical / excerpt. **No full body stored.**
+
+Shop feeds can be disabled (or pointed at editorial RSS) in `config/merch.ts`. Ingest also skips URLs whose path has a shop segment (`/shop`, `/product`, `/collection`, `/cart`, `/merch`, and close variants). Weekly cron and desk ingest-now both use this.
 
 At ingest, fetch the original URL and persist a short extract (standfirst / meta description / first substantial paragraph). Discard the HTML.
 

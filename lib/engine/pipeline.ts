@@ -18,6 +18,7 @@ import { parseArticleMetadata, parseHomeLinks, robotsAllows } from "./adapters/s
 import { extractEntities } from "./extract";
 import { fetchText, looksLikeFeed } from "./http";
 import { resolveImageUrl } from "./magazine";
+import { isMerchArticle, isMerchUrl } from "./merch";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
@@ -34,6 +35,7 @@ export type SourceIngestResult = {
   inserted: number;
   summarized: number;
   skippedNonEnglish: number;
+  skippedMerch: number;
   error: string | null;
   httpStatus: number | null;
 };
@@ -41,6 +43,7 @@ export type SourceIngestResult = {
 export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngestResult[]> {
   const db = await getDb();
   await purgeNonEnglishArticles();
+  await purgeMerchArticles();
   const sources = (await db.select().from(mediaSources)).filter((source) => {
     if (!source.enabled) return false;
     if (!ids?.length) return true;
@@ -96,8 +99,9 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       }
     }
 
+    items = items.filter((item) => !isMerchUrl(item.canonicalUrl) && !isMerchUrl(item.url));
     items = items.slice(0, source.maxArticles);
-    const { inserted, summarized, skippedNonEnglish } = await persistItems(
+    const { inserted, summarized, skippedNonEnglish, skippedMerch } = await persistItems(
       source,
       items,
       method ?? "none",
@@ -144,6 +148,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       inserted,
       summarized,
       skippedNonEnglish,
+      skippedMerch,
       error: ok ? null : error ?? "No articles found",
       httpStatus,
     };
@@ -178,6 +183,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       inserted: 0,
       summarized: 0,
       skippedNonEnglish: 0,
+      skippedMerch: 0,
       error: message,
       httpStatus,
     };
@@ -308,12 +314,13 @@ async function persistItems(
   source: MediaSource,
   items: EngineItem[],
   method: string,
-): Promise<{ inserted: number; summarized: number; skippedNonEnglish: number }> {
+): Promise<{ inserted: number; summarized: number; skippedNonEnglish: number; skippedMerch: number }> {
   const db = await getDb();
   const now = Date.now();
   const weights = loadRankWeights();
   let inserted = 0;
   let skippedNonEnglish = 0;
+  let skippedMerch = 0;
   const pendingSummaries: {
     id: number;
     title: string;
@@ -326,6 +333,10 @@ async function persistItems(
   );
 
   for (const item of items) {
+    if (isMerchUrl(item.canonicalUrl) || isMerchUrl(item.url)) {
+      skippedMerch += 1;
+      continue;
+    }
     if (!isEnglish(item.title, item.excerpt)) {
       skippedNonEnglish += 1;
       continue;
@@ -398,7 +409,7 @@ async function persistItems(
     await persistArticleExtraction(row.id);
   }
   const summarized = await summarizePending(pendingSummaries);
-  return { inserted, summarized, skippedNonEnglish };
+  return { inserted, summarized, skippedNonEnglish, skippedMerch };
 }
 
 export async function deleteArticleById(id: number): Promise<void> {
@@ -421,6 +432,21 @@ export async function purgeNonEnglishArticles(): Promise<{
   const ids: number[] = [];
   for (const row of rows) {
     if (isEnglish(row.title, row.excerpt)) continue;
+    await deleteArticleById(row.id);
+    ids.push(row.id);
+  }
+  return { removed: ids.length, ids };
+}
+
+export async function purgeMerchArticles(): Promise<{
+  removed: number;
+  ids: number[];
+}> {
+  const db = await getDb();
+  const rows = await db.select().from(articles);
+  const ids: number[] = [];
+  for (const row of rows) {
+    if (!isMerchArticle(row)) continue;
     await deleteArticleById(row.id);
     ids.push(row.id);
   }

@@ -12,6 +12,7 @@
     "ingest:wave2": "tsx scripts/ingest-wave2.ts",
     "extract:summaries": "tsx scripts/extract-summaries.ts",
     "purge:non-english": "tsx scripts/purge-non-english.ts",
+    "purge:merch": "tsx scripts/purge-merch.ts",
     "reprocess:entities": "tsx scripts/reprocess-entities.ts"
   },
   "dependencies": {

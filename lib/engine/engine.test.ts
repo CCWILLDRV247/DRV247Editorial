@@ -52,6 +52,13 @@ describe("sitemap", () => {
     assert.equal(isSitemapIndex(sitemap), false);
     assert.equal(looksLikeArticleUrl("https://example.com/features/porsche-911", "https://example.com"), true);
     assert.equal(looksLikeArticleUrl("https://example.com/login", "https://example.com"), false);
+    assert.equal(looksLikeArticleUrl("https://www.euro-stance.com/collections/hoodies-eurostance", "https://www.euro-stance.com"), false);
+    assert.equal(looksLikeArticleUrl("https://www.euro-stance.com/products/hoodie", "https://www.euro-stance.com"), false);
+    assert.equal(looksLikeArticleUrl("https://ramp.space/en/shop/magazine", "https://ramp.space"), false);
+    assert.equal(looksLikeArticleUrl("https://theroadrat.com/shop/magazine", "https://theroadrat.com"), false);
+    assert.equal(looksLikeArticleUrl("https://example.com/cart", "https://example.com"), false);
+    assert.equal(looksLikeArticleUrl("https://example.com/merch", "https://example.com"), false);
+    assert.equal(looksLikeArticleUrl("https://example.com/checkout", "https://example.com"), false);
   });
 });
 
@@ -255,13 +262,47 @@ describe("enabled sources", () => {
     } = await import("../../config/wave1-sources");
     assert.equal(WAVE1_SOURCE_IDS.length, 10);
     assert.equal(WAVE2_SOURCE_IDS.length, 11);
-    assert.equal(ENABLED_SOURCE_IDS.length, 19);
+    assert.equal(ENABLED_SOURCE_IDS.length, 18);
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
     assert.equal((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
-    assert.deepEqual([...DISABLED_SOURCE_IDS], ["auto_012", "auto_048"]);
+    assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_012"));
+    assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_048"));
+    assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_013"));
     assert.equal(ENABLED_SOURCE_SET.has("auto_012"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_048"), false);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_013"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_008"), true);
+  });
+});
+
+describe("merch exclusion", () => {
+  it("skips shop path segments and treats EuroStance as a disabled shop source", async () => {
+    const { isMerchUrl, isMerchArticle } = await import("./merch");
+    const { MERCH_SOURCE_POLICY, MERCH_PATH_SEGMENTS } = await import("../../config/merch");
+    assert.equal(MERCH_SOURCE_POLICY.auto_013.action, "disable");
+    for (const segment of [
+      "shop",
+      "product",
+      "products",
+      "collection",
+      "collections",
+      "cart",
+      "merch",
+    ]) {
+      assert.ok((MERCH_PATH_SEGMENTS as readonly string[]).includes(segment), segment);
+    }
+    assert.equal(isMerchUrl("https://www.euro-stance.com/collections/kids-wear"), true);
+    assert.equal(isMerchUrl("https://www.euro-stance.com/collections/t-shirts-eurostance"), true);
+    assert.equal(isMerchUrl("https://bonnetmagazine.com/collections/fine-art-prints-all"), true);
+    assert.equal(isMerchUrl("https://www.the-intercooler.com/features/porsche-993"), false);
+    assert.equal(
+      isMerchArticle({
+        sourceId: "auto_013",
+        url: "https://www.euro-stance.com/pages/about",
+        canonicalUrl: "https://www.euro-stance.com/pages/about",
+      }),
+      true,
+    );
   });
 });
 
