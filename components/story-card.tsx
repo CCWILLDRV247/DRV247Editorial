@@ -55,7 +55,7 @@ export function StoryHero({
       }
     >
       <div className="absolute inset-0">
-        <StoryImage src={story.imageUrl} alt="" />
+        <StoryImage src={story.imageUrl} alt="" priority />
       </div>
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
       <div className="absolute inset-x-7 bottom-10 flex flex-col gap-3">

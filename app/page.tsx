@@ -10,8 +10,7 @@ import { getMagazineHome } from "@/lib/engine/magazine";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 export default async function HomePage({
   searchParams,
@@ -20,9 +19,12 @@ export default async function HomePage({
 }) {
   const params = await searchParams;
   const testProfile = parseForYouTestProfile(params);
-  const { stories, carousels } = await getMagazineHome(testProfile);
   const testQuery = forYouTestSearchString(testProfile) || undefined;
-  const catalog = withProfileInCatalog(await loadForYouTestCatalog(), testProfile);
+  const [{ stories, carousels }, catalogRows] = await Promise.all([
+    getMagazineHome(testProfile),
+    loadForYouTestCatalog(),
+  ]);
+  const catalog = withProfileInCatalog(catalogRows, testProfile);
   return (
     <div className="min-h-full overflow-x-clip bg-white">
       <SiteHeader title="For You" testQuery={testQuery} />

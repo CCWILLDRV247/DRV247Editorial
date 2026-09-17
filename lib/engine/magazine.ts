@@ -1,4 +1,5 @@
 import type { StoryDto } from "@/lib/stories";
+import { unstable_cache } from "next/cache";
 import {
   LEGACY_NAV_TO_PRIMARY,
   MAGAZINE_NAV,
@@ -8,7 +9,12 @@ import {
   type ContentPrimary,
 } from "../../config/magazine-nav";
 import { countArticlesByPrimary } from "./article-primary";
-import { forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
+import {
+  forYouTestIsActive,
+  forYouTestSearchString,
+  parseForYouTestProfile,
+  type ForYouTestProfile,
+} from "./for-you-test";
 import { getEditorial, listEditorial, type EditorialDto } from "./queries";
 import { classifyPrimary } from "./taxonomy";
 
@@ -74,19 +80,42 @@ export async function listMagazineStories(options?: {
   testProfile?: ForYouTestProfile;
   limit?: number;
 }): Promise<StoryDto[]> {
-  const articles = await listEditorial({
-    section: options?.navSlug && options.navSlug !== "for-you" ? options.navSlug : "for-you",
-    testProfile: forYouTestIsActive(options?.testProfile ?? { interests: [] })
-      ? options?.testProfile
-      : undefined,
-    limit: 80,
+  const key = JSON.stringify({
+    navSlug: options?.navSlug ?? "for-you",
+    limit: options?.limit ?? 24,
+    profile:
+      options?.testProfile && forYouTestIsActive(options.testProfile)
+        ? forYouTestSearchString(options.testProfile)
+        : "default",
   });
-  return articles.slice(0, options?.limit ?? 24).map(toMagazineStory);
+  return unstable_cache(
+    async (cacheKey: string) => {
+      const parsed = JSON.parse(cacheKey) as { navSlug: string; limit: number; profile: string };
+      const testProfile =
+        parsed.profile === "default"
+          ? undefined
+          : parseForYouTestProfile(new URLSearchParams(parsed.profile));
+      const articles = await listEditorial({
+        section: parsed.navSlug && parsed.navSlug !== "for-you" ? parsed.navSlug : "for-you",
+        testProfile,
+        limit: 80,
+      });
+      return articles.slice(0, parsed.limit).map(toMagazineStory);
+    },
+    ["magazine-stories"],
+    { revalidate: 60, tags: ["editorial"] },
+  )(key);
 }
 
 export async function getMagazineStory(id: number): Promise<StoryDto | null> {
-  const article = await getEditorial(id);
-  return article ? toMagazineStory(article) : null;
+  return unstable_cache(
+    async (articleId: number) => {
+      const article = await getEditorial(articleId);
+      return article ? toMagazineStory(article) : null;
+    },
+    ["magazine-story"],
+    { revalidate: 60, tags: ["editorial"] },
+  )(id);
 }
 
 function uniqueStories(stories: StoryDto[]) {
@@ -98,7 +127,7 @@ function uniqueStories(stories: StoryDto[]) {
   });
 }
 
-export async function getMagazineHome(testProfile?: ForYouTestProfile) {
+async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
   const ranked = await listEditorial({
     section: "for-you",
     testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
@@ -119,6 +148,20 @@ export async function getMagazineHome(testProfile?: ForYouTestProfile) {
     };
   }).filter((lane) => lane.stories.length > 0);
   return { stories, carousels };
+}
+
+export async function getMagazineHome(testProfile?: ForYouTestProfile) {
+  const key =
+    testProfile && forYouTestIsActive(testProfile) ? forYouTestSearchString(testProfile) : "default";
+  return unstable_cache(
+    async (cacheKey: string) => {
+      const profile =
+        cacheKey === "default" ? undefined : parseForYouTestProfile(new URLSearchParams(cacheKey));
+      return getMagazineHomeFresh(profile);
+    },
+    ["magazine-home"],
+    { revalidate: 60, tags: ["editorial"] },
+  )(key);
 }
 
 export async function getMagazineNav() {
