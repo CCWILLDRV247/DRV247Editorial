@@ -549,6 +549,20 @@ describe("magazine mapping", () => {
       ),
       "https://cdn.example.com/hero.jpg?q=85&w=1200",
     );
+    assert.equal(
+      resolveImageUrl(
+        "http://www.curves-magazin.com/site/assets/files/2772/1_1.1000x0.jpg",
+        "http://www.curves-magazin.com/blog/handmade-in-zuffenhausen",
+      ),
+      "https://www.curves-magazin.com/site/assets/files/2772/1_1.1000x0.jpg",
+    );
+    assert.equal(
+      resolveImageUrl(
+        "http://www.curves-magazin.com/site/assets/images/arrow-up-white.png",
+        "http://www.curves-magazin.com/blog/handmade-in-zuffenhausen",
+      ),
+      null,
+    );
   });
 });
 
@@ -915,6 +929,44 @@ describe("page summary extract", () => {
         </item>
       </channel></rss>`);
     assert.equal(items[0]?.imageUrl, null);
+  });
+  it("keeps The Car Expert og:image when the RSS item has no media", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const items = parseFeedXml(`<?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0"><channel>
+        <title>The Car Expert</title>
+        <item>
+          <title>Audi A2 e-tron</title>
+          <link>https://www.thecarexpert.co.uk/audi-a2-e-tron-2026/</link>
+          <description><![CDATA[<p>The Audi A2 nameplate is returning as a compact electric SUV.</p>]]></description>
+        </item>
+      </channel></rss>`);
+    assert.equal(items[0]?.imageUrl, null);
+    const html = `<html><head>
+      <meta property="og:image" content="https://www.thecarexpert.co.uk/wp-content/uploads/2026/09/Audi-A2-e-tron-1-1200x628-cropped.jpg"/>
+    </head><body>
+      <img src="https://www.thecarexpert.co.uk/wp-content/uploads/2026/09/Audi-A2-e-tron-1-1920x1080.jpg"/>
+    </body></html>`;
+    assert.equal(
+      extractPageImage(html),
+      "https://www.thecarexpert.co.uk/wp-content/uploads/2026/09/Audi-A2-e-tron-1-1200x628-cropped.jpg",
+    );
+  });
+  it("keeps Curves ProcessWire article photos and skips chrome arrows", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const { isUsableArticleImage } = await import("../text");
+    const html = `<html lang="de"><head><title>Handmade in Zuffenhausen</title></head><body>
+      <img src="/site/assets/images/arrow-up-white.png" alt="top">
+      <img src="/site/assets/images/main-branding.png" alt="Curves Magazin - Soulful Driving">
+      <img src="/site/images/curves_logo.png" alt="Curves Magazine">
+      <img src="/site/images/soullful-driving_new.jpg" alt="soulful driving">
+      <img src="/site/assets/files/2772/1_1.1000x0.jpg">
+    </body></html>`;
+    assert.equal(extractPageImage(html), "/site/assets/files/2772/1_1.1000x0.jpg");
+    assert.equal(
+      isUsableArticleImage("http://www.curves-magazin.com/site/assets/images/arrow-up-white.png"),
+      false,
+    );
   });
 });
 

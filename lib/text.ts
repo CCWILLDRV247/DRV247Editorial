@@ -76,6 +76,12 @@ export function isUsableArticleImage(raw: string | null | undefined): boolean {
   // RaceFans (and similar WP themes) put Amazon merch buttons in the first <img>.
   if (/\/wp-content\/themes\//i.test(lower)) return false;
   if (/\/buttons\/[^/?#]*amazon[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
+  // Curves ProcessWire chrome: back-to-top, branding, /site/images header art.
+  // Editorial photos live in /site/assets/files/{id}/.
+  if (/\/site\/assets\/images\//i.test(lower)) return false;
+  if (/\/site\/images\//i.test(lower)) return false;
+  if (/(?:^|\/)[^/?#]*arrow-up[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
+  if (/(?:^|\/)[^/?#]*branding[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
   return true;
 }
 
