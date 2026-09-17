@@ -8,9 +8,9 @@ CSV is the source of truth: [`config/drv247_uk_eu_automotive_media_sources.csv`]
 | --- | ---: |
 | Publications | 51 |
 | Wave 1 still live | **10** |
-| Wave 2 live | **8** (11 listed; Flat 6, AUTOMOBILSPORT, EuroStance stay dark) |
+| Wave 2 live | **7** (11 listed; Flat 6, AUTOMOBILSPORT, EuroStance, 9WERKS stay dark) |
 | Wave 3 live | **10** |
-| Remaining dark | 23 |
+| Remaining dark | 24 |
 
 Do not assume an unverified RSS URL is valid. The pipeline always validates a genuine RSS/Atom document before accepting it.
 
@@ -31,9 +31,9 @@ Autoitaliana (`auto_011`) is on the sheet but its hostname does not resolve, so 
 | auto_015 | Take to the Road | rss (verified) |
 | auto_016 | GTspirit | rss (verified) |
 
-## Wave 2 (still live, three dark)
+## Wave 2 (still live, four dark)
 
-The three dark wave-2 rows stay in the wave list so merch and language policy remain explicit.
+The four dark wave-2 rows stay in the wave list so merch, language, and paywall policy remain explicit.
 
 | ID | Title | Config method |
 | --- | --- | --- |
@@ -46,12 +46,12 @@ The three dark wave-2 rows stay in the wave list so merch and language policy re
 | auto_020 | Classic & Sports Car | scrape |
 | auto_047 | The Automobile | rss (`/feed`) |
 | auto_048 | Flat 6 Magazine | rss (`/feed`) |
-| auto_049 | 9WERKS | rss (`/feed`) |
+| auto_049 | 9WERKS | **dark** — paywall, teasers are not usable |
 | auto_051 | Turnpike | rss (`https://turnpike.global/feed`) |
 
 ## Wave 3 (enabled now)
 
-Autoitaliana (`auto_011`) still has no DNS, so it stays dark. EuroStance, Flat 6, and AUTOMOBILSPORT stay dark.
+Autoitaliana (`auto_011`) still has no DNS, so it stays dark. EuroStance, Flat 6, AUTOMOBILSPORT, and 9WERKS stay dark.
 
 | ID | Title | Config method |
 | --- | --- | --- |

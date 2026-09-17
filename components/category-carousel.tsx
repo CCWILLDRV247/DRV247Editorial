@@ -29,7 +29,7 @@ export function CategoryCarousel({ slug, name, stories }: CategoryLane) {
             className="w-[240px] shrink-0 snap-start"
           >
             <div className="relative h-[280px] overflow-hidden rounded-[12px] bg-[#1b1d1f]">
-              <StoryImage src={story.imageUrl} alt="" />
+              <StoryImage src={story.imageUrl} alt="" eager />
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
               <p className="absolute bottom-4 left-4 right-4 font-display text-[11px] font-bold uppercase leading-none tracking-[-0.02em] text-white">
                 {story.source.name}

@@ -81,7 +81,7 @@ export function PickCard({ story }: { story: StoryDto }) {
   return (
     <Link href={`/story/${story.id}`} className="w-[218px] shrink-0">
       <div className="relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf]">
-        <StoryImage src={story.imageUrl} alt="" />
+        <StoryImage src={story.imageUrl} alt="" eager />
         <div className="absolute bottom-4 left-5">
           <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
             {story.category.name}

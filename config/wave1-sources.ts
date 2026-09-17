@@ -29,7 +29,7 @@ export const WAVE2_SOURCE_IDS = [
   "auto_051", // Turnpike
 ] as const;
 
-/** Next 10 remaining high-priority CSV titles. Autoitaliana still has no DNS; EuroStance/Flat 6/AUTOMOBILSPORT stay dark. */
+/** Next 10 remaining high-priority CSV titles. Autoitaliana still has no DNS; EuroStance/Flat 6/AUTOMOBILSPORT/9WERKS stay dark. */
 export const WAVE3_SOURCE_IDS = [
   "auto_018", // Car & Classic
   "auto_019", // Classics World
@@ -47,6 +47,7 @@ export const WAVE3_SOURCE_IDS = [
 export const DISABLED_SOURCE_IDS = [
   "auto_012", // AUTOMOBILSPORT — German-only
   "auto_048", // Flat 6 Magazine — French-only
+  "auto_049", // 9WERKS — paywall, teasers are not usable
   ...SHOP_DISABLED_SOURCE_IDS,
 ] as const;
 

@@ -1,4 +1,5 @@
-import { capSummary, canonicalizeUrl, firstImageFromHtml, stripHtml } from "../../text";
+import { capSummary, canonicalizeUrl, stripHtml } from "../../text";
+import { extractPageImage } from "../article-text";
 import { resolveImageUrl } from "../magazine";
 import { isPathAllowed, parseRobots } from "../robots";
 import type { EngineItem } from "./rss";
@@ -30,7 +31,7 @@ export function parseArticleMetadata(html: string, pageUrl: string): EngineItem 
     canonicalizeUrl(pageUrl);
   if (!title.trim() || !canonical) return null;
   const description = meta(html, "og:description") || meta(html, "description") || "";
-  const image = meta(html, "og:image") || firstImageFromHtml(html);
+  const image = extractPageImage(html);
   const published = meta(html, "article:published_time") || meta(html, "date") || "";
   const author = meta(html, "author") || "";
   return {

@@ -1,4 +1,4 @@
-import { capSummary, stripHtml } from "../text";
+import { capSummary, firstImageFromHtml, isUsableArticleImage, stripHtml } from "../text";
 
 const MIN_EXTRACT_CHARS = 40;
 
@@ -6,6 +6,21 @@ const BOILERPLATE =
   /subscribe today|never miss out|share with your network|accept (all )?cookies|cookie policy|sign in to continue|log in to continue|create an account|this site uses cookies/i;
 
 const BYLINE = /^(words|by|author|photography|photos|written by|pictured)\b/i;
+
+export function extractPageImage(html: string): string | null {
+  const candidates = [
+    metaContent(html, "og:image:secure_url"),
+    metaContent(html, "og:image:url"),
+    metaContent(html, "og:image"),
+    metaContent(html, "twitter:image:src"),
+    metaContent(html, "twitter:image"),
+    firstImageFromHtml(html),
+  ];
+  for (const candidate of candidates) {
+    if (isUsableArticleImage(candidate)) return candidate;
+  }
+  return null;
+}
 
 export function extractPageSummary(
   html: string,

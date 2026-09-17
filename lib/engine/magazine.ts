@@ -8,6 +8,7 @@ import {
   contentPrimaryBySlug,
   type ContentPrimary,
 } from "../../config/magazine-nav";
+import { decodeXmlEntities } from "../text";
 import { countArticlesByPrimary } from "./article-primary";
 import {
   forYouTestIsActive,
@@ -57,7 +58,7 @@ export function toMagazineStory(article: EditorialDto): StoryDto {
     title: article.title,
     summary: article.excerpt,
     aiSummary: article.aiSummary,
-    imageUrl: article.imageUrl,
+    imageUrl: resolveImageUrl(article.imageUrl, article.canonicalUrl),
     canonicalUrl: article.canonicalUrl,
     publishedAt: article.publishedAt,
     hidden: false,
@@ -69,7 +70,9 @@ export function toMagazineStory(article: EditorialDto): StoryDto {
 export function resolveImageUrl(raw: string | null | undefined, baseUrl: string): string | null {
   if (!raw?.trim()) return null;
   try {
-    return new URL(raw.trim(), baseUrl).toString();
+    const cleaned = decodeXmlEntities(raw.trim()).trim();
+    if (!cleaned || /^(data|javascript):/i.test(cleaned)) return null;
+    return new URL(cleaned, baseUrl).toString();
   } catch {
     return null;
   }
