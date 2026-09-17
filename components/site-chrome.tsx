@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "cn";
+import { MoreNav } from "@/components/more-nav";
 import { MOBILE_NAV_SLUGS, PRIMARY_NAV } from "@/config/magazine-nav";
 
 const mobileNav = PRIMARY_NAV.filter((item) =>
@@ -65,33 +66,26 @@ export function SiteHeader({
           </Link>
         ))}
       </nav>
-      <nav className="flex items-center gap-4 overflow-x-auto px-4 pb-3 md:hidden">
-        {mobileNav.map((item) => (
-          <Link
-            key={item.slug}
-            href={withQuery(item.href, testQuery)}
-            className="shrink-0 font-display text-base font-bold uppercase text-[#1b1d1f]/70"
-          >
-            {item.name}
-          </Link>
-        ))}
+      <nav className="flex items-center gap-4 px-4 pb-3 md:hidden">
+        <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
+          {mobileNav.map((item) => (
+            <Link
+              key={item.slug}
+              href={withQuery(item.href, testQuery)}
+              className="shrink-0 font-display text-base font-bold uppercase text-[#1b1d1f]/70"
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
         {moreNav.length > 0 ? (
-          <details className="relative shrink-0">
-            <summary className="cursor-pointer list-none font-display text-base font-bold uppercase text-[#1b1d1f]/70 marker:content-none [&::-webkit-details-marker]:hidden">
-              More
-            </summary>
-            <div className="absolute right-0 z-50 mt-2 min-w-[10rem] border border-[#1b1d1f]/10 bg-white p-3 shadow-sm">
-              {moreNav.map((item) => (
-                <Link
-                  key={item.slug}
-                  href={withQuery(item.href, testQuery)}
-                  className="block py-1 font-display text-base font-bold uppercase text-[#1b1d1f]"
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </details>
+          <MoreNav
+            items={moreNav.map((item) => ({
+              slug: item.slug,
+              name: item.name,
+              href: withQuery(item.href, testQuery),
+            }))}
+          />
         ) : null}
       </nav>
     </header>
