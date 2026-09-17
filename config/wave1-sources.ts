@@ -1,3 +1,5 @@
+import { MERCH_SOURCE_POLICY, SHOP_DISABLED_SOURCE_IDS } from "./merch";
+
 /** First 10 high-priority titles from the Automotive Culture Engine spec. */
 export const WAVE1_SOURCE_IDS = [
   "auto_001", // Bonnet
@@ -27,10 +29,25 @@ export const WAVE2_SOURCE_IDS = [
   "auto_051", // Turnpike
 ] as const;
 
-/** Wave-2 titles whose ingested set is entirely non-English. Stay in the wave list, stay dark. */
+/** Next 10 remaining high-priority CSV titles. Autoitaliana still has no DNS; EuroStance/Flat 6/AUTOMOBILSPORT stay dark. */
+export const WAVE3_SOURCE_IDS = [
+  "auto_018", // Car & Classic
+  "auto_019", // Classics World
+  "auto_021", // Practical Classics
+  "auto_022", // Fast Car
+  "auto_023", // PistonHeads
+  "auto_024", // evo
+  "auto_025", // CAR Magazine
+  "auto_026", // Autocar
+  "auto_027", // Auto Express
+  "auto_028", // Top Gear
+] as const;
+
+/** Wave-2 titles kept in the wave list but not ingested. */
 export const DISABLED_SOURCE_IDS = [
   "auto_012", // AUTOMOBILSPORT — German-only
   "auto_048", // Flat 6 Magazine — French-only
+  ...SHOP_DISABLED_SOURCE_IDS,
 ] as const;
 
 export const DISABLED_SOURCE_SET = new Set<string>(DISABLED_SOURCE_IDS);
@@ -38,6 +55,7 @@ export const DISABLED_SOURCE_SET = new Set<string>(DISABLED_SOURCE_IDS);
 export const ENABLED_SOURCE_IDS = [
   ...WAVE1_SOURCE_IDS,
   ...WAVE2_SOURCE_IDS.filter((id) => !DISABLED_SOURCE_SET.has(id)),
+  ...WAVE3_SOURCE_IDS,
 ] as const;
 
 export type Wave1SourceId = (typeof WAVE1_SOURCE_IDS)[number];
@@ -45,3 +63,4 @@ export type EnabledSourceId = (typeof ENABLED_SOURCE_IDS)[number];
 
 export const WAVE1_SOURCE_SET = new Set<string>(WAVE1_SOURCE_IDS);
 export const ENABLED_SOURCE_SET = new Set<string>(ENABLED_SOURCE_IDS);
+export { MERCH_SOURCE_POLICY, SHOP_DISABLED_SOURCE_IDS };

@@ -1,3 +1,5 @@
+import { isMerchUrl } from "../merch";
+
 export function parseSitemapXml(xml: string): string[] {
   const locs = [...xml.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/gi)].map((match) =>
     match[1].trim(),
@@ -20,7 +22,8 @@ export function looksLikeArticleUrl(url: string, siteOrigin: string): boolean {
     if (path === "/" || path.endsWith(".xml") || path.endsWith(".jpg") || path.endsWith(".png")) {
       return false;
     }
-    if (/(login|cart|account|privacy|cookie|contact|newsletter)/.test(path)) return false;
+    if (/(login|account|privacy|cookie|contact|newsletter)/.test(path)) return false;
+    if (isMerchUrl(url)) return false;
     const depth = path.split("/").filter(Boolean).length;
     return depth >= 1;
   } catch {

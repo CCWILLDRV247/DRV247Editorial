@@ -10,8 +10,10 @@
     "test": "tsx --test lib/engine/engine.test.ts",
     "ingest:wave1": "tsx scripts/ingest-wave1.ts",
     "ingest:wave2": "tsx scripts/ingest-wave2.ts",
+    "ingest:wave3": "tsx scripts/ingest-wave3.ts",
     "extract:summaries": "tsx scripts/extract-summaries.ts",
     "purge:non-english": "tsx scripts/purge-non-english.ts",
+    "purge:merch": "tsx scripts/purge-merch.ts",
     "reprocess:entities": "tsx scripts/reprocess-entities.ts"
   },
   "dependencies": {

@@ -3,6 +3,7 @@ import path from "node:path";
 import { eq } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { ENABLED_SOURCE_IDS, ENABLED_SOURCE_SET } from "../../config/wave1-sources";
+import { MERCH_SOURCE_POLICY } from "../../config/merch";
 import {
   demoUserInterests,
   demoUsers,
@@ -36,13 +37,16 @@ export async function seedEngine(db: Db) {
   };
 
   for (const row of rows) {
+    const merchPolicy = MERCH_SOURCE_POLICY[row.id];
     const enabled = ENABLED_SOURCE_SET.has(row.id);
+    const rssUrl =
+      merchPolicy?.action === "editorial-rss" ? merchPolicy.rssUrl : row.rss_url || null;
     const values = {
       id: row.id,
       publication: row.publication,
       country: row.country,
       url: row.url,
-      rssUrl: row.rss_url || null,
+      rssUrl,
       websiteAvailable: row.website_available === "yes",
       scrapeDifficulty: row.scrape_difficulty,
       editorialCategory: row.editorial_category,
