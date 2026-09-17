@@ -57,7 +57,20 @@ export const WAVE4_SOURCE_IDS = [
   "auto_038", // CE Auto Classic
 ] as const;
 
-/** Wave-2 titles kept in the wave list but not ingested. */
+/** Remaining CSV titles after wave 4. Dark list stays off. Car & Classic and Just Auto stay enabled from earlier waves. */
+export const WAVE5_SOURCE_IDS = [
+  "auto_039", // Motor1 Germany
+  "auto_040", // AUTO ZEITUNG
+  "auto_041", // AUTO BILD
+  "auto_042", // Automobilwoche
+  "auto_043", // Rampstyle / ramp Auto.Kultur (same host as ramp)
+  "auto_044", // The Car Expert
+  "auto_045", // Carwow
+  "auto_046", // Sunday Times Driving
+  "auto_050", // 911 & Porsche World
+] as const;
+
+/** Wave-2 titles kept in the wave list but not ingested. Autoitaliana is omitted from every wave (no DNS). */
 export const DISABLED_SOURCE_IDS = [
   "auto_012", // AUTOMOBILSPORT — German-only
   "auto_048", // Flat 6 Magazine — French-only
@@ -72,6 +85,7 @@ export const ENABLED_SOURCE_IDS = [
   ...WAVE2_SOURCE_IDS.filter((id) => !DISABLED_SOURCE_SET.has(id)),
   ...WAVE3_SOURCE_IDS,
   ...WAVE4_SOURCE_IDS,
+  ...WAVE5_SOURCE_IDS,
 ] as const;
 
 export type Wave1SourceId = (typeof WAVE1_SOURCE_IDS)[number];
