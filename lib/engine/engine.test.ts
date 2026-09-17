@@ -77,6 +77,7 @@ describe("sitemap", () => {
     assert.equal(looksLikeArticleUrl("https://example.com/merch", "https://example.com"), false);
     assert.equal(looksLikeArticleUrl("https://example.com/checkout", "https://example.com"), false);
     assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/undefined", "https://www.pistonheads.com"), false);
+    assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/news", "https://www.pistonheads.com"), false);
     assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/buy/auctions", "https://www.pistonheads.com"), false);
     assert.equal(looksLikeArticleUrl("https://www.autosport.com/subscribe", "https://www.autosport.com"), false);
     assert.equal(
@@ -378,6 +379,8 @@ describe("non-editorial url skip", () => {
     assert.equal(isUnusableArticleUrl(""), true);
     assert.equal(isUnusableArticleUrl("undefined"), true);
     assert.equal(isUnusableArticleUrl("https://www.pistonheads.com/undefined"), true);
+    assert.equal(isUnusableArticleUrl("https://www.pistonheads.com/news"), true);
+    assert.equal(isUnusableArticleUrl("https://www.pistonheads.com/news/ph-plus/porsche-911"), false);
     assert.equal(
       isNonEditorialUrl("https://www.pistonheads.com/undefined", "https://www.pistonheads.com"),
       true,

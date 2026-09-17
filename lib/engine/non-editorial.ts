@@ -1,4 +1,5 @@
 import {
+  NON_ARTICLE_EXACT_PATHS,
   NON_EDITORIAL_HOSTS,
   NON_EDITORIAL_PATH_SEGMENTS,
   UNUSABLE_PATH_SEGMENTS,
@@ -6,6 +7,7 @@ import {
 
 const PATH_SEGMENTS = new Set<string>(NON_EDITORIAL_PATH_SEGMENTS);
 const UNUSABLE_SEGMENTS = new Set<string>(UNUSABLE_PATH_SEGMENTS);
+const EXACT_PATHS = new Set<string>(NON_ARTICLE_EXACT_PATHS);
 const SHOP_HOSTS = new Set<string>(NON_EDITORIAL_HOSTS.map((host) => host.replace(/^www\./, "")));
 
 function hostnameOf(url: string): string | null {
@@ -31,6 +33,8 @@ export function isUnusableArticleUrl(url: string): boolean {
     const parsed = new URL(raw);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return true;
     if (!parsed.hostname) return true;
+    const exact = parsed.pathname.replace(/\/+$/, "") || "/";
+    if (EXACT_PATHS.has(exact)) return true;
     return pathSegments(raw).some((segment) => UNUSABLE_SEGMENTS.has(segment));
   } catch {
     return true;
