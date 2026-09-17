@@ -23,6 +23,7 @@ import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
 import { extractOriginalPage } from "./summarize";
+import { upsertArticlePrimary } from "./article-primary";
 import { DISABLED_SOURCE_SET, ENABLED_SOURCE_SET } from "@/config/wave1-sources";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
