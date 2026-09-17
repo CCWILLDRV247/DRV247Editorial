@@ -22,7 +22,7 @@ import { isMerchArticle, isMerchUrl } from "./merch";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
-import { extractOriginalSummary } from "./summarize";
+import { extractOriginalPage } from "./summarize";
 import { upsertArticlePrimary } from "./article-primary";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -54,6 +54,7 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
     results.push(await ingestMediaSource(source));
   }
   await extractMissingSummaries();
+  await extractMissingImages();
   return results;
 }
 
@@ -321,12 +322,7 @@ async function persistItems(
   let inserted = 0;
   let skippedNonEnglish = 0;
   let skippedMerch = 0;
-  const pendingSummaries: {
-    id: number;
-    title: string;
-    canonicalUrl: string;
-    teaser: string;
-  }[] = [];
+  const pendingPages: PendingPage[] = [];
   const existing = await db.select().from(articles);
   const byTitle = new Map(
     existing.map((row) => [sameStoryKey(row.title), row.duplicateGroupId ?? sameStoryKey(row.title)]),
@@ -351,12 +347,16 @@ async function persistItems(
         .update(articles)
         .set({ lastSeen: now, imageUrl: imageUrl ?? seen.imageUrl })
         .where(eq(articles.id, seen.id));
-      if (!seen.aiSummary?.trim()) {
-        pendingSummaries.push({
+      if (!seen.aiSummary?.trim() || (source.allowImage && !(imageUrl ?? seen.imageUrl)?.trim())) {
+        pendingPages.push({
           id: seen.id,
           title: seen.title,
           canonicalUrl: seen.canonicalUrl,
           teaser: seen.excerpt,
+          imageUrl: imageUrl ?? seen.imageUrl ?? null,
+          aiSummary: seen.aiSummary,
+          publication: seen.publication,
+          allowImage: source.allowImage,
         });
       }
       continue;
@@ -400,15 +400,19 @@ async function persistItems(
         alt: row.title,
       });
     }
-    pendingSummaries.push({
+    pendingPages.push({
       id: row.id,
       title: row.title,
       canonicalUrl: row.canonicalUrl,
       teaser: row.excerpt,
+      imageUrl: row.imageUrl,
+      aiSummary: row.aiSummary,
+      publication: source.publication,
+      allowImage: source.allowImage,
     });
     await persistArticleExtraction(row.id);
   }
-  const summarized = await summarizePending(pendingSummaries);
+  const summarized = await summarizePending(pendingPages);
   return { inserted, summarized, skippedNonEnglish, skippedMerch };
 }
 
@@ -455,12 +459,21 @@ export async function purgeMerchArticles(): Promise<{
 
 const EXTRACT_CONCURRENCY = 4;
 
-async function summarizePending(
-  pending: { id: number; title: string; canonicalUrl: string; teaser: string }[],
-): Promise<number> {
+type PendingPage = {
+  id: number;
+  title: string;
+  canonicalUrl: string;
+  teaser: string;
+  imageUrl: string | null;
+  aiSummary: string | null;
+  publication: string;
+  allowImage: boolean;
+};
+
+async function summarizePending(pending: PendingPage[]): Promise<number> {
   if (!pending.length) return 0;
   const db = await getDb();
-  const unique: typeof pending = [];
+  const unique: PendingPage[] = [];
   const seen = new Set<number>();
   for (const item of pending) {
     if (seen.has(item.id)) continue;
@@ -472,19 +485,79 @@ async function summarizePending(
     const batch = unique.slice(index, index + EXTRACT_CONCURRENCY);
     const results = await Promise.all(
       batch.map(async (item) => ({
-        id: item.id,
-        summary: await extractOriginalSummary(item.canonicalUrl, item.title, item.teaser),
+        item,
+        page: await extractOriginalPage(item.canonicalUrl, item.title, item.teaser),
       })),
     );
     for (const result of results) {
-      if (!result.summary) continue;
-      await db.update(articles).set({ aiSummary: result.summary }).where(eq(articles.id, result.id));
-      await persistArticleExtraction(result.id);
-      summarized += 1;
+      const pageImage = result.item.allowImage
+        ? resolveImageUrl(result.page.imageUrl, result.item.canonicalUrl)
+        : null;
+      const nextImage = pageImage || result.item.imageUrl;
+      if (result.page.summary && !result.item.aiSummary?.trim()) {
+        await db
+          .update(articles)
+          .set({ aiSummary: result.page.summary })
+          .where(eq(articles.id, result.item.id));
+        summarized += 1;
+        await persistArticleExtraction(result.item.id);
+      }
+      if (nextImage && !result.item.imageUrl?.trim()) {
+        await persistArticleImage(result.item.id, nextImage, result.item.publication, result.item.title);
+      } else if (pageImage && result.item.imageUrl && pageImage !== result.item.imageUrl) {
+        await db
+          .update(articles)
+          .set({ imageUrl: pageImage })
+          .where(eq(articles.id, result.item.id));
+      }
     }
     await delay(150);
   }
   return summarized;
+}
+
+async function persistArticleImage(
+  articleId: number,
+  url: string,
+  publication: string,
+  title: string,
+): Promise<void> {
+  const db = await getDb();
+  await db.update(articles).set({ imageUrl: url }).where(eq(articles.id, articleId));
+  const existing = (
+    await db.select().from(articleImages).where(eq(articleImages.articleId, articleId)).limit(1)
+  )[0];
+  if (existing) return;
+  await db.insert(articleImages).values({
+    articleId,
+    url,
+    source: publication,
+    alt: title,
+  });
+}
+
+function toPendingPage(
+  row: {
+    id: number;
+    title: string;
+    canonicalUrl: string;
+    excerpt: string;
+    imageUrl: string | null;
+    aiSummary: string | null;
+    publication: string;
+  },
+  allowImage = true,
+): PendingPage {
+  return {
+    id: row.id,
+    title: row.title,
+    canonicalUrl: row.canonicalUrl,
+    teaser: row.excerpt,
+    imageUrl: row.imageUrl,
+    aiSummary: row.aiSummary,
+    publication: row.publication,
+    allowImage,
+  };
 }
 
 export async function extractMissingSummaries(): Promise<{
@@ -495,19 +568,40 @@ export async function extractMissingSummaries(): Promise<{
   const db = await getDb();
   const rows = await db.select().from(articles);
   const missing = rows.filter((row) => !row.aiSummary?.trim());
-  const filled = await summarizePending(
-    missing.map((row) => ({
-      id: row.id,
-      title: row.title,
-      canonicalUrl: row.canonicalUrl,
-      teaser: row.excerpt,
-    })),
-  );
+  const filled = await summarizePending(missing.map((row) => toPendingPage(row)));
   return {
     attempted: missing.length,
     filled,
     hidden: missing.length - filled,
   };
+}
+
+export async function extractMissingImages(options?: {
+  ids?: number[];
+  limit?: number;
+}): Promise<{ attempted: number; filled: number }> {
+  const db = await getDb();
+  const rows = await db.select().from(articles);
+  let missing = rows.filter((row) => !row.imageUrl?.trim());
+  if (options?.ids?.length) {
+    const wanted = new Set(options.ids);
+    missing = missing.filter((row) => wanted.has(row.id));
+  }
+  if (options?.limit && options.limit > 0) {
+    missing = missing.slice(0, options.limit);
+  }
+  await summarizePending(missing.map((row) => toPendingPage(row)));
+  const filled = (
+    await Promise.all(
+      missing.map(async (row) => {
+        const current = (
+          await db.select().from(articles).where(eq(articles.id, row.id)).limit(1)
+        )[0];
+        return current?.imageUrl?.trim() ? 1 : 0;
+      }),
+    )
+  ).reduce((sum: number, value: number) => sum + value, 0);
+  return { attempted: missing.length, filled };
 }
 
 async function persistArticleExtraction(articleId: number): Promise<void> {

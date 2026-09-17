@@ -40,6 +40,7 @@ export function StoryImage({
     <img
       src={src}
       alt={alt}
+      referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "low"}

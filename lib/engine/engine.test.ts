@@ -36,10 +36,20 @@ describe("http", () => {
 describe("rss/atom", () => {
   it("parses RSS 2.0 items", () => {
     const items = parseFeedXml(rss);
-    assert.equal(items.length, 2);
+    assert.equal(items.length, 4);
     assert.equal(items[0].method, "rss");
     assert.match(items[0].canonicalUrl, /porsche-964/);
     assert.equal(items[0].imageUrl, "https://cdn.example.com/964.jpg");
+  });
+  it("reads HTML-entity-encoded img tags in RSS descriptions", () => {
+    const items = parseFeedXml(rss);
+    const encoded = items.find((item) => item.title === "Autocar encoded image");
+    assert.equal(encoded?.imageUrl, "https://cdn.example.com/volvo.jpg?itok=1");
+  });
+  it("reads enclosure images when type comes before url", () => {
+    const items = parseFeedXml(rss);
+    const enclosure = items.find((item) => item.title === "Enclosure type first");
+    assert.equal(enclosure?.imageUrl, "https://cdn.example.com/hero-untyped-path");
   });
   it("parses Atom entries", () => {
     const items = parseFeedXml(atom);
@@ -80,6 +90,7 @@ describe("scraper", () => {
     const item = parseArticleMetadata(html, "https://octane.example/etype");
     assert.equal(item?.title, "Octane: Jaguar E-Type");
     assert.doesNotMatch(item?.excerpt ?? "", /must not store/);
+    assert.equal(item?.imageUrl, null);
     const links = parseHomeLinks('<a href="/features/one">One</a>', "https://octane.example");
     assert.ok(links[0].includes("/features/one"));
   });
@@ -418,6 +429,13 @@ describe("magazine mapping", () => {
       resolveImageUrl("/img/hero.jpg", "https://octane.example/story"),
       "https://octane.example/img/hero.jpg",
     );
+    assert.equal(
+      resolveImageUrl(
+        "https://cdn.example.com/hero.jpg?q=85&amp;w=1200",
+        "https://octane.example/story",
+      ),
+      "https://cdn.example.com/hero.jpg?q=85&w=1200",
+    );
   });
 });
 
@@ -739,6 +757,20 @@ describe("page summary extract", () => {
       ),
       null,
     );
+  });
+  it("prefers og:image over a site-logo img", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const html = `<html><head>
+      <meta property="og:image" content="https://cdn.example.com/hero.jpg?w=1200&amp;h=630"/>
+    </head><body>
+      <img src="https://cdn.example.com/logo.svg" alt="Magazine"/>
+    </body></html>`;
+    assert.equal(extractPageImage(html), "https://cdn.example.com/hero.jpg?w=1200&h=630");
+  });
+  it("skips svg logos when no og:image is present", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const html = `<html><body><img src="https://www.evo.co.uk/public/logo-evo.svg" alt="evo"/></body></html>`;
+    assert.equal(extractPageImage(html), null);
   });
 });
 
