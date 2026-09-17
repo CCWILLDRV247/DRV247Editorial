@@ -15,6 +15,23 @@ async function expectedToken() {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (
+    pathname === "/" ||
+    pathname.startsWith("/category/") ||
+    pathname.startsWith("/story/")
+  ) {
+    const response = NextResponse.next();
+    response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+    response.headers.set(
+      "CDN-Cache-Control",
+      "public, s-maxage=60, stale-while-revalidate=300",
+    );
+    response.headers.set(
+      "Vercel-CDN-Cache-Control",
+      "public, s-maxage=60, stale-while-revalidate=300",
+    );
+    return response;
+  }
+  if (
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api/admin") &&
     pathname !== "/api/editorial/ingest" &&
@@ -40,5 +57,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*", "/api/editorial/ingest", "/api/editorial/reprocess"],
+  matcher: [
+    "/",
+    "/category/:path*",
+    "/story/:path*",
+    "/admin/:path*",
+    "/api/admin/:path*",
+    "/api/editorial/ingest",
+    "/api/editorial/reprocess",
+  ],
 };

@@ -14,8 +14,7 @@ import { listMagazineStories } from "@/lib/engine/magazine";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 export default async function CategoryPage({
   params,
@@ -32,12 +31,15 @@ export default async function CategoryPage({
   if (mapped && mapped !== slug) redirect(withTestQuery(`/category/${mapped}`, testQuery));
   const category = contentPrimaryBySlug(slug);
   if (!category) notFound();
-  const stories = await listMagazineStories({
-    navSlug: slug,
-    testProfile: forYouTestIsActive(testProfile) ? testProfile : undefined,
-    limit: 24,
-  });
-  const catalog = withProfileInCatalog(await loadForYouTestCatalog(), testProfile);
+  const [stories, catalogRows] = await Promise.all([
+    listMagazineStories({
+      navSlug: slug,
+      testProfile: forYouTestIsActive(testProfile) ? testProfile : undefined,
+      limit: 24,
+    }),
+    loadForYouTestCatalog(),
+  ]);
+  const catalog = withProfileInCatalog(catalogRows, testProfile);
 
   return (
     <div className="min-h-full overflow-x-clip bg-white">

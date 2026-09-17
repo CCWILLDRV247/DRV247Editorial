@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   articleCategories,
@@ -71,7 +71,10 @@ export async function loadArticlePrimaries(ids: number[]): Promise<Map<number, C
   const map = new Map<number, ContentPrimary>();
   if (!ids.length) return map;
   const db = await getDb();
-  const rows = await db.select().from(articlePrimary);
+  const rows =
+    ids.length <= 8
+      ? await db.select().from(articlePrimary).where(inArray(articlePrimary.articleId, ids))
+      : await db.select().from(articlePrimary);
   const wanted = new Set(ids);
   for (const row of rows) {
     if (!wanted.has(row.articleId)) continue;

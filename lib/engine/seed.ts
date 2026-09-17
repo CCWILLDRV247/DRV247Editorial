@@ -26,6 +26,74 @@ export function loadCsvSources(cwd = process.cwd()) {
   return parseCsv(fs.readFileSync(file, "utf8"));
 }
 
+type SourceSeedValues = {
+  id: string;
+  publication: string;
+  country: string;
+  url: string;
+  rssUrl: string | null;
+  websiteAvailable: boolean;
+  scrapeDifficulty: string;
+  editorialCategory: string;
+  marquesCovered: string;
+  relevance: string;
+  csvEnabled: boolean;
+  enabled: boolean;
+  sourceType: string;
+  rssVerifiedStatus: string;
+  rssConfidence: string;
+  priority: number;
+  maxArticles: number;
+  allowExcerpt: boolean;
+  allowImage: boolean;
+};
+
+/** Skip Turso writes when CSV/enablement already match. Cold homepage used to UPDATE every source. */
+export function sourceSeedUnchanged(
+  existing: {
+    publication: string;
+    country: string;
+    url: string;
+    rssUrl: string | null;
+    websiteAvailable: boolean;
+    scrapeDifficulty: string;
+    editorialCategory: string;
+    marquesCovered: string;
+    relevance: string;
+    csvEnabled: boolean;
+    enabled: boolean;
+    sourceType: string;
+    rssVerifiedStatus: string;
+    rssConfidence: string;
+    priority: number;
+    maxArticles: number;
+    allowExcerpt: boolean;
+    allowImage: boolean;
+  },
+  values: SourceSeedValues,
+): boolean {
+  return (
+    existing.publication === values.publication &&
+    existing.country === values.country &&
+    existing.url === values.url &&
+    existing.rssUrl === values.rssUrl &&
+    Boolean(existing.websiteAvailable) === Boolean(values.websiteAvailable) &&
+    existing.scrapeDifficulty === values.scrapeDifficulty &&
+    existing.editorialCategory === values.editorialCategory &&
+    existing.marquesCovered === values.marquesCovered &&
+    existing.relevance === values.relevance &&
+    Boolean(existing.csvEnabled) === Boolean(values.csvEnabled) &&
+    Boolean(existing.enabled) === Boolean(values.enabled) &&
+    existing.sourceType === values.sourceType &&
+    existing.rssVerifiedStatus === values.rssVerifiedStatus &&
+    existing.rssConfidence === values.rssConfidence &&
+    existing.priority === values.priority &&
+    existing.maxArticles === values.maxArticles &&
+    Boolean(existing.allowExcerpt) === Boolean(values.allowExcerpt) &&
+    Boolean(existing.allowImage) === Boolean(values.allowImage)
+  );
+}
+
 export async function seedEngine(db: Db) {
   await seedTaxonomy(db);
   const rows = loadCsvSources();
@@ -41,7 +109,7 @@ export async function seedEngine(db: Db) {
     const enabled = ENABLED_SOURCE_SET.has(row.id);
     const rssUrl =
       merchPolicy?.action === "editorial-rss" ? merchPolicy.rssUrl : row.rss_url || null;
-    const values = {
+    const values: SourceSeedValues = {
       id: row.id,
       publication: row.publication,
       country: row.country,
@@ -64,6 +132,7 @@ export async function seedEngine(db: Db) {
     };
     const existing = byId.get(row.id);
     if (existing) {
+      if (sourceSeedUnchanged(existing, values)) continue;
       await db
         .update(mediaSources)
         .set({

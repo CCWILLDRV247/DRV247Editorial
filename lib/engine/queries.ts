@@ -1,10 +1,13 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import { getDb } from "@/lib/db";
 import {
   articleCategories,
   articleEntities,
   articleInterests,
   articleLocations,
+  articlePrimary,
   articles,
   demoUserInterests,
   demoUsers,
@@ -16,7 +19,12 @@ import {
 import { loadRankWeights, recencyBonus, scoreArticle, scoreForYou, type GarageVehicle } from "./rank";
 import { classifyPrimary, isContentPrimary } from "./taxonomy";
 import { loadArticlePrimaries } from "./article-primary";
-import { articleMatchesForYouTest, buildForYouTestCatalog, forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
+import {
+  articleMatchesForYouTest,
+  buildForYouTestCatalog,
+  forYouTestIsActive,
+  type ForYouTestProfile,
+} from "./for-you-test";
 
 export type EditorialDto = {
   id: number;
@@ -45,8 +53,107 @@ export type EditorialDto = {
   primaryCategory: string;
 };
 
+type FeedArticle = Pick<
+  Article,
+  | "id"
+  | "sourceId"
+  | "publication"
+  | "title"
+  | "url"
+  | "canonicalUrl"
+  | "author"
+  | "publishedAt"
+  | "imageUrl"
+  | "excerpt"
+  | "editorialScore"
+  | "ingestionMethod"
+  | "aiSummary"
+  | "duplicateGroupId"
+>;
+
+const ARTICLE_FEED_COLUMNS = {
+  id: articles.id,
+  sourceId: articles.sourceId,
+  publication: articles.publication,
+  title: articles.title,
+  url: articles.url,
+  canonicalUrl: articles.canonicalUrl,
+  author: articles.author,
+  publishedAt: articles.publishedAt,
+  imageUrl: articles.imageUrl,
+  excerpt: articles.excerpt,
+  editorialScore: articles.editorialScore,
+  ingestionMethod: articles.ingestionMethod,
+  aiSummary: articles.aiSummary,
+  duplicateGroupId: articles.duplicateGroupId,
+};
+
+type ArticleGraph = {
+  entities: (typeof articleEntities.$inferSelect)[];
+  categories: (typeof articleCategories.$inferSelect)[];
+  interests: (typeof articleInterests.$inferSelect)[];
+  locations: (typeof articleLocations.$inferSelect)[];
+  primaries: (typeof articlePrimary.$inferSelect)[];
+  sources: (typeof mediaSources.$inferSelect)[];
+};
+
+/** One Turso round of extras per request. Homepage used to scan these tables twice. */
+export const loadArticleGraph = cache(async (): Promise<ArticleGraph> => {
+  const db = await getDb();
+  const [entities, categories, interests, locations, primaries, sources] = await Promise.all([
+    db.select().from(articleEntities),
+    db.select().from(articleCategories),
+    db.select().from(articleInterests),
+    db.select().from(articleLocations),
+    db.select().from(articlePrimary),
+    db.select().from(mediaSources),
+  ]);
+  return { entities, categories, interests, locations, primaries, sources };
+});
+
+function emptyExtras() {
+  return {
+    makes: [] as string[],
+    models: [] as string[],
+    generations: [] as string[],
+    variants: [] as string[],
+    categories: [] as string[],
+    interests: [] as string[],
+    locations: [] as string[],
+  };
+}
+
+function extrasFromGraph(graph: ArticleGraph, articleIds: number[]) {
+  const map = new Map<number, ReturnType<typeof emptyExtras>>();
+  for (const id of articleIds) map.set(id, emptyExtras());
+  const wanted = new Set(articleIds);
+  for (const row of graph.entities) {
+    if (!wanted.has(row.articleId)) continue;
+    const extras = map.get(row.articleId);
+    if (!extras) continue;
+    if (row.kind === "make") extras.makes.push(row.name);
+    if (row.kind === "model") extras.models.push(row.name);
+    if (row.kind === "generation") extras.generations.push(row.name);
+    if (row.kind === "variant") extras.variants.push(row.name);
+  }
+  for (const row of graph.categories) {
+    map.get(row.articleId)?.categories.push(row.category);
+  }
+  for (const row of graph.interests) {
+    map.get(row.articleId)?.interests.push(row.interest);
+  }
+  for (const row of graph.locations) {
+    map.get(row.articleId)?.locations.push(row.location);
+  }
+  return map;
+}
+
+function primariesFromGraph(graph: ArticleGraph) {
+  return new Map(graph.primaries.map((row) => [row.articleId, row.primarySlug]));
+}
+
 function toDto(
-  article: Article,
+  article: FeedArticle,
   extras: {
     makes: string[];
     models: string[];
@@ -88,56 +195,35 @@ function toDto(
 }
 
 async function extrasByArticleIds(articleIds: number[]) {
-  const empty = {
-    makes: [] as string[],
-    models: [] as string[],
-    generations: [] as string[],
-    variants: [] as string[],
-    categories: [] as string[],
-    interests: [] as string[],
-    locations: [] as string[],
-  };
-  const map = new Map<number, typeof empty>();
-  for (const id of articleIds) {
-    map.set(id, {
-      makes: [],
-      models: [],
-      generations: [],
-      variants: [],
-      categories: [],
-      interests: [],
-      locations: [],
-    });
-  }
+  const map = new Map<number, ReturnType<typeof emptyExtras>>();
+  for (const id of articleIds) map.set(id, emptyExtras());
   if (!articleIds.length) return map;
 
-  const db = await getDb();
-  const [entities, cats, interests, locations] = await Promise.all([
-    db.select().from(articleEntities),
-    db.select().from(articleCategories),
-    db.select().from(articleInterests),
-    db.select().from(articleLocations),
-  ]);
-  const wanted = new Set(articleIds);
-  for (const row of entities) {
-    if (!wanted.has(row.articleId)) continue;
-    const extras = map.get(row.articleId);
-    if (!extras) continue;
-    if (row.kind === "make") extras.makes.push(row.name);
-    if (row.kind === "model") extras.models.push(row.name);
-    if (row.kind === "generation") extras.generations.push(row.name);
-    if (row.kind === "variant") extras.variants.push(row.name);
+  if (articleIds.length <= 4) {
+    const db = await getDb();
+    const [entities, cats, interests, locations] = await Promise.all([
+      db.select().from(articleEntities).where(inArray(articleEntities.articleId, articleIds)),
+      db.select().from(articleCategories).where(inArray(articleCategories.articleId, articleIds)),
+      db.select().from(articleInterests).where(inArray(articleInterests.articleId, articleIds)),
+      db.select().from(articleLocations).where(inArray(articleLocations.articleId, articleIds)),
+    ]);
+    const wanted = new Set(articleIds);
+    for (const row of entities) {
+      if (!wanted.has(row.articleId)) continue;
+      const extras = map.get(row.articleId);
+      if (!extras) continue;
+      if (row.kind === "make") extras.makes.push(row.name);
+      if (row.kind === "model") extras.models.push(row.name);
+      if (row.kind === "generation") extras.generations.push(row.name);
+      if (row.kind === "variant") extras.variants.push(row.name);
+    }
+    for (const row of cats) map.get(row.articleId)?.categories.push(row.category);
+    for (const row of interests) map.get(row.articleId)?.interests.push(row.interest);
+    for (const row of locations) map.get(row.articleId)?.locations.push(row.location);
+    return map;
   }
-  for (const row of cats) {
-    map.get(row.articleId)?.categories.push(row.category);
-  }
-  for (const row of interests) {
-    map.get(row.articleId)?.interests.push(row.interest);
-  }
-  for (const row of locations) {
-    map.get(row.articleId)?.locations.push(row.location);
-  }
-  return map;
+
+  return extrasFromGraph(await loadArticleGraph(), articleIds);
 }
 
 export async function listEngineSources() {
@@ -176,7 +262,11 @@ export async function listEditorial(options?: {
   limit?: number;
 }): Promise<EditorialDto[]> {
   const db = await getDb();
-  let rows = await db.select().from(articles).orderBy(desc(articles.publishedAt));
+  const [selected, graph] = await Promise.all([
+    db.select(ARTICLE_FEED_COLUMNS).from(articles).orderBy(desc(articles.publishedAt)),
+    loadArticleGraph(),
+  ]);
+  let rows = selected;
   if (options?.sourceId) rows = rows.filter((row) => row.sourceId === options.sourceId);
   if (options?.q) {
     const q = options.q.toLowerCase();
@@ -188,12 +278,9 @@ export async function listEditorial(options?: {
     );
   }
 
-  const [sourceRows, extrasMap, primaryMap] = await Promise.all([
-    db.select().from(mediaSources),
-    extrasByArticleIds(rows.map((row) => row.id)),
-    loadArticlePrimaries(rows.map((row) => row.id)),
-  ]);
-  const sourceMap = new Map(sourceRows.map((source) => [source.id, source]));
+  const extrasMap = extrasFromGraph(graph, rows.map((row) => row.id));
+  const primaryMap = primariesFromGraph(graph);
+  const sourceMap = new Map(graph.sources.map((source) => [source.id, source]));
   const testProfile = options?.testProfile;
   const useTestProfile = Boolean(testProfile && forYouTestIsActive(testProfile));
   const curated = options?.section === "for-you" || (!options?.userId && !options?.vehicleId);
@@ -245,7 +332,7 @@ export async function listEditorial(options?: {
       locations: [] as string[],
     };
     const primaryCategory =
-      primaryMap.get(article.id) ??
+      (primaryMap.get(article.id) as EditorialDto["primaryCategory"] | undefined) ??
       classifyPrimary({
         title: article.title,
         excerpt: article.excerpt,
@@ -325,17 +412,20 @@ export async function listEditorial(options?: {
 
 export async function getEditorial(id: number): Promise<EditorialDto | null> {
   const db = await getDb();
-  const article = (await db.select().from(articles).where(eq(articles.id, id)).limit(1))[0];
-  if (!article) return null;
-  const extras = (await extrasByArticleIds([article.id])).get(article.id)!;
-  const primaryMap = await loadArticlePrimaries([article.id]);
-  const source = (
-    await db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1)
+  const article = (
+    await db.select(ARTICLE_FEED_COLUMNS).from(articles).where(eq(articles.id, id)).limit(1)
   )[0];
+  if (!article) return null;
+  const [extrasMap, primaryMap, source] = await Promise.all([
+    extrasByArticleIds([article.id]),
+    loadArticlePrimaries([article.id]),
+    db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1),
+  ]);
+  const extras = extrasMap.get(article.id)!;
   const rankScore = scoreArticle({
     ...extras,
     excerpt: article.excerpt,
-    relevance: source?.relevance ?? "",
+    relevance: source[0]?.relevance ?? "",
     vehicles: [],
     userInterests: [],
   });
@@ -351,24 +441,24 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
   return toDto(article, { ...extras, rankScore, primaryCategory });
 }
 
+async function loadForYouTestCatalogFresh() {
+  const graph = await loadArticleGraph();
+  return buildForYouTestCatalog({
+    entities: graph.entities.map((row) => ({
+      kind: row.kind,
+      name: row.name,
+      make: row.make,
+      model: row.model,
+    })),
+    interests: graph.interests.map((row) => row.interest),
+    locations: graph.locations.map((row) => row.location),
+  });
+}
+
 /** Gazetteer plus every make/model/generation/variant/interest/location on live stories. */
 export async function loadForYouTestCatalog() {
-  const db = await getDb();
-  const [entities, interests, locations] = await Promise.all([
-    db
-      .select({
-        kind: articleEntities.kind,
-        name: articleEntities.name,
-        make: articleEntities.make,
-        model: articleEntities.model,
-      })
-      .from(articleEntities),
-    db.select({ interest: articleInterests.interest }).from(articleInterests),
-    db.select({ location: articleLocations.location }).from(articleLocations),
-  ]);
-  return buildForYouTestCatalog({
-    entities,
-    interests: interests.map((row) => row.interest),
-    locations: locations.map((row) => row.location),
-  });
+  return unstable_cache(loadForYouTestCatalogFresh, ["for-you-test-catalog"], {
+    revalidate: 60,
+    tags: ["editorial"],
+  })();
 }

@@ -93,6 +93,11 @@ const SCHEMA_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS articles_source_idx ON articles (source_id)`,
   `CREATE INDEX IF NOT EXISTS articles_published_idx ON articles (published_at)`,
   `CREATE INDEX IF NOT EXISTS articles_dupe_idx ON articles (duplicate_group_id)`,
+  `CREATE INDEX IF NOT EXISTS article_entities_article_idx ON article_entities (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_categories_article_idx ON article_categories (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_interests_article_idx ON article_interests (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_locations_article_idx ON article_locations (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_primary_slug_idx ON article_primary (primary_slug)`,
   `CREATE TABLE IF NOT EXISTS article_entities (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       article_id INTEGER NOT NULL REFERENCES articles(id),
@@ -218,29 +223,40 @@ async function ensureSchema(client: Client) {
   await ensureTaxonomy(client);
 }
 
+const INDEX_STATEMENTS = [
+  `CREATE INDEX IF NOT EXISTS article_entities_article_idx ON article_entities (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_categories_article_idx ON article_categories (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_interests_article_idx ON article_interests (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_locations_article_idx ON article_locations (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_primary_slug_idx ON article_primary (primary_slug)`,
+];
+
 async function ensureTaxonomy(client: Client) {
-  await client.execute(`CREATE TABLE IF NOT EXISTS editorial_primary_categories (
+  await Promise.all([
+    client.execute(`CREATE TABLE IF NOT EXISTS editorial_primary_categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       slug TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
       description TEXT,
       sort_order INTEGER NOT NULL,
       enabled INTEGER NOT NULL DEFAULT 1
-    )`);
-  await client.execute(`CREATE TABLE IF NOT EXISTS editorial_secondary_categories (
+    )`),
+    client.execute(`CREATE TABLE IF NOT EXISTS editorial_secondary_categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       primary_category_id INTEGER NOT NULL REFERENCES editorial_primary_categories(id),
       slug TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
       description TEXT,
       enabled INTEGER NOT NULL DEFAULT 1
-    )`);
-  await client.execute(`CREATE TABLE IF NOT EXISTS article_primary (
+    )`),
+    client.execute(`CREATE TABLE IF NOT EXISTS article_primary (
       article_id INTEGER PRIMARY KEY REFERENCES articles(id),
       primary_slug TEXT NOT NULL,
       confidence INTEGER NOT NULL DEFAULT 80,
       source TEXT NOT NULL DEFAULT 'rule'
-    )`);
+    )`),
+  ]);
+  await Promise.all(INDEX_STATEMENTS.map((sql) => client.execute(sql)));
 }
 
 async function createDb() {
@@ -251,8 +267,6 @@ async function createDb() {
   await seedIfEmpty(db);
   await seedEngine(db);
   globalForDb.drvDb = db;
-  const { classifyAllArticles } = await import("@/lib/engine/article-primary");
-  await classifyAllArticles();
   return db;
 }
 

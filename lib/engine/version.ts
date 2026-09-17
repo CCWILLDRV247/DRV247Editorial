@@ -1,4 +1,4 @@
-export const ENGINE_BRANCH = "cursor/merch-exclusion-9d2e";
+export const ENGINE_BRANCH = "cursor/editorial-loading-speed-1981";
 export const ENGINE_WAVE = "wave-3-28";
 
 export function engineCommit() {

@@ -741,3 +741,33 @@ describe("page summary extract", () => {
     );
   });
 });
+
+describe("source seed writes", () => {
+  it("skips Turso updates when CSV fields already match", async () => {
+    const { sourceSeedUnchanged } = await import("./seed");
+    const values = {
+      id: "auto_001",
+      publication: "Bonnet",
+      country: "UK",
+      url: "https://bonnet.example",
+      rssUrl: "https://bonnet.example/feed",
+      websiteAvailable: true,
+      scrapeDifficulty: "easy",
+      editorialCategory: "culture",
+      marquesCovered: "all",
+      relevance: "high",
+      csvEnabled: true,
+      enabled: true,
+      sourceType: "magazine",
+      rssVerifiedStatus: "ok",
+      rssConfidence: "high",
+      priority: 1,
+      maxArticles: 8,
+      allowExcerpt: true,
+      allowImage: true,
+    };
+    assert.equal(sourceSeedUnchanged(values, values), true);
+    assert.equal(sourceSeedUnchanged({ ...values, enabled: false }, values), false);
+    assert.equal(sourceSeedUnchanged({ ...values, rssUrl: null }, values), false);
+  });
+});

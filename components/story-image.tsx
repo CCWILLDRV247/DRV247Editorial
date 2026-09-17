@@ -22,10 +22,12 @@ export function StoryImage({
   src,
   alt,
   className,
+  priority = false,
 }: {
   src: string | null;
   alt: string;
   className?: string;
+  priority?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
@@ -39,6 +41,9 @@ export function StoryImage({
       src={src}
       alt={alt}
       onError={() => setFailed(true)}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "low"}
+      decoding="async"
       className={cn("size-full object-cover", className)}
     />
   );
