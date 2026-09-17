@@ -73,7 +73,8 @@ export function EngineDesk({ sources, runs, articles }: Props) {
             Rampstyle, The Car Expert, Carwow, Sunday Times Driving, and 911 & Porsche World.
             Flat 6 (French), AUTOMOBILSPORT (German), 9WERKS (paywall), and EuroStance (Shopify shop)
             stay dark. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled (Cloudflare
-            403). Ingest skips non-English items and shop/product/collection/cart/merch URLs.{" "}
+            403). Ingest skips non-English items, shop/product/collection/cart/merch URLs, auction
+            and subscribe paths, empty or /undefined URLs, and off-site magazine-shop canonicals.{" "}
             {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>

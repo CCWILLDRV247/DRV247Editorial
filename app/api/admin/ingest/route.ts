@@ -31,6 +31,7 @@ export async function POST(request: Request) {
       fetched: result.fetched,
       skippedNonEnglish: result.skippedNonEnglish,
       skippedMerch: result.skippedMerch,
+      skippedNonEditorial: result.skippedNonEditorial,
       error: result.error,
       method: result.method,
       usedMock: false,
