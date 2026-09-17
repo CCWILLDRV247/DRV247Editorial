@@ -69,6 +69,7 @@ export function isUsableArticleImage(raw: string | null | undefined): raw is str
   const value = decodeXmlEntities(raw.trim());
   const lower = value.toLowerCase();
   if (lower.startsWith("data:") || lower.startsWith("javascript:")) return false;
+  if (!/^(?:https?:)?\/\//i.test(lower) && !lower.startsWith("/")) return false;
   if (/\.svg(\?|#|$)/i.test(lower)) return false;
   if (/[?&]w=undefined(?:&|$)/i.test(lower)) return false;
   if (/(?:^|\/)[^/?#]*logo[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;

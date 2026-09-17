@@ -14,6 +14,8 @@ export function extractPageImage(html: string): string | null {
     metaContent(html, "og:image"),
     metaContent(html, "twitter:image:src"),
     metaContent(html, "twitter:image"),
+    ...jsonLdImages(html),
+    cssBackgroundImage(html),
     firstImageFromHtml(html),
   ];
   for (const candidate of candidates) {
@@ -120,6 +122,22 @@ function metaContent(html: string, name: string): string {
     new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:property|name)=["']${name}["']`, "i"),
   );
   return stripHtml(property?.[1] || contentFirst?.[1] || "");
+}
+
+function jsonLdImages(html: string): string[] {
+  const decoded = html.replace(/\\\//g, "/");
+  const urls: string[] = [];
+  for (const match of decoded.matchAll(/"thumbnailUrl"\s*:\s*"([^"]+)"/gi)) urls.push(match[1]);
+  for (const match of decoded.matchAll(/"contentUrl"\s*:\s*"([^"]+)"/gi)) urls.push(match[1]);
+  for (const match of decoded.matchAll(/"image"\s*:\s*"(https?:[^"]+)"/gi)) urls.push(match[1]);
+  return urls;
+}
+
+function cssBackgroundImage(html: string): string | null {
+  for (const match of html.matchAll(/url\((['"]?)([^'")]+)\1\)/gi)) {
+    if (isUsableArticleImage(match[2])) return match[2];
+  }
+  return null;
 }
 
 function isolate(html: string, tag: string): string | null {

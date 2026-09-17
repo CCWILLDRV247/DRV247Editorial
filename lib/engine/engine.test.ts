@@ -968,6 +968,46 @@ describe("page summary extract", () => {
       false,
     );
   });
+  it("keeps Automotive World and Race Tech og:image when RSS has no media", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const world = parseFeedXml(`<?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0"><channel>
+        <title>Automotive World</title>
+        <item>
+          <title>Volvo plans 13 new models</title>
+          <link>https://www.automotiveworld.com/news/volvo-cars-targets-8-ebit-margin-with-13-car-offensive</link>
+          <description><![CDATA[Volvo Cars is planning 13 new models.]]></description>
+        </item>
+      </channel></rss>`);
+    assert.equal(world[0]?.imageUrl, null);
+    assert.equal(
+      extractPageImage(`<html><head>
+        <meta property="og:image" content="https://media.automotiveworld.com/app/uploads/2026/09/volvo-ex60.jpg" />
+      </head></html>`),
+      "https://media.automotiveworld.com/app/uploads/2026/09/volvo-ex60.jpg",
+    );
+  });
+  it("reads Intercooler JSON-LD thumbnail and CSS background when og:image is missing", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const { isUsableArticleImage } = await import("../text");
+    const html = `<html><head>
+      <script type="application/ld+json">{"thumbnailUrl":"https:\\/\\/www.the-intercooler.com\\/wp-content\\/uploads\\/2026\\/09\\/IMG-5031-scaled.jpg"}</script>
+    </head><body>
+      <img src="https://b4032044.assetcdn.net/2.0/4032044/wp-content/themes/the-intercooler/assets/img/ti-small-dark.png">
+      <div style="background-image:url(https://b4032044.assetcdn.net/2.0/4032044/wp-content/uploads/2026/09/IMG-5031-scaled.jpg?lossy=2)"></div>
+    </body></html>`;
+    assert.equal(
+      extractPageImage(html),
+      "https://www.the-intercooler.com/wp-content/uploads/2026/09/IMG-5031-scaled.jpg",
+    );
+    assert.equal(isUsableArticleImage("Insert image"), false);
+    assert.equal(
+      extractPageImage(
+        `<html><body><img src="https://www.the-intercooler.com/wp-content/themes/the-intercooler/assets/img/ti-small-dark.png"></body></html>`,
+      ),
+      null,
+    );
+  });
 });
 
 describe("source seed writes", () => {
