@@ -885,6 +885,37 @@ describe("page summary extract", () => {
     const html = `<html><body><img src="https://www.evo.co.uk/public/logo-evo.svg" alt="evo"/></body></html>`;
     assert.equal(extractPageImage(html), null);
   });
+  it("keeps RaceFans og:image and skips the Amazon merch button img", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const { isUsableArticleImage } = await import("../text");
+    const html = `<html><head>
+      <meta property="og:image" content="https://www.racefans.net/wp-content/uploads/2026/09/lead.jpg" />
+      <meta property="og:image:width" content="1920" />
+    </head><body>
+      <img src="https://www.racefans.net/wp-content/themes/racefans/buttons/amazon.png" alt="Buy on Amazon"/>
+    </body></html>`;
+    assert.equal(extractPageImage(html), "https://www.racefans.net/wp-content/uploads/2026/09/lead.jpg");
+    assert.equal(
+      extractPageImage(
+        `<html><body><img src="https://www.racefans.net/wp-content/themes/racefans/buttons/amazon.png" alt="Buy on Amazon"/></body></html>`,
+      ),
+      null,
+    );
+    assert.equal(
+      isUsableArticleImage("https://www.racefans.net/wp-content/themes/racefans/buttons/amazon.png"),
+      false,
+    );
+    const items = parseFeedXml(`<?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0"><channel>
+        <title>RaceFans</title>
+        <item>
+          <title>Video: Verstappen kart race | Brief</title>
+          <link>https://www.racefans.net/2026/09/17/video-verstappen-beats-amateur-rivals-in-max-vs-100-kart-race</link>
+          <description><![CDATA[Max Verstappen beat a field of amateur karters.]]></description>
+        </item>
+      </channel></rss>`);
+    assert.equal(items[0]?.imageUrl, null);
+  });
 });
 
 describe("source seed writes", () => {

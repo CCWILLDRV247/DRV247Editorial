@@ -73,6 +73,9 @@ export function isUsableArticleImage(raw: string | null | undefined): boolean {
   if (/[?&]w=undefined(?:&|$)/i.test(lower)) return false;
   if (/(?:^|\/)[^/?#]*logo[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
   if (/\/(?:logo|logos)\//i.test(lower)) return false;
+  // RaceFans (and similar WP themes) put Amazon merch buttons in the first <img>.
+  if (/\/wp-content\/themes\//i.test(lower)) return false;
+  if (/\/buttons\/[^/?#]*amazon[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
   return true;
 }
 
