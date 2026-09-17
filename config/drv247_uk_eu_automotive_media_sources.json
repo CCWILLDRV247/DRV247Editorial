@@ -345,7 +345,7 @@
     "country": "UK",
     "url": "https://www.practicalclassics.co.uk",
     "rss_available": "yes",
-    "rss_url": "https://www.practicalclassics.co.uk/rss",
+    "rss_url": "https://rss.onebauer.media/api/feed-aggregator?hostname=https://www.practicalclassics.co.uk",
     "website_available": "yes",
     "scrape_difficulty": "low",
     "editorial_category": "Classic ownership; restoration; maintenance; buying",

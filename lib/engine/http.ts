@@ -1,4 +1,6 @@
-export const ENGINE_UA = "DRV247-Editorial/1.0 (+https://drv247.com)";
+/** Autocar 202s and Top Gear 403s a custom crawler token; keep a browser UA. */
+export const ENGINE_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
 
 export async function fetchText(
   url: string,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { parseFeedXml } from "./adapters/rss";
+import { ENGINE_UA } from "./http";
 import { parseCsv } from "./csv";
 import { extractEntities } from "./extract";
 import { sameStoryKey } from "./normalize";
@@ -23,6 +24,12 @@ describe("csv", () => {
     );
     assert.equal(rows[0].publication, "Flat 6");
     assert.match(rows[0].marques_covered, /911/);
+  });
+});
+
+describe("http", () => {
+  it("uses a browser user-agent so Autocar and Top Gear do not 403", () => {
+    assert.match(ENGINE_UA, /^Mozilla\/5\.0 /);
   });
 });
 

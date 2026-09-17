@@ -57,7 +57,7 @@ Autoitaliana (`auto_011`) still has no DNS, so it stays dark. EuroStance, Flat 6
 | --- | --- | --- |
 | auto_018 | Car & Classic | scrape |
 | auto_019 | Classics World | rss (`/feed`) |
-| auto_021 | Practical Classics | rss (`/rss`) |
+| auto_021 | Practical Classics | rss (Bauer aggregator) |
 | auto_022 | Fast Car | rss (`/feed`) |
 | auto_023 | PistonHeads | rss (`/news/rss`) |
 | auto_024 | evo | rss then fallback (`/rss`) |
