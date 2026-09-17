@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
             key: "Cache-Control",
             value: "public, s-maxage=60, stale-while-revalidate=300",
           },
+          {
+            key: "CDN-Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
+          },
+          {
+            key: "Vercel-CDN-Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
+          },
         ],
       },
       {
@@ -30,6 +38,14 @@ const nextConfig: NextConfig = {
             key: "Cache-Control",
             value: "public, s-maxage=60, stale-while-revalidate=300",
           },
+          {
+            key: "CDN-Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
+          },
+          {
+            key: "Vercel-CDN-Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
+          },
         ],
       },
       {
@@ -37,6 +53,14 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
+          },
+          {
+            key: "CDN-Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=300",
+          },
+          {
+            key: "Vercel-CDN-Cache-Control",
             value: "public, s-maxage=60, stale-while-revalidate=300",
           },
         ],
