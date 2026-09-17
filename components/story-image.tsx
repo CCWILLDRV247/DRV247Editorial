@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import { cn } from "cn";
 
 function Fallback({ className }: { className?: string }) {
@@ -23,16 +20,19 @@ export function StoryImage({
   alt,
   className,
   priority = false,
+  eager = false,
 }: {
   src: string | null;
   alt: string;
   className?: string;
   priority?: boolean;
+  eager?: boolean;
 }) {
-  const [failed, setFailed] = useState(false);
-  if (!src || failed) {
+  if (!src) {
     return <Fallback className={className} />;
   }
+
+  const loadEager = priority || eager;
 
   return (
     // Remote hosts vary per feed; skip next/image optimization.
@@ -41,8 +41,7 @@ export function StoryImage({
       src={src}
       alt={alt}
       referrerPolicy="no-referrer"
-      onError={() => setFailed(true)}
-      loading={priority ? "eager" : "lazy"}
+      loading={loadEager ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "low"}
       decoding="async"
       className={cn("size-full object-cover", className)}
