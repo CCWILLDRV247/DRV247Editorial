@@ -584,6 +584,8 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
           .update(articles)
           .set({ imageUrl: pageImage })
           .where(eq(articles.id, result.item.id));
+      } else if (!nextImage && result.item.imageUrl) {
+        await db.update(articles).set({ imageUrl: null }).where(eq(articles.id, result.item.id));
       }
     }
     await delay(150);
