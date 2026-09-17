@@ -9,8 +9,9 @@ CSV is the source of truth: [`config/drv247_uk_eu_automotive_media_sources.csv`]
 | Publications | 51 |
 | Wave 1 still live | **10** |
 | Wave 2 live | **7** (11 listed; Flat 6, AUTOMOBILSPORT, EuroStance, 9WERKS stay dark) |
-| Wave 3 live | **10** |
-| Remaining dark | 24 |
+| Wave 3 live | **10** (Car & Classic enabled, Cloudflare 403) |
+| Wave 4 live | **10** |
+| Remaining dark | 14 |
 
 Do not assume an unverified RSS URL is valid. The pipeline always validates a genuine RSS/Atom document before accepting it.
 
@@ -49,9 +50,9 @@ The four dark wave-2 rows stay in the wave list so merch, language, and paywall 
 | auto_049 | 9WERKS | **dark** — paywall, teasers are not usable |
 | auto_051 | Turnpike | rss (`https://turnpike.global/feed`) |
 
-## Wave 3 (enabled now)
+## Wave 3 (still live)
 
-Autoitaliana (`auto_011`) still has no DNS, so it stays dark. EuroStance, Flat 6, AUTOMOBILSPORT, and 9WERKS stay dark.
+Autoitaliana (`auto_011`) still has no DNS, so it stays dark. EuroStance, Flat 6, AUTOMOBILSPORT, and 9WERKS stay dark. Car & Classic is enabled but Cloudflare 403s; it is not one of the wave-4 ten.
 
 | ID | Title | Config method |
 | --- | --- | --- |
@@ -65,6 +66,23 @@ Autoitaliana (`auto_011`) still has no DNS, so it stays dark. EuroStance, Flat 6
 | auto_026 | Autocar | rss (`/rss`) |
 | auto_027 | Auto Express | rss (`/rss`) |
 | auto_028 | Top Gear | scrape |
+
+## Wave 4 (enabled now)
+
+Sequential remaining CSV titles after wave 3. German Motor1 / AUTO ZEITUNG / AUTO BILD / Automobilwoche stay for a later wave. Rampstyle is the same host as ramp. 911 & Porsche World is a Kelsey shop URL.
+
+| ID | Title | Config method |
+| --- | --- | --- |
+| auto_029 | Motor Sport Magazine | scrape |
+| auto_030 | Autosport | scrape |
+| auto_031 | RaceFans | rss (`/feed/`) |
+| auto_032 | The Checkered Flag | rss (`/feed`) |
+| auto_033 | Race Tech Magazine | rss (`/feed`) |
+| auto_034 | Automotive World | rss (`/feed/`) |
+| auto_035 | Just Auto | rss (`/feed/`) |
+| auto_036 | Car Design News | scrape |
+| auto_037 | Car Body Design | rss (`/feed/`) |
+| auto_038 | CE Auto Classic | rss (`/feed/`) |
 
 ## Pipeline
 

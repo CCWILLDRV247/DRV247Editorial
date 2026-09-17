@@ -43,6 +43,20 @@ export const WAVE3_SOURCE_IDS = [
   "auto_028", // Top Gear
 ] as const;
 
+/** Next 10 remaining CSV titles. Autoitaliana still has no DNS; EuroStance/Flat 6/AUTOMOBILSPORT/9WERKS stay dark. Car & Classic stays enabled from wave 3 (Cloudflare 403). */
+export const WAVE4_SOURCE_IDS = [
+  "auto_029", // Motor Sport Magazine
+  "auto_030", // Autosport
+  "auto_031", // RaceFans
+  "auto_032", // The Checkered Flag
+  "auto_033", // Race Tech Magazine
+  "auto_034", // Automotive World
+  "auto_035", // Just Auto
+  "auto_036", // Car Design News
+  "auto_037", // Car Body Design
+  "auto_038", // CE Auto Classic
+] as const;
+
 /** Wave-2 titles kept in the wave list but not ingested. */
 export const DISABLED_SOURCE_IDS = [
   "auto_012", // AUTOMOBILSPORT — German-only
@@ -57,6 +71,7 @@ export const ENABLED_SOURCE_IDS = [
   ...WAVE1_SOURCE_IDS,
   ...WAVE2_SOURCE_IDS.filter((id) => !DISABLED_SOURCE_SET.has(id)),
   ...WAVE3_SOURCE_IDS,
+  ...WAVE4_SOURCE_IDS,
 ] as const;
 
 export type Wave1SourceId = (typeof WAVE1_SOURCE_IDS)[number];

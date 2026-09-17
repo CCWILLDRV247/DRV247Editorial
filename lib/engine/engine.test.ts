@@ -270,11 +270,12 @@ describe("entities and ranking", () => {
 });
 
 describe("enabled sources", () => {
-  it("keeps wave 1–2 live titles and adds the next ten CSV titles", async () => {
+  it("keeps wave 1–3 live titles and adds the next ten CSV titles", async () => {
     const {
       WAVE1_SOURCE_IDS,
       WAVE2_SOURCE_IDS,
       WAVE3_SOURCE_IDS,
+      WAVE4_SOURCE_IDS,
       ENABLED_SOURCE_IDS,
       DISABLED_SOURCE_IDS,
       ENABLED_SOURCE_SET,
@@ -282,7 +283,8 @@ describe("enabled sources", () => {
     assert.equal(WAVE1_SOURCE_IDS.length, 10);
     assert.equal(WAVE2_SOURCE_IDS.length, 11);
     assert.equal(WAVE3_SOURCE_IDS.length, 10);
-    assert.equal(ENABLED_SOURCE_IDS.length, 27);
+    assert.equal(WAVE4_SOURCE_IDS.length, 10);
+    assert.equal(ENABLED_SOURCE_IDS.length, 37);
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
     assert.equal((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
     assert.equal((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
@@ -291,6 +293,10 @@ describe("enabled sources", () => {
     assert.equal((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_048"), false);
     assert.ok((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_018"));
     assert.ok((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_028"));
+    assert.ok((WAVE4_SOURCE_IDS as readonly string[]).includes("auto_029"));
+    assert.ok((WAVE4_SOURCE_IDS as readonly string[]).includes("auto_038"));
+    assert.equal((WAVE4_SOURCE_IDS as readonly string[]).includes("auto_018"), false);
+    assert.equal((WAVE4_SOURCE_IDS as readonly string[]).includes("auto_049"), false);
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_012"));
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_048"));
     assert.ok((DISABLED_SOURCE_IDS as readonly string[]).includes("auto_013"));
@@ -300,6 +306,7 @@ describe("enabled sources", () => {
     assert.equal(ENABLED_SOURCE_SET.has("auto_013"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_049"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_008"), true);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_029"), true);
   });
 });
 
