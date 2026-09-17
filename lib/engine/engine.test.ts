@@ -79,6 +79,7 @@ describe("sitemap", () => {
     assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/undefined", "https://www.pistonheads.com"), false);
     assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/news", "https://www.pistonheads.com"), false);
     assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/buy/auctions", "https://www.pistonheads.com"), false);
+    assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/sell", "https://www.pistonheads.com"), false);
     assert.equal(looksLikeArticleUrl("https://www.autosport.com/subscribe", "https://www.autosport.com"), false);
     assert.equal(
       looksLikeArticleUrl(
@@ -374,6 +375,8 @@ describe("non-editorial url skip", () => {
     );
     assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("auctions"));
     assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("subscribe"));
+    assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("buy"));
+    assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("sell"));
     assert.ok((NON_EDITORIAL_HOSTS as readonly string[]).includes("themagazineshop.com"));
 
     assert.equal(isUnusableArticleUrl(""), true);
@@ -387,6 +390,14 @@ describe("non-editorial url skip", () => {
     );
     assert.equal(
       isNonEditorialUrl("https://www.pistonheads.com/buy/auctions", "https://www.pistonheads.com"),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl("https://www.pistonheads.com/sell", "https://www.pistonheads.com"),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl("https://www.pistonheads.com/buy/search", "https://www.pistonheads.com"),
       true,
     );
     assert.equal(

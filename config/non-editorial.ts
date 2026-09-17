@@ -5,6 +5,9 @@ export const NON_EDITORIAL_PATH_SEGMENTS = [
   "subscribe",
   "subscription",
   "subscriptions",
+  "buy",
+  "sell",
+  "gassing",
 ] as const;
 
 /** Broken scrape hrefs that resolve to a literal path segment. */
