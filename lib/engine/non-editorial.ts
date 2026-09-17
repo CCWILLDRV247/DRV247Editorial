@@ -44,6 +44,7 @@ export function isUnusableArticleUrl(url: string): boolean {
 export function isNonEditorialPathUrl(url: string): boolean {
   return pathSegments(url).some((segment) => {
     if (PATH_SEGMENTS.has(segment)) return true;
+    if (segment === "a-to-z" || segment.endsWith("-a-to-z")) return true;
     return segment.startsWith("subscribe-") || segment.startsWith("subscribe_");
   });
 }

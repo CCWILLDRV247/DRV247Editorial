@@ -95,6 +95,31 @@ describe("sitemap", () => {
       ),
       true,
     );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.classicandsportscar.com/classic-cars-a-to-z",
+        "https://www.classicandsportscar.com",
+      ),
+      false,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.classicandsportscar.com/parts-services",
+        "https://www.classicandsportscar.com",
+      ),
+      false,
+    );
+    assert.equal(looksLikeArticleUrl("https://dyler.com/users/sign_up", "https://dyler.com"), false);
+    assert.equal(looksLikeArticleUrl("https://dyler.com/users/sign_in", "https://dyler.com"), false);
+    assert.equal(looksLikeArticleUrl("https://dyler.com/blog", "https://dyler.com"), false);
+    assert.equal(looksLikeArticleUrl("https://dyler.com/cars/makes", "https://dyler.com"), false);
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.classicandsportscar.com/gallery/30-years-lotus-elise",
+        "https://www.classicandsportscar.com",
+      ),
+      true,
+    );
   });
 });
 
@@ -442,6 +467,45 @@ describe("non-editorial url skip", () => {
       ),
       true,
     );
+    assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("sign_up"));
+    assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("sign_in"));
+    assert.ok((NON_EDITORIAL_PATH_SEGMENTS as readonly string[]).includes("parts-services"));
+    assert.equal(
+      isUnusableArticleUrl("https://www.classicandsportscar.com/classic-cars-a-to-z"),
+      true,
+    );
+    assert.equal(
+      isUnusableArticleUrl("https://www.classicandsportscar.com/parts-services"),
+      true,
+    );
+    assert.equal(isUnusableArticleUrl("https://dyler.com/blog"), true);
+    assert.equal(isUnusableArticleUrl("https://dyler.com/cars/makes"), true);
+    assert.equal(
+      isNonEditorialUrl(
+        "https://www.classicandsportscar.com/classic-cars-a-to-z",
+        "https://www.classicandsportscar.com",
+      ),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl(
+        "https://www.classicandsportscar.com/parts-services",
+        "https://www.classicandsportscar.com",
+      ),
+      true,
+    );
+    assert.equal(isNonEditorialUrl("https://dyler.com/users/sign_up", "https://dyler.com"), true);
+    assert.equal(isNonEditorialUrl("https://dyler.com/users/sign_in", "https://dyler.com"), true);
+    assert.equal(isNonEditorialUrl("https://dyler.com/blog", "https://dyler.com"), true);
+    assert.equal(isNonEditorialUrl("https://dyler.com/cars/makes", "https://dyler.com"), true);
+    assert.equal(
+      isNonEditorialUrl(
+        "https://www.classicandsportscar.com/gallery/30-years-lotus-elise",
+        "https://www.classicandsportscar.com",
+      ),
+      false,
+    );
+    assert.equal(isNonEditorialUrl("https://dyler.com/blog/a-classic-feature", "https://dyler.com"), false);
   });
 });
 
@@ -967,6 +1031,59 @@ describe("page summary extract", () => {
       isUsableArticleImage("http://www.curves-magazin.com/site/assets/images/arrow-up-white.png"),
       false,
     );
+  });
+  it("keeps Automotive World and Race Tech og:image when RSS has no media", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const world = parseFeedXml(`<?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0"><channel>
+        <title>Automotive World</title>
+        <item>
+          <title>Volvo plans 13 new models</title>
+          <link>https://www.automotiveworld.com/news/volvo-cars-targets-8-ebit-margin-with-13-car-offensive</link>
+          <description><![CDATA[Volvo Cars is planning 13 new models.]]></description>
+        </item>
+      </channel></rss>`);
+    assert.equal(world[0]?.imageUrl, null);
+    assert.equal(
+      extractPageImage(`<html><head>
+        <meta property="og:image" content="https://media.automotiveworld.com/app/uploads/2026/09/volvo-ex60.jpg" />
+      </head></html>`),
+      "https://media.automotiveworld.com/app/uploads/2026/09/volvo-ex60.jpg",
+    );
+  });
+  it("reads Intercooler JSON-LD thumbnail and CSS background when og:image is missing", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const { isUsableArticleImage } = await import("../text");
+    const html = `<html><head>
+      <script type="application/ld+json">{"thumbnailUrl":"https:\\/\\/www.the-intercooler.com\\/wp-content\\/uploads\\/2026\\/09\\/IMG-5031-scaled.jpg"}</script>
+    </head><body>
+      <img src="https://b4032044.assetcdn.net/2.0/4032044/wp-content/themes/the-intercooler/assets/img/ti-small-dark.png">
+      <div style="background-image:url(https://b4032044.assetcdn.net/2.0/4032044/wp-content/uploads/2026/09/IMG-5031-scaled.jpg?lossy=2)"></div>
+    </body></html>`;
+    assert.equal(
+      extractPageImage(html),
+      "https://www.the-intercooler.com/wp-content/uploads/2026/09/IMG-5031-scaled.jpg",
+    );
+    assert.equal(isUsableArticleImage("Insert image"), false);
+    assert.equal(
+      extractPageImage(
+        `<html><body><img src="https://www.the-intercooler.com/wp-content/themes/the-intercooler/assets/img/ti-small-dark.png"></body></html>`,
+      ),
+      null,
+    );
+  });
+  it("keeps a Classic & Sports Car gallery photo after skipping theme logo.png", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const { isUsableArticleImage } = await import("../text");
+    const html = `<html><head><title>30 years of the Lotus Elise</title></head><body>
+      <img src="/themes/custom/classic/logo.png" alt="Classic &amp; Sports Car"/>
+      <img src="https://media.classicandsportscar.com/sites/default/files/styles/slideshow_slide/public/2026-09/01-intro-lotus-elises.jpg?itok=PUnBNUXF" alt="Lotus Elise"/>
+    </body></html>`;
+    assert.equal(
+      extractPageImage(html),
+      "https://media.classicandsportscar.com/sites/default/files/styles/slideshow_slide/public/2026-09/01-intro-lotus-elises.jpg?itok=PUnBNUXF",
+    );
+    assert.equal(isUsableArticleImage("/themes/custom/classic/logo.png"), false);
   });
 });
 

@@ -8,13 +8,28 @@ export const NON_EDITORIAL_PATH_SEGMENTS = [
   "buy",
   "sell",
   "gassing",
+  "sign_up",
+  "sign_in",
+  "signup",
+  "signin",
+  "parts-services",
 ] as const;
 
 /** Broken scrape hrefs that resolve to a literal path segment. */
 export const UNUSABLE_PATH_SEGMENTS = ["undefined", "null"] as const;
 
-/** Exact pathnames that are section indexes, not teasers. `/news/slug` stays. */
-export const NON_ARTICLE_EXACT_PATHS = ["/", "/news"] as const;
+/**
+ * Exact pathnames that are section indexes, not teasers.
+ * `/news/slug` and `/blog/slug` stay. `/gallery/…` stays.
+ */
+export const NON_ARTICLE_EXACT_PATHS = [
+  "/",
+  "/news",
+  "/blog",
+  "/cars/makes",
+  "/classic-cars-a-to-z",
+  "/parts-services",
+] as const;
 
 /**
  * Subscribe-shop hosts. Classic & Sports Car’s subscribe CTA canonicalises here
