@@ -18,6 +18,7 @@ import { parseArticleMetadata, parseHomeLinks, robotsAllows } from "./adapters/s
 import { extractEntities } from "./extract";
 import { fetchText, looksLikeFeed } from "./http";
 import { resolveImageUrl } from "./magazine";
+import { isUsableArticleImage } from "../text";
 import { isMerchArticle, isMerchUrl } from "./merch";
 import { isNonEditorialArticle, isNonEditorialUrl } from "./non-editorial";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
@@ -363,19 +364,20 @@ async function persistItems(
       await db.select().from(articles).where(eq(articles.canonicalUrl, item.canonicalUrl)).limit(1)
     )[0];
     if (seen) {
+      const kept = isUsableArticleImage(seen.imageUrl) ? seen.imageUrl : null;
       const imageUrl =
-        seen.imageUrl || (source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null);
+        kept || (source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null);
       await db
         .update(articles)
-        .set({ lastSeen: now, imageUrl: imageUrl ?? seen.imageUrl })
+        .set({ lastSeen: now, imageUrl })
         .where(eq(articles.id, seen.id));
-      if (!seen.aiSummary?.trim() || (source.allowImage && !(imageUrl ?? seen.imageUrl)?.trim())) {
+      if (!seen.aiSummary?.trim() || (source.allowImage && !isUsableArticleImage(imageUrl))) {
         pendingPages.push({
           id: seen.id,
           title: seen.title,
           canonicalUrl: seen.canonicalUrl,
           teaser: seen.excerpt,
-          imageUrl: imageUrl ?? seen.imageUrl ?? null,
+          imageUrl,
           aiSummary: seen.aiSummary,
           publication: seen.publication,
           allowImage: source.allowImage,
@@ -562,10 +564,11 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
       })),
     );
     for (const result of results) {
+      const stored = isUsableArticleImage(result.item.imageUrl) ? result.item.imageUrl : null;
       const pageImage = result.item.allowImage
         ? resolveImageUrl(result.page.imageUrl, result.item.canonicalUrl)
         : null;
-      const nextImage = pageImage || result.item.imageUrl;
+      const nextImage = pageImage || stored;
       if (result.page.summary && !result.item.aiSummary?.trim()) {
         await db
           .update(articles)
@@ -574,13 +577,15 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
         summarized += 1;
         await persistArticleExtraction(result.item.id);
       }
-      if (nextImage && !result.item.imageUrl?.trim()) {
+      if (nextImage && !stored) {
         await persistArticleImage(result.item.id, nextImage, result.item.publication, result.item.title);
-      } else if (pageImage && result.item.imageUrl && pageImage !== result.item.imageUrl) {
+      } else if (pageImage && stored && pageImage !== stored) {
         await db
           .update(articles)
           .set({ imageUrl: pageImage })
           .where(eq(articles.id, result.item.id));
+      } else if (!nextImage && result.item.imageUrl) {
+        await db.update(articles).set({ imageUrl: null }).where(eq(articles.id, result.item.id));
       }
     }
     await delay(150);
@@ -654,7 +659,7 @@ export async function extractMissingImages(options?: {
 }): Promise<{ attempted: number; filled: number }> {
   const db = await getDb();
   const rows = await db.select().from(articles);
-  let missing = rows.filter((row) => !row.imageUrl?.trim());
+  let missing = rows.filter((row) => !isUsableArticleImage(row.imageUrl));
   if (options?.ids?.length) {
     const wanted = new Set(options.ids);
     missing = missing.filter((row) => wanted.has(row.id));
@@ -669,7 +674,7 @@ export async function extractMissingImages(options?: {
         const current = (
           await db.select().from(articles).where(eq(articles.id, row.id)).limit(1)
         )[0];
-        return current?.imageUrl?.trim() ? 1 : 0;
+        return isUsableArticleImage(current?.imageUrl) ? 1 : 0;
       }),
     )
   ).reduce((sum: number, value: number) => sum + value, 0);

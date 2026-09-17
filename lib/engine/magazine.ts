@@ -8,7 +8,7 @@ import {
   contentPrimaryBySlug,
   type ContentPrimary,
 } from "../../config/magazine-nav";
-import { decodeXmlEntities } from "../text";
+import { decodeXmlEntities, isUsableArticleImage } from "../text";
 import { countArticlesByPrimary } from "./article-primary";
 import {
   forYouTestIsActive,
@@ -68,11 +68,12 @@ export function toMagazineStory(article: EditorialDto): StoryDto {
 }
 
 export function resolveImageUrl(raw: string | null | undefined, baseUrl: string): string | null {
-  if (!raw?.trim()) return null;
+  if (!isUsableArticleImage(raw)) return null;
   try {
     const cleaned = decodeXmlEntities(raw.trim()).trim();
-    if (!cleaned || /^(data|javascript):/i.test(cleaned)) return null;
-    return new URL(cleaned, baseUrl).toString();
+    const url = new URL(cleaned, baseUrl);
+    if (url.protocol === "http:") url.protocol = "https:";
+    return url.toString();
   } catch {
     return null;
   }
