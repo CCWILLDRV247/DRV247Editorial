@@ -19,6 +19,11 @@ import {
 import { getEditorial, listEditorial, type EditorialDto } from "./queries";
 import { classifyPrimary } from "./taxonomy";
 import { curateForYouHome } from "./for-you-home";
+import { contextFromTestProfile } from "./personalize";
+import {
+  pickRelevanceExplanation,
+  type ExplanationLane,
+} from "./relevance-explanation";
 
 export { MAGAZINE_NAV, PRIMARY_NAV } from "../../config/magazine-nav";
 
@@ -52,12 +57,29 @@ export function tagForArticle(article: EditorialDto) {
   return navForArticle(article).name;
 }
 
-export function toMagazineStory(article: EditorialDto): StoryDto {
+export function toMagazineStory(
+  article: EditorialDto,
+  options?: {
+    lane?: ExplanationLane;
+    vehicles?: ReturnType<typeof contextFromTestProfile>["vehicles"];
+    showExplanation?: boolean;
+  },
+): StoryDto {
   const nav = navForArticle(article);
   const imageUrl = resolveImageUrl(article.imageUrl, article.canonicalUrl);
   const imageSources = article.imageSources
     .map((url) => resolveImageUrl(url, article.canonicalUrl))
     .filter((url): url is string => Boolean(url && url !== imageUrl));
+  const relevanceExplanation =
+    options?.showExplanation === false
+      ? null
+      : pickRelevanceExplanation({
+          why: article.why,
+          rankSignals: article.rankSignals,
+          vehicleTier: article.vehicleTier,
+          lane: options?.lane ?? "none",
+          vehicles: options?.vehicles,
+        });
   return {
     id: article.id,
     title: article.title,
@@ -68,6 +90,7 @@ export function toMagazineStory(article: EditorialDto): StoryDto {
     canonicalUrl: article.canonicalUrl,
     publishedAt: article.publishedAt,
     hidden: false,
+    relevanceExplanation,
     category: { id: 0, slug: nav.slug, name: nav.name },
     source: { id: 0, name: article.publication, type: article.ingestionMethod },
   };
@@ -110,7 +133,7 @@ export async function listMagazineStories(options?: {
         testProfile,
         limit: 80,
       });
-      return articles.slice(0, parsed.limit).map(toMagazineStory);
+      return articles.slice(0, parsed.limit).map((article) => toMagazineStory(article));
     },
     ["magazine-stories"],
     { revalidate: 60, tags: ["editorial"] },
@@ -145,16 +168,27 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
   });
   const plan = curateForYouHome(ranked, testProfile);
   const byId = new Map(ranked.map((article) => [article.id, article]));
-  const toStories = (articles: { id: number }[]) =>
+  const personalized = forYouTestIsActive(testProfile ?? { interests: [] });
+  const vehicles =
+    personalized && testProfile ? contextFromTestProfile(testProfile).vehicles : [];
+  const storyOpts = (lane: ExplanationLane) => ({
+    lane,
+    vehicles,
+    showExplanation: personalized,
+  });
+  const toStories = (articles: { id: number }[], lane: ExplanationLane) =>
     uniqueStories(
       articles
         .map((item) => byId.get(item.id))
         .filter((article): article is EditorialDto => Boolean(article))
-        .map(toMagazineStory),
+        .map((article) => toMagazineStory(article, storyOpts(lane))),
     );
-  const forYourCar = { ...plan.forYourCar, stories: toStories(plan.forYourCar.stories) };
-  const yourInterests = { ...plan.yourInterests, stories: toStories(plan.yourInterests.stories) };
-  const discover = { ...plan.discover, stories: toStories(plan.discover.stories) };
+  const forYourCar = { ...plan.forYourCar, stories: toStories(plan.forYourCar.stories, "vehicle") };
+  const yourInterests = {
+    ...plan.yourInterests,
+    stories: toStories(plan.yourInterests.stories, "interests"),
+  };
+  const discover = { ...plan.discover, stories: toStories(plan.discover.stories, "discover") };
   const featuredIds = new Set(
     [...forYourCar.stories, ...yourInterests.stories, ...discover.stories].map((story) => story.id),
   );
@@ -162,7 +196,7 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     const lane = ranked
       .filter((article) => articleMatchesNav(article, nav.slug))
       .slice(0, 16)
-      .map(toMagazineStory);
+      .map((article) => toMagazineStory(article, { lane: "carousel", showExplanation: false }));
     const fresh = lane.filter((story) => !featuredIds.has(story.id));
     return {
       slug: nav.slug,

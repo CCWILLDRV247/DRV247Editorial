@@ -1616,4 +1616,174 @@ describe("For You centre", () => {
   });
 });
 
+describe("relevance explanations", () => {
+  const garageA = [{ make: "Ferrari", model: "F355", variant: "GTB" }];
+  const garageB = [{ make: "Porsche", model: "911", generation: "964", variant: "C2" }];
+
+  it("picks vehicle copy for exact tiers and marque-only honesty", async () => {
+    const { explainArticle } = await import("./rank");
+    const { pickRelevanceExplanation } = await import("./relevance-explanation");
+    const exact = explainArticle({
+      makes: ["Ferrari"],
+      models: ["F355"],
+      variants: ["GTB"],
+      generations: [],
+      interests: [],
+      categories: [],
+      locations: [],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garageA,
+      userInterests: ["Classic"],
+    });
+    assert.equal(
+      pickRelevanceExplanation({
+        why: exact.reasons,
+        rankSignals: exact.signals,
+        vehicleTier: exact.vehicleTier,
+        lane: "vehicle",
+        vehicles: garageA,
+      }),
+      "Because you drive a Ferrari F355 GTB",
+    );
+
+    const marque = explainArticle({
+      makes: ["Ferrari"],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: [],
+      categories: [],
+      locations: [],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garageA,
+      userInterests: [],
+    });
+    assert.match(marque.reasons[0] ?? "", /Relevant to Ferrari owners/i);
+    assert.equal(
+      pickRelevanceExplanation({
+        why: marque.reasons,
+        rankSignals: marque.signals,
+        vehicleTier: marque.vehicleTier,
+        lane: "vehicle",
+        vehicles: garageA,
+      }),
+      "Relevant to Ferrari owners",
+    );
+  });
+
+  it("picks interest, location, and refuses generic-only matches", async () => {
+    const { explainArticle } = await import("./rank");
+    const { pickRelevanceExplanation } = await import("./relevance-explanation");
+    const interest = explainArticle({
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: ["Classic", "Performance"],
+      categories: [],
+      locations: [],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: [],
+      userInterests: ["Classic", "Performance"],
+    });
+    assert.match(
+      pickRelevanceExplanation({
+        why: interest.reasons,
+        rankSignals: interest.signals,
+        vehicleTier: interest.vehicleTier,
+        lane: "interests",
+        vehicles: [],
+      }) ?? "",
+      /Because you like Classic \+ Performance/i,
+    );
+
+    const located = explainArticle({
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: ["Road Trips"],
+      categories: ["Road Trips"],
+      locations: ["Scotland"],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garageB,
+      userInterests: [],
+      userLocation: "Scotland",
+      contentTypes: ["road trip"],
+    });
+    assert.match(
+      pickRelevanceExplanation({
+        why: located.reasons,
+        rankSignals: located.signals,
+        vehicleTier: located.vehicleTier,
+        lane: "vehicle",
+        vehicles: garageB,
+      }) ?? "",
+      /Because it's in Scotland|Near you/i,
+    );
+
+    const generic = explainArticle({
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: [],
+      categories: ["News"],
+      locations: [],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garageA,
+      userInterests: [],
+      publishedAt: Date.now(),
+    });
+    assert.equal(
+      pickRelevanceExplanation({
+        why: generic.reasons,
+        rankSignals: generic.signals,
+        vehicleTier: generic.vehicleTier,
+        lane: "vehicle",
+        vehicles: garageA,
+      }),
+      null,
+    );
+  });
+
+  it("builds debug rows with score, matches, and explanation", async () => {
+    const { explainArticle } = await import("./rank");
+    const { buildRelevanceDebugRow, formatRelevanceDebugBlock } = await import("./relevance-explanation");
+    const breakdown = explainArticle({
+      makes: ["Porsche"],
+      models: ["911"],
+      generations: ["964"],
+      variants: ["C2"],
+      interests: [],
+      categories: [],
+      locations: [],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles: garageB,
+      userInterests: ["Air-cooled"],
+    });
+    const row = buildRelevanceDebugRow(
+      {
+        id: 208,
+        title: "Porsche 964 restoration",
+        rankScore: breakdown.score,
+        why: breakdown.reasons,
+        rankSignals: breakdown.signals,
+        vehicleTier: breakdown.vehicleTier,
+      },
+      garageB,
+      ["Air-cooled", "Classic"],
+    );
+    assert.ok(row.score > 0);
+    assert.match(row.explanation ?? "", /Because you drive a Porsche 911 964 C2/i);
+    assert.match(formatRelevanceDebugBlock(row), /SCORE: /);
+    assert.match(formatRelevanceDebugBlock(row), /EXPLANATION: Because you drive/);
+  });
+});
 

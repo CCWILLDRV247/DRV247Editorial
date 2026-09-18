@@ -3,6 +3,27 @@ import { formatStoryDate } from "@/lib/format";
 import type { StoryDto } from "@/lib/stories";
 import { StoryImage } from "./story-image";
 
+function RelevanceLine({
+  text,
+  tone = "dark",
+}: {
+  text?: string | null;
+  tone?: "dark" | "light";
+}) {
+  if (!text) return null;
+  return (
+    <p
+      className={
+        tone === "dark"
+          ? "font-display text-sm font-bold uppercase leading-snug tracking-[0.06em] text-white/75"
+          : "font-display text-xs font-bold uppercase leading-snug tracking-[0.06em] text-[#1b1d1f]/55"
+      }
+    >
+      {text}
+    </p>
+  );
+}
+
 export function FeatureTag({ children }: { children: string }) {
   return (
     <span className="inline-flex w-fit self-start items-center rounded-[4px] bg-white px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-[#1b1d1f]">
@@ -24,6 +45,7 @@ export function StoryCard({ story }: { story: StoryDto }) {
       <div className="absolute inset-0 flex flex-col justify-end px-7 pb-7 pr-6">
         <div className="flex flex-col gap-6">
           <FeatureTag>{story.category.name}</FeatureTag>
+          <RelevanceLine text={story.relevanceExplanation} tone="dark" />
           <h2 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
             {story.title}
           </h2>
@@ -60,6 +82,7 @@ export function StoryHero({
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
       <div className="absolute inset-x-7 bottom-10 flex flex-col gap-3">
         <FeatureTag>{story.category.name}</FeatureTag>
+        <RelevanceLine text={story.relevanceExplanation} tone="dark" />
         <h1
           className={
             titleLeading === "loose"
@@ -91,6 +114,7 @@ export function PickCard({ story }: { story: StoryDto }) {
       <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-[#1b1d1f]">
         {story.title}
       </p>
+      <RelevanceLine text={story.relevanceExplanation} tone="light" />
     </Link>
   );
 }
