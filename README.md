@@ -41,11 +41,11 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 
 ## What you get
 
-- **Home / For You** — curated mix by source quality and recency, plus a labeled test personalization filter
-- **Category** — Cars, Culture, Driving, Motorsport, Events, with the same test filter (old Racing/Classic/Modified/Concourse URLs redirect)
+- **Home / For You** — vehicle-first ranking around your car when a test profile is set; otherwise source quality and recency. A–D demo cars share the same desk and rank it differently.
+- **Category** — Cars, Culture, Driving, Motorsport, Events, with the same test picker (old Racing/Classic/Modified/Concourse URLs redirect). Category pages still AND-filter.
 - **Story** — hero, source tag, title, feed teaser, short extract from the original, **Read on [outlet]**
-- **Admin** (`/admin/engine`) — ingest now, source health
-- **JSON** — `GET /api/editorial`, `GET /api/editorial/status`
+- **Admin** (`/admin/engine`) — ingest now, source health, classification, For You ranking debug (article / score / why)
+- **JSON** — `GET /api/editorial` (includes `ranking` why/score when a test profile is set), `GET /api/editorial/status`
 - **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
 
 ## Ingest
@@ -54,7 +54,7 @@ Desk **Ingest now** runs the enabled culture pipeline (74 titles). Non-English i
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds. Magazine pages cache for 60 seconds (`s-maxage=60`, stale-while-revalidate 300).
 
-On **For You** and every primary (Cars, Culture, Driving, Motorsport, Events), tap **Set test** to pick make, model, generation, variant, interests, and location. The picker lists every gazetteer marque (98 UK/EU performance and classic makes, including Honda) plus any extra values on live stories. Makes with no matching stories still appear; the filter is empty, which is correct. Off-catalog query values still parse. That selection is stored in the URL and in `localStorage` (`drv247-for-you-test`) and rides along in the nav. Those pages **hide** stories that miss any set dimension (AND across make, model, generation, variant, location; OR among selected interests). Unset fields do not constrain. Empty sections hide. **Clear test** returns the unfiltered mix for that page. Extraction is rule-based from title, teaser, and the stored first-paragraph extract: 964/993/996/GT3/C2 count as 911, 355 GTB as Ferrari F355, 240SX/S13 as Nissan 240SX. Vehicles are labelled **about**, **relevant**, or **mentioned**. Content type, scene, motorsport series, and geography sit in additive tables plus a `metadata.classification` snapshot. For You still uses the existing AND filter. Desk **Backfill metadata** (or `npm run backfill:metadata`) reclassifies stored teasers without fetching pages. Classification debug is `/admin/engine` only.
+On **For You** and every primary (Cars, Culture, Driving, Motorsport, Events), tap **Set test** to pick make, model, generation, variant, interests, and location, or tap A–D for the demo cars (F355 GTB, 964 C2, Skyline, M3). The picker lists every gazetteer marque (98 UK/EU performance and classic makes, including Honda) plus any extra values on live stories. That selection is stored in the URL and in `localStorage` (`drv247-for-you-test`) and rides along in the nav. **For You ranks** the whole desk around the car first — it does not hide the rest of the car world. Category pages still **hide** stories that miss any set dimension (AND across make, model, generation, variant, location; OR among selected interests). Unset fields do not constrain. Empty sections hide. **Clear test** returns the unfiltered mix for that page. Weights live in `config/ranking.json`. Extraction is rule-based from title, teaser, and the stored first-paragraph extract: 964/993/996/GT3/C2 count as 911, 355 GTB as Ferrari F355 GTB, 240SX/S13 as Nissan 240SX. Vehicles are labelled **about**, **relevant**, or **mentioned**. Content type, scene, motorsport series, and geography sit in additive tables plus a `metadata.classification` snapshot. Desk **Backfill metadata** (or `npm run backfill:metadata`) reclassifies stored teasers without fetching pages. Ranking debug is `/admin/engine` only. Preview For You with a demo car: `/?profile=A`.
 
 Add a marque in `lib/engine/catalog.ts` to grow the list. This is a placeholder until the real DRV247 personalization string exists. No real garage.
 

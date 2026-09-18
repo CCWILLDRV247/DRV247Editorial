@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  FOR_YOU_DEMO_PROFILES,
   FOR_YOU_TEST_STORAGE_KEY,
   forYouTestIsActive,
   forYouTestSearchString,
@@ -62,6 +63,7 @@ export function ForYouTestFilter({
 
   function apply(next: ForYouTestProfile) {
     const cleaned: ForYouTestProfile = {
+      preset: next.preset,
       make: next.make,
       model: next.make ? next.model : undefined,
       generation: next.make && next.model ? next.generation : undefined,
@@ -87,10 +89,9 @@ export function ForYouTestFilter({
               Test personalization — placeholder
             </p>
             <p className="mt-1 text-[13px] leading-5 text-[#1b1d1f]/70">
-              Not a garage. Hides anything that does not match each setting you choose — make,
-              model, generation, variant, interest, location. Blank settings do not constrain. The
-              list is every value on stories plus the gazetteer, including off-catalog marques.
-              Saved in the URL and on this phone.
+              Ranks the desk around your car first, then interests, then the rest of the car world.
+              Not a garage. A–D are switchable test cars. Saved in the URL and on this phone.
+              Cars, Culture, Driving, and Events still hide anything that misses a set filter.
             </p>
             {active ? (
               <p className="mt-1 font-display text-sm font-bold uppercase text-[#1b1d1f]">
@@ -114,6 +115,25 @@ export function ForYouTestFilter({
               apply(profile);
             }}
           >
+            <div className="flex flex-wrap gap-2">
+              {Object.values(FOR_YOU_DEMO_PROFILES).map((demo) => {
+                const on = profile.preset === demo.id;
+                return (
+                  <button
+                    key={demo.id}
+                    type="button"
+                    className={
+                      on
+                        ? "h-8 rounded-[4px] bg-[#1b1d1f] px-3 font-display text-xs font-bold uppercase text-white"
+                        : "h-8 rounded-[4px] border border-[#1b1d1f]/30 bg-white px-3 font-display text-xs font-bold uppercase text-[#1b1d1f]"
+                    }
+                    onClick={() => apply({ ...demo })}
+                  >
+                    {demo.id} · {demo.label}
+                  </button>
+                );
+              })}
+            </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <select
                 aria-label="Test make"
@@ -126,6 +146,7 @@ export function ForYouTestFilter({
                     model: undefined,
                     generation: undefined,
                     variant: undefined,
+                    preset: undefined,
                   })
                 }
               >
@@ -147,6 +168,7 @@ export function ForYouTestFilter({
                     model: event.target.value || undefined,
                     generation: undefined,
                     variant: undefined,
+                    preset: undefined,
                   })
                 }
               >
@@ -163,7 +185,11 @@ export function ForYouTestFilter({
                 value={profile.generation ?? ""}
                 disabled={!profile.make || !profile.model}
                 onChange={(event) =>
-                  apply({ ...profile, generation: event.target.value || undefined })
+                  apply({
+                    ...profile,
+                    generation: event.target.value || undefined,
+                    preset: undefined,
+                  })
                 }
               >
                 <option value="">Any generation</option>
@@ -179,7 +205,11 @@ export function ForYouTestFilter({
                 value={profile.variant ?? ""}
                 disabled={!profile.make || !profile.model}
                 onChange={(event) =>
-                  apply({ ...profile, variant: event.target.value || undefined })
+                  apply({
+                    ...profile,
+                    variant: event.target.value || undefined,
+                    preset: undefined,
+                  })
                 }
               >
                 <option value="">Any variant</option>
@@ -194,7 +224,13 @@ export function ForYouTestFilter({
               aria-label="Test location"
               className={selectClass}
               value={profile.location ?? ""}
-              onChange={(event) => apply({ ...profile, location: event.target.value || undefined })}
+              onChange={(event) =>
+                apply({
+                  ...profile,
+                  location: event.target.value || undefined,
+                  preset: undefined,
+                })
+              }
             >
               <option value="">Any location</option>
               {locations.map((location) => (
@@ -222,6 +258,7 @@ export function ForYouTestFilter({
                       onClick={() =>
                         apply({
                           ...profile,
+                          preset: undefined,
                           interests: on
                             ? profile.interests.filter((item) => item !== interest)
                             : [...profile.interests, interest],

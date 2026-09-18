@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
 import { ENGINE_BRANCH, engineCommit } from "@/lib/engine/version";
 import type { Article, IngestionRun, MediaSource } from "@/lib/db/schema";
 import type { ClassificationDebugRow } from "@/lib/engine/queries";
+import { FOR_YOU_DEMO_PROFILES, type ForYouDemoId } from "@/lib/engine/for-you-test";
 
 type Props = {
   sources: MediaSource[];
@@ -26,6 +27,10 @@ type Props = {
 export function EngineDesk({ sources, runs, articles, classified }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [rankProfile, setRankProfile] = useState<ForYouDemoId>("A");
+  const [ranking, setRanking] = useState<
+    { id: number; title: string; score: number; why: string[]; vehicleTier: string; signals: { kind: string; points: number }[] }[] | null
+  >(null);
 
   async function ingest(sourceId?: string) {
     setBusy(sourceId ?? "all");
@@ -74,6 +79,17 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
 
   const enabled = sources.filter((source) => source.enabled);
 
+  useEffect(() => {
+    const demo = FOR_YOU_DEMO_PROFILES[rankProfile];
+    const query = new URLSearchParams({ profile: demo.id, limit: "16" });
+    void fetch(`/api/editorial?${query.toString()}`)
+      .then((response) => response.json())
+      .then((data: { ranking?: typeof ranking }) => {
+        setRanking(data.ranking ?? []);
+      })
+      .catch(() => setRanking([]));
+  }, [rankProfile]);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -91,8 +107,8 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
             stay dark. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled (Cloudflare
             403). Ingest skips non-English items, shop/product/collection/cart/merch URLs, auction
             and subscribe paths, empty or /undefined URLs, and off-site magazine-shop canonicals.
-            Visible nav is unchanged. Desk can backfill structured metadata on stored teasers.{" "}
-            {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
+            Desk can backfill structured metadata on stored teasers. For You ranking debug is below
+            (article / score / why). {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>
         <div className="flex gap-2">
@@ -114,6 +130,56 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
         </div>
       </div>
       {message ? <p className="text-sm text-[#1b1d1f]/80">{message}</p> : null}
+
+      <section>
+        <h2 className="mb-3 font-display text-xl font-bold uppercase">For You ranking</h2>
+        <p className="mb-3 max-w-3xl text-sm text-[#1b1d1f]/70">
+          Desk-only. Same 460 teasers, ranked around the test car. Reasons come from stored
+          metadata — never invented copy. Switch A–D and the order must change.
+        </p>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {(Object.keys(FOR_YOU_DEMO_PROFILES) as ForYouDemoId[]).map((id) => (
+            <Button
+              key={id}
+              size="sm"
+              variant={rankProfile === id ? "default" : "outline"}
+              onClick={() => setRankProfile(id)}
+            >
+              {id} · {FOR_YOU_DEMO_PROFILES[id].label}
+            </Button>
+          ))}
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Story</TableHead>
+              <TableHead>Score</TableHead>
+              <TableHead>Why</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {(ranking ?? []).map((row) => (
+              <TableRow key={row.id}>
+                <TableCell>
+                  <p className="font-medium">{row.title}</p>
+                  <p className="text-xs text-[#1b1d1f]/60">
+                    #{row.id} · {row.vehicleTier}
+                  </p>
+                </TableCell>
+                <TableCell className="font-mono text-sm">{row.score}</TableCell>
+                <TableCell className="text-xs">
+                  {row.why.length ? row.why.join(" · ") : "—"}
+                  {row.signals?.length ? (
+                    <p className="mt-1 text-[#1b1d1f]/55">
+                      {row.signals.map((signal) => `${signal.kind} ${signal.points}`).join(" · ")}
+                    </p>
+                  ) : null}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </section>
 
       <Table>
         <TableHeader>

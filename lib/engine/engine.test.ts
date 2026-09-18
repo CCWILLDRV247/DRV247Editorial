@@ -1223,3 +1223,224 @@ describe("source seed writes", () => {
     assert.equal(sourceSeedUnchanged({ ...values, rssUrl: null }, values), false);
   });
 });
+
+describe("vehicle-aware For You ranking", () => {
+  const now = Date.now();
+  const old = now - 40 * 86_400_000;
+  const fresh = now - 1 * 86_400_000;
+  const garageA = [{ make: "Ferrari", model: "F355", variant: "GTB" }];
+  const garageB = [{ make: "Porsche", model: "911", generation: "964", variant: "C2" }];
+
+  function score(
+    article: {
+      makes?: string[];
+      models?: string[];
+      generations?: string[];
+      variants?: string[];
+      interests?: string[];
+      categories?: string[];
+      locations?: string[];
+      excerpt?: string;
+      relevance?: string;
+      entityHits?: { kind: string; name: string; relevance?: string }[];
+      scenes?: string[];
+      publishedAt?: number;
+    },
+    vehicles: { make: string; model: string; generation?: string | null; variant?: string | null }[],
+    userInterests: string[],
+  ) {
+    return scoreArticle({
+      makes: article.makes ?? [],
+      models: article.models ?? [],
+      generations: article.generations ?? [],
+      variants: article.variants ?? [],
+      interests: article.interests ?? [],
+      categories: article.categories ?? [],
+      locations: article.locations ?? [],
+      excerpt: article.excerpt ?? "A",
+      relevance: article.relevance ?? "Good",
+      vehicles,
+      userInterests,
+      entityHits: article.entityHits,
+      scenes: article.scenes,
+      publishedAt: article.publishedAt,
+    });
+  }
+
+  it("ranks exact variant above model, generation, marque, category, and interest", async () => {
+    const { explainArticle } = await import("./rank");
+    const vehicles = garageA;
+    const interests = ["Classic", "Performance"];
+    const variant = score(
+      {
+        makes: ["Ferrari"],
+        models: ["F355"],
+        variants: ["GTB"],
+        entityHits: [{ kind: "variant", name: "GTB", relevance: "about" }],
+        publishedAt: old,
+      },
+      vehicles,
+      interests,
+    );
+    const model = score(
+      { makes: ["Ferrari"], models: ["F355"], publishedAt: old },
+      vehicles,
+      interests,
+    );
+    const make = score({ makes: ["Ferrari"], publishedAt: old }, vehicles, interests);
+    const category = score(
+      { interests: ["Supercars"], categories: ["Performance"], publishedAt: old },
+      vehicles,
+      [],
+    );
+    const interestOnly = score(
+      { interests: ["Classic", "Performance"], excerpt: "x".repeat(200), relevance: "Excellent", publishedAt: fresh },
+      vehicles,
+      interests,
+    );
+    assert.ok(variant > model, `variant ${variant} vs model ${model}`);
+    assert.ok(model > make, `model ${model} vs make ${make}`);
+    assert.ok(make > category, `make ${make} vs category ${category}`);
+    assert.ok(variant > interestOnly, `variant ${variant} vs interest ${interestOnly}`);
+    const why = explainArticle({
+      makes: ["Ferrari"],
+      models: ["F355"],
+      generations: [],
+      variants: ["GTB"],
+      interests: [],
+      categories: [],
+      locations: [],
+      excerpt: "A",
+      relevance: "Good",
+      vehicles,
+      userInterests: interests,
+    });
+    assert.ok(why.reasons.some((reason) => reason.includes("Ferrari F355 GTB")));
+    assert.equal(why.reasons.some((reason) => /popular with/i.test(reason)), false);
+  });
+
+  it("does not let a fresh generic story beat a relevant car match", async () => {
+    const vehicles = garageB;
+    const car = score(
+      {
+        makes: ["Porsche"],
+        models: ["911"],
+        generations: ["964"],
+        variants: ["C2"],
+        publishedAt: old,
+      },
+      vehicles,
+      ["Classic"],
+    );
+    const generic = score(
+      {
+        interests: ["Design"],
+        excerpt: "x".repeat(200),
+        relevance: "Excellent",
+        publishedAt: fresh,
+      },
+      vehicles,
+      ["Classic"],
+    );
+    assert.ok(car > generic, `car ${car} vs generic ${generic}`);
+  });
+
+  it("scores about higher than mentioned on the same marque", async () => {
+    const about = score(
+      {
+        makes: ["Ferrari"],
+        models: ["F355"],
+        entityHits: [{ kind: "model", name: "F355", relevance: "about" }],
+      },
+      garageA,
+      [],
+    );
+    const mentioned = score(
+      {
+        makes: ["Ferrari"],
+        entityHits: [{ kind: "make", name: "Ferrari", relevance: "mentioned" }],
+      },
+      garageA,
+      [],
+    );
+    assert.ok(about > mentioned, `about ${about} vs mentioned ${mentioned}`);
+  });
+
+  it("ranks the same corpus differently for demo profiles A–D", async () => {
+    const { FOR_YOU_DEMO_PROFILES, parseForYouTestProfile } = await import("./for-you-test");
+    const { contextFromTestProfile, contextFromDrv247Garage } = await import("./personalize");
+    const corpus = [
+      { id: "f355", makes: ["Ferrari"], models: ["F355"], variants: ["GTB"], interests: ["Classic"] },
+      { id: "ferrari", makes: ["Ferrari"], interests: ["Performance"] },
+      { id: "964", makes: ["Porsche"], models: ["911"], generations: ["964"], variants: ["C2"], interests: ["Classic", "Air-cooled"] },
+      { id: "skyline", makes: ["Nissan"], models: ["Skyline"], interests: ["JDM", "Modified"] },
+      { id: "m3", makes: ["BMW"], models: ["M3"], interests: ["Performance", "Motorsport"] },
+      { id: "event", makes: [], interests: ["Events"], locations: ["Goodwood"] },
+    ];
+    const orders = (["A", "B", "C", "D"] as const).map((id) => {
+      const personal = contextFromTestProfile(FOR_YOU_DEMO_PROFILES[id]);
+      return corpus
+        .map((article) => ({
+          id: article.id,
+          score: score(article, personal.vehicles, personal.interests),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .map((row) => row.id);
+    });
+    assert.equal(orders[0][0], "f355");
+    assert.equal(orders[1][0], "964");
+    assert.equal(orders[2][0], "skyline");
+    assert.equal(orders[3][0], "m3");
+    assert.notEqual(orders[0].join(), orders[1].join());
+    const parsed = parseForYouTestProfile({ profile: "A" });
+    assert.equal(parsed.make, "Ferrari");
+    assert.equal(parsed.model, "F355");
+    assert.equal(parsed.variant, "GTB");
+    assert.ok(parsed.interests.includes("Classic"));
+    const fromGarage = contextFromDrv247Garage({
+      garage: [{ make: "Ferrari", model: "F355", variant: "GTB" }],
+      interests: ["Classics", "Performance"],
+    });
+    assert.equal(fromGarage.vehicles[0]?.model, "F355");
+    assert.ok(fromGarage.interests.includes("Classic"));
+  });
+
+  it("extracts F355 GTB and 964 C2 as variants", () => {
+    const gtb = extractEntities("Ferrari 355 GTB on the autostrada");
+    assert.ok(gtb.models.includes("F355"));
+    assert.ok(gtb.variants.includes("GTB"));
+    const c2 = extractEntities("Porsche 964 C2 weekend drive");
+    assert.ok(c2.models.includes("911"));
+    assert.ok(c2.generations.includes("964"));
+    assert.ok(c2.variants.includes("C2"));
+    const air = extractEntities("An air-cooled 911 on the Stelvio");
+    assert.ok(air.interests.includes("Air-cooled"));
+  });
+
+  it("diversifies a top-five run of the same variant", async () => {
+    const { diversifyByVehicle } = await import("./rank");
+    const items = [
+      { id: 1, key: "GTB" },
+      { id: 2, key: "GTB" },
+      { id: 3, key: "GTB" },
+      { id: 4, key: "GTB" },
+      { id: 5, key: "GTB" },
+      { id: 6, key: "360" },
+    ];
+    const diversified = diversifyByVehicle(items, (item) => item.key);
+    assert.equal(diversified[4]?.key, "360");
+    assert.equal(diversified[5]?.key, "GTB");
+  });
+
+  it("keeps the category AND hard filter", async () => {
+    const { articleMatchesForYouTest, parseForYouTestProfile } = await import("./for-you-test");
+    assert.equal(
+      articleMatchesForYouTest(
+        { makes: ["Porsche"], models: ["911"], interests: ["Classic"], locations: [] },
+        parseForYouTestProfile({ make: "Ferrari" }),
+      ),
+      false,
+    );
+  });
+});
+

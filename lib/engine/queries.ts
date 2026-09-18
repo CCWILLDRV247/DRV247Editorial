@@ -16,7 +16,18 @@ import {
   mediaSources,
   type Article,
 } from "@/lib/db/schema";
-import { loadRankWeights, recencyBonus, scoreArticle, scoreForYou, type GarageVehicle } from "./rank";
+import {
+  diversifyByVehicle,
+  explainArticle,
+  loadRankWeights,
+  preferUsableImages,
+  scoreArticle,
+  scoreForYou,
+  type EntityHit,
+  type GarageVehicle,
+  type RankSignal,
+  type VehicleTier,
+} from "./rank";
 import { classifyPrimary, isContentPrimary } from "./taxonomy";
 import { displayImageUrls, parseImagePayload } from "./images";
 import { loadArticlePrimaries } from "./article-primary";
@@ -31,6 +42,10 @@ import {
   forYouTestIsActive,
   type ForYouTestProfile,
 } from "./for-you-test";
+import {
+  contextFromDemoUser,
+  contextFromTestProfile,
+} from "./personalize";
 
 export type EditorialDto = {
   id: number;
@@ -63,6 +78,9 @@ export type EditorialDto = {
   primaryConfidence: number | null;
   classification: ClassificationSnapshot | null;
   related: { id: number; title: string; publication: string; reason: string; score: number }[];
+  why: string[];
+  rankSignals: RankSignal[];
+  vehicleTier: VehicleTier;
 };
 
 type FeedArticle = Pick<
@@ -134,6 +152,7 @@ function emptyExtras() {
     categories: [] as string[],
     interests: [] as string[],
     locations: [] as string[],
+    entityHits: [] as EntityHit[],
   };
 }
 
@@ -145,6 +164,13 @@ function extrasFromGraph(graph: ArticleGraph, articleIds: number[]) {
     if (!wanted.has(row.articleId)) continue;
     const extras = map.get(row.articleId);
     if (!extras) continue;
+    extras.entityHits.push({
+      kind: row.kind,
+      name: row.name,
+      make: row.make,
+      model: row.model,
+      relevance: row.relevance,
+    });
     if (row.kind === "make") extras.makes.push(row.name);
     if (row.kind === "model") extras.models.push(row.name);
     if (row.kind === "generation") extras.generations.push(row.name);
@@ -181,6 +207,9 @@ function toDto(
     primaryConfidence?: number | null;
     classification?: ClassificationSnapshot | null;
     related?: EditorialDto["related"];
+    why?: string[];
+    rankSignals?: RankSignal[];
+    vehicleTier?: VehicleTier;
   },
 ): EditorialDto {
   const image = parseImagePayload(article.metadata);
@@ -216,6 +245,9 @@ function toDto(
     primaryConfidence: extras.primaryConfidence ?? parseClassificationSnapshot(article.metadata)?.primaryConfidence ?? null,
     classification: extras.classification ?? parseClassificationSnapshot(article.metadata),
     related: extras.related ?? [],
+    why: extras.why ?? [],
+    rankSignals: extras.rankSignals ?? [],
+    vehicleTier: extras.vehicleTier ?? "none",
   };
 }
 
@@ -237,6 +269,13 @@ async function extrasByArticleIds(articleIds: number[]) {
       if (!wanted.has(row.articleId)) continue;
       const extras = map.get(row.articleId);
       if (!extras) continue;
+      extras.entityHits.push({
+        kind: row.kind,
+        name: row.name,
+        make: row.make,
+        model: row.model,
+        relevance: row.relevance,
+      });
       if (row.kind === "make") extras.makes.push(row.name);
       if (row.kind === "model") extras.models.push(row.name);
       if (row.kind === "generation") extras.generations.push(row.name);
@@ -284,6 +323,7 @@ export async function listEditorial(options?: {
   q?: string;
   section?: string;
   testProfile?: ForYouTestProfile;
+  hardFilter?: boolean;
   limit?: number;
 }): Promise<EditorialDto[]> {
   const db = await getDb();
@@ -309,28 +349,28 @@ export async function listEditorial(options?: {
   const testProfile = options?.testProfile;
   const useTestProfile = Boolean(testProfile && forYouTestIsActive(testProfile));
   const curated = options?.section === "for-you" || (!options?.userId && !options?.vehicleId);
+  const applyHardFilter = Boolean(
+    useTestProfile &&
+      testProfile &&
+      (options?.hardFilter === true ||
+        (options?.hardFilter !== false &&
+          Boolean(options?.section && isContentPrimary(options.section)))),
+  );
   let vehicles: GarageVehicle[] = [];
   let userInterests: string[] = [];
   let userLocation: string | null = null;
   if (useTestProfile && testProfile) {
-    if (testProfile.make || testProfile.model) {
-      vehicles = [
-        {
-          make: testProfile.make ?? "",
-          model: testProfile.model ?? "",
-          generation: testProfile.generation,
-          variant: testProfile.variant,
-        },
-      ];
-    }
-    userInterests = testProfile.interests;
-    userLocation = testProfile.location ?? null;
+    const personal = contextFromTestProfile(testProfile);
+    vehicles = personal.vehicles;
+    userInterests = personal.interests;
+    userLocation = personal.location ?? null;
   } else if (options?.userId) {
     const user = await getDemoUser(options.userId);
     if (user) {
-      vehicles = user.vehicles;
-      userInterests = user.interests;
-      userLocation = user.location;
+      const personal = contextFromDemoUser(user);
+      vehicles = personal.vehicles;
+      userInterests = personal.interests;
+      userLocation = personal.location ?? null;
     }
   }
   if (!useTestProfile && options?.vehicleId) {
@@ -338,24 +378,22 @@ export async function listEditorial(options?: {
       await db.select().from(demoVehicles).where(eq(demoVehicles.id, options.vehicleId)).limit(1)
     )[0];
     if (vehicle) {
-      vehicles = [vehicle];
       const user = await getDemoUser(vehicle.userId);
-      userInterests = user?.interests ?? [];
-      userLocation = user?.location ?? null;
+      const personal = contextFromDemoUser({
+        vehicles: [vehicle],
+        interests: user?.interests ?? [],
+        location: user?.location ?? null,
+      });
+      vehicles = personal.vehicles;
+      userInterests = personal.interests;
+      userLocation = personal.location ?? null;
     }
   }
 
   const weights = loadRankWeights();
   const ranked = rows.map((article) => {
-    const extras = extrasMap.get(article.id) ?? {
-      makes: [] as string[],
-      models: [] as string[],
-      generations: [] as string[],
-      variants: [] as string[],
-      categories: [] as string[],
-      interests: [] as string[],
-      locations: [] as string[],
-    };
+    const extras = extrasMap.get(article.id) ?? emptyExtras();
+    const snap = parseClassificationSnapshot(article.metadata);
     const primaryCategory =
       (primaryMap.get(article.id) as EditorialDto["primaryCategory"] | undefined) ??
       classifyPrimary({
@@ -368,7 +406,7 @@ export async function listEditorial(options?: {
     if (options?.section && isContentPrimary(options.section) && primaryCategory !== options.section) {
       return null;
     }
-    if (useTestProfile && testProfile && !articleMatchesForYouTest(extras, testProfile)) {
+    if (applyHardFilter && testProfile && !articleMatchesForYouTest(extras, testProfile)) {
       return null;
     }
     if (!useTestProfile) {
@@ -389,37 +427,44 @@ export async function listEditorial(options?: {
     if (!useTestProfile && options?.interest && !extras.interests.includes(options.interest)) return null;
     const source = sourceMap.get(article.sourceId);
     const relevance = source?.relevance ?? "";
-    const rankScore =
-      useTestProfile || (curated && vehicles.length)
-        ? scoreArticle(
-            {
-              ...extras,
-              excerpt: article.excerpt,
-              relevance,
-              vehicles,
-              userInterests,
-              userLocation,
-            },
-            weights,
-          ) + recencyBonus(article.publishedAt)
-        : curated
-          ? scoreForYou({
-              relevance,
-              publishedAt: article.publishedAt,
-              excerptLength: article.excerpt.length,
-            })
-          : scoreArticle(
-              {
-                ...extras,
-                excerpt: article.excerpt,
+    const rankInput = {
+      ...extras,
+      excerpt: article.excerpt,
+      relevance,
+      vehicles,
+      userInterests,
+      userLocation,
+      entityHits: extras.entityHits,
+      scenes: snap?.scenes,
+      contentTypes: snap?.contentTypes,
+      geography: (snap?.geography ?? []).map((place) => place.name),
+      publishedAt: article.publishedAt,
+      primaryCategory,
+    };
+    const personalized = useTestProfile || (curated && vehicles.length > 0);
+    const breakdown = personalized
+      ? explainArticle(rankInput, weights)
+      : {
+          score: curated
+            ? scoreForYou({
                 relevance,
-                vehicles,
-                userInterests,
-                userLocation,
-              },
-              weights,
-            );
-    return toDto(article, { ...extras, rankScore, primaryCategory });
+                publishedAt: article.publishedAt,
+                excerptLength: article.excerpt.length,
+              })
+            : scoreArticle(rankInput, weights),
+          reasons: [] as string[],
+          signals: [] as EditorialDto["rankSignals"],
+          vehicleTier: "none" as const,
+        };
+    return toDto(article, {
+      ...extras,
+      rankScore: breakdown.score,
+      primaryCategory,
+      classification: snap,
+      why: breakdown.reasons,
+      rankSignals: breakdown.signals,
+      vehicleTier: breakdown.vehicleTier,
+    });
   });
 
   const list = ranked.filter((row): row is EditorialDto => Boolean(row));
@@ -432,7 +477,21 @@ export async function listEditorial(options?: {
     if (item.duplicateGroupId) seenGroups.add(item.duplicateGroupId);
     deduped.push(item);
   }
-  return deduped.slice(0, options?.limit ?? 40);
+  const shaped =
+    personalizedForYou(useTestProfile, curated)
+      ? preferUsableImages(
+          diversifyByVehicle(
+            deduped,
+            (item) => item.variants[0] || item.models[0] || item.makes[0] || "",
+          ),
+          6,
+        )
+      : deduped;
+  return shaped.slice(0, options?.limit ?? 40);
+}
+
+function personalizedForYou(useTestProfile: boolean, curated: boolean) {
+  return useTestProfile && curated;
 }
 
 export async function getEditorial(id: number): Promise<EditorialDto | null> {
