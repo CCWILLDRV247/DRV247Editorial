@@ -29,7 +29,19 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [rankProfile, setRankProfile] = useState<ForYouDemoId>("A");
   const [ranking, setRanking] = useState<
-    { id: number; title: string; score: number; why: string[]; vehicleTier: string; signals: { kind: string; points: number }[] }[] | null
+    {
+      id: number;
+      title: string;
+      score: number;
+      why: string[];
+      vehicleTier: string;
+      signals: { kind: string; points: number; detail?: string }[];
+      matches?: string[];
+      user?: string;
+      explanation?: string | null;
+      confidence?: string;
+      debug?: string;
+    }[] | null
   >(null);
 
   async function ingest(sourceId?: string) {
@@ -154,7 +166,8 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
             <TableRow>
               <TableHead>Story</TableHead>
               <TableHead>Score</TableHead>
-              <TableHead>Why</TableHead>
+              <TableHead>Card copy</TableHead>
+              <TableHead>Debug</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -164,16 +177,28 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
                   <p className="font-medium">{row.title}</p>
                   <p className="text-xs text-[#1b1d1f]/60">
                     #{row.id} · {row.vehicleTier}
+                    {row.confidence ? ` · ${row.confidence}` : ""}
                   </p>
                 </TableCell>
-                <TableCell className="font-mono text-sm">{row.score}</TableCell>
-                <TableCell className="text-xs">
-                  {row.why.length ? row.why.join(" · ") : "—"}
-                  {row.signals?.length ? (
-                    <p className="mt-1 text-[#1b1d1f]/55">
-                      {row.signals.map((signal) => `${signal.kind} ${signal.points}`).join(" · ")}
-                    </p>
-                  ) : null}
+                <TableCell className="align-top font-mono text-sm">{row.score}</TableCell>
+                <TableCell className="align-top text-xs">
+                  {row.explanation ?? "—"}
+                </TableCell>
+                <TableCell className="align-top text-xs text-[#1b1d1f]/70">
+                  {row.debug ? (
+                    <pre className="whitespace-pre-wrap font-mono text-[11px] leading-5">{row.debug}</pre>
+                  ) : (
+                    <>
+                      {row.why.length ? row.why.join(" · ") : "—"}
+                      {row.signals?.length ? (
+                        <p className="mt-1 text-[#1b1d1f]/55">
+                          {row.signals
+                            .map((signal) => `${signal.kind} ${signal.points}${signal.detail ? ` (${signal.detail})` : ""}`)
+                            .join(" · ")}
+                        </p>
+                      ) : null}
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

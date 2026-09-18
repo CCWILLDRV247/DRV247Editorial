@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { forYouTestIsActive, parseForYouTestProfile } from "@/lib/engine/for-you-test";
 import { listEditorial } from "@/lib/engine/queries";
+import { contextFromTestProfile } from "@/lib/engine/personalize";
+import { buildRelevanceDebugRow, formatRelevanceDebugBlock } from "@/lib/engine/relevance-explanation";
 import { ENGINE_BRANCH, ENGINE_WAVE, engineCommit } from "@/lib/engine/version";
 
 export const runtime = "nodejs";
@@ -11,6 +13,7 @@ export async function GET(request: Request) {
   const testProfile = parseForYouTestProfile(searchParams);
   const testing = forYouTestIsActive(testProfile);
   const strict = searchParams.get("strict") === "1";
+  const profileContext = testing ? contextFromTestProfile(testProfile) : null;
   const articles = await listEditorial({
     userId: testing ? undefined : (searchParams.get("user") ?? undefined),
     section: searchParams.get("section") ?? "for-you",
@@ -34,14 +37,26 @@ export async function GET(request: Request) {
       user: testing ? "test-filter" : (searchParams.get("user") ?? null),
       testProfile: testing ? testProfile : null,
       ranking: testing
-        ? articles.map((article) => ({
-            id: article.id,
-            title: article.title,
-            score: article.rankScore,
-            why: article.why,
-            vehicleTier: article.vehicleTier,
-            signals: article.rankSignals,
-          }))
+        ? articles.slice(0, 16).map((article) => {
+            const row = buildRelevanceDebugRow(
+              article,
+              profileContext?.vehicles ?? [],
+              profileContext?.interests ?? [],
+            );
+            return {
+              id: row.id,
+              title: row.title,
+              score: row.score,
+              why: row.why,
+              vehicleTier: row.vehicleTier,
+              signals: row.signals,
+              matches: row.matches,
+              user: row.user,
+              explanation: row.explanation,
+              confidence: row.confidence,
+              debug: formatRelevanceDebugBlock(row),
+            };
+          })
         : null,
       publications: [...new Set(articles.map((article) => article.publication))],
       articles,

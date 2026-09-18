@@ -189,6 +189,7 @@ export function explainArticle(
   let vehicleTier: VehicleTier = "none";
   let vehiclePoints = 0;
   let vehicleRelevance = "about";
+  let matchedVehicle: GarageVehicle | undefined;
 
   for (const vehicle of input.vehicles) {
     const make = norm(vehicle.make);
@@ -248,6 +249,7 @@ export function explainArticle(
     vehicleTier = tier;
     vehiclePoints = points;
     vehicleRelevance = (rel ?? "about").toLowerCase();
+    matchedVehicle = vehicle;
   }
 
   if (vehiclePoints) {
@@ -256,12 +258,14 @@ export function explainArticle(
       points: vehiclePoints,
       detail: `${vehicleRelevance} ${vehicleTier} match`,
     });
-    if (garageLabel) {
+    if (garageLabel || matchedVehicle?.make) {
       if (vehicleRelevance === "mentioned") {
         reasons.push(`Mentions your ${garageLabel}`);
       } else if (vehicleTier === "category") {
         reasons.push(`In the world of your ${garageLabel}`);
-      } else {
+      } else if (vehicleTier === "make") {
+        reasons.push(`Relevant to ${matchedVehicle!.make} owners`);
+      } else if (garageLabel) {
         reasons.push(`Because you drive a ${garageLabel}`);
       }
     }
@@ -281,7 +285,11 @@ export function explainArticle(
       points: weights.strongInterest,
       detail: matchedInterests.join(" + "),
     });
-    reasons.push(`Because you follow ${matchedInterests.join(" + ")}`);
+    reasons.push(
+      matchedInterests.length > 1
+        ? `Because you like ${matchedInterests.join(" + ")}`
+        : `Because you follow ${matchedInterests.join(" + ")}`,
+    );
   }
   const secondary = input.categories.filter((category) =>
     userInterests.some((interest) => interestsMatch(category, interest)),
