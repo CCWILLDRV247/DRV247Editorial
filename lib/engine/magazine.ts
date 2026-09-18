@@ -18,6 +18,7 @@ import {
 } from "./for-you-test";
 import { getEditorial, listEditorial, type EditorialDto } from "./queries";
 import { classifyPrimary } from "./taxonomy";
+import { curateForYouHome } from "./for-you-home";
 
 export { MAGAZINE_NAV, PRIMARY_NAV } from "../../config/magazine-nav";
 
@@ -142,8 +143,21 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
     limit: 80,
   });
-  const stories = uniqueStories(ranked.map(toMagazineStory)).slice(0, 24);
-  const featuredIds = new Set(stories.map((story) => story.id));
+  const plan = curateForYouHome(ranked, testProfile);
+  const byId = new Map(ranked.map((article) => [article.id, article]));
+  const toStories = (articles: { id: number }[]) =>
+    uniqueStories(
+      articles
+        .map((item) => byId.get(item.id))
+        .filter((article): article is EditorialDto => Boolean(article))
+        .map(toMagazineStory),
+    );
+  const forYourCar = { ...plan.forYourCar, stories: toStories(plan.forYourCar.stories) };
+  const yourInterests = { ...plan.yourInterests, stories: toStories(plan.yourInterests.stories) };
+  const discover = { ...plan.discover, stories: toStories(plan.discover.stories) };
+  const featuredIds = new Set(
+    [...forYourCar.stories, ...yourInterests.stories, ...discover.stories].map((story) => story.id),
+  );
   const carousels = MAGAZINE_NAV.map((nav) => {
     const lane = ranked
       .filter((article) => articleMatchesNav(article, nav.slug))
@@ -156,7 +170,14 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
       stories: uniqueStories([...fresh, ...lane]).slice(0, 8),
     };
   }).filter((lane) => lane.stories.length > 0);
-  return { stories, carousels };
+  return {
+    copy: plan.copy,
+    forYourCar,
+    yourInterests,
+    discover,
+    carousels,
+    stories: [...forYourCar.stories, ...yourInterests.stories, ...discover.stories],
+  };
 }
 
 export async function getMagazineHome(testProfile?: ForYouTestProfile) {
