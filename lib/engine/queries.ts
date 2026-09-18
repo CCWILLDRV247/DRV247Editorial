@@ -18,6 +18,7 @@ import {
 } from "@/lib/db/schema";
 import { loadRankWeights, recencyBonus, scoreArticle, scoreForYou, type GarageVehicle } from "./rank";
 import { classifyPrimary, isContentPrimary } from "./taxonomy";
+import { displayImageUrls, parseImagePayload } from "./images";
 import { loadArticlePrimaries } from "./article-primary";
 import {
   articleMatchesForYouTest,
@@ -36,6 +37,9 @@ export type EditorialDto = {
   author: string | null;
   publishedAt: string;
   imageUrl: string | null;
+  imageSources: string[];
+  imageStatus: string | null;
+  imageSourceType: string | null;
   excerpt: string;
   editorialScore: number;
   vehicleRelevanceScore: number;
@@ -69,6 +73,7 @@ type FeedArticle = Pick<
   | "ingestionMethod"
   | "aiSummary"
   | "duplicateGroupId"
+  | "metadata"
 >;
 
 const ARTICLE_FEED_COLUMNS = {
@@ -86,6 +91,7 @@ const ARTICLE_FEED_COLUMNS = {
   ingestionMethod: articles.ingestionMethod,
   aiSummary: articles.aiSummary,
   duplicateGroupId: articles.duplicateGroupId,
+  metadata: articles.metadata,
 };
 
 type ArticleGraph = {
@@ -166,6 +172,8 @@ function toDto(
     primaryCategory: string;
   },
 ): EditorialDto {
+  const image = parseImagePayload(article.metadata);
+  const imageUrls = displayImageUrls(article.imageUrl, image);
   return {
     id: article.id,
     sourceId: article.sourceId,
@@ -175,7 +183,10 @@ function toDto(
     canonicalUrl: article.canonicalUrl,
     author: article.author,
     publishedAt: new Date(article.publishedAt).toISOString(),
-    imageUrl: article.imageUrl,
+    imageUrl: imageUrls[0] ?? null,
+    imageSources: imageUrls.slice(1),
+    imageStatus: image?.status ?? (imageUrls[0] ? "ok" : "missing"),
+    imageSourceType: image?.sourceType ?? null,
     excerpt: article.excerpt,
     editorialScore: article.editorialScore,
     vehicleRelevanceScore: extras.rankScore,

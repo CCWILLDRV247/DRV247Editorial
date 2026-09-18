@@ -29,7 +29,7 @@ export default async function StoryPage({
       <SiteHeader title={story.category.name} backHref={`/category/${story.category.slug}`} testQuery={testQuery} />
       <article className="mx-auto max-w-3xl pb-20">
         <div className="relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl">
-          <StoryImage src={story.imageUrl} alt="" priority />
+          <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority />
         </div>
         <div className="px-7 pt-10 md:px-8">
           <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">

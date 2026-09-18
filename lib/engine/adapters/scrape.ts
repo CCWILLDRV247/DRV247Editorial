@@ -1,5 +1,5 @@
 import { capSummary, canonicalizeUrl, stripHtml } from "../../text";
-import { extractPageImage } from "../article-text";
+import { extractPageImage, extractPageImageCandidates } from "../article-text";
 import { resolveImageUrl } from "../magazine";
 import { isPathAllowed, parseRobots } from "../robots";
 import type { EngineItem } from "./rss";
@@ -34,13 +34,18 @@ export function parseArticleMetadata(html: string, pageUrl: string): EngineItem 
   const image = extractPageImage(html);
   const published = meta(html, "article:published_time") || meta(html, "date") || "";
   const author = meta(html, "author") || "";
+  const pageUrlBase = canonical || pageUrl;
   return {
     title: stripHtml(title),
     url: canonical,
     canonicalUrl: canonical,
     author: author || null,
     excerpt: capSummary(description || title),
-    imageUrl: resolveImageUrl(image, canonical || pageUrl),
+    imageUrl: resolveImageUrl(image, pageUrlBase),
+    imageCandidates: extractPageImageCandidates(html).map((candidate) => ({
+      ...candidate,
+      url: resolveImageUrl(candidate.url, pageUrlBase) ?? candidate.url,
+    })),
     publishedAt: published ? Date.parse(published) || Date.now() : Date.now(),
     method: "scrape",
   };

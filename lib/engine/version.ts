@@ -1,4 +1,4 @@
-export const ENGINE_BRANCH = "cursor/underground-priority-ingest-3ae8";
+export const ENGINE_BRANCH = "cursor/image-pipeline-b554";
 export const ENGINE_WAVE = "wave-6-74";
 
 export function engineCommit() {

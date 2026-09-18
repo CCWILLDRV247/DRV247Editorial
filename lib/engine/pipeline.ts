@@ -17,7 +17,14 @@ import { isSitemapIndex, looksLikeArticleUrl, parseSitemapXml } from "./adapters
 import { parseArticleMetadata, parseHomeLinks, robotsAllows } from "./adapters/scrape";
 import { extractEntities } from "./extract";
 import { fetchText, looksLikeFeed } from "./http";
-import { resolveImageUrl } from "./magazine";
+import {
+  emptyImagePayload,
+  mergeImageMetadata,
+  parseImagePayload,
+  resolveCandidates,
+  selectPrimaryImage,
+  type ImageCandidate,
+} from "./images";
 import { isUsableArticleImage } from "../text";
 import { isMerchArticle, isMerchUrl } from "./merch";
 import { isNonEditorialArticle, isNonEditorialUrl } from "./non-editorial";
@@ -365,8 +372,10 @@ async function persistItems(
     )[0];
     if (seen) {
       const kept = isUsableArticleImage(seen.imageUrl) ? seen.imageUrl : null;
-      const imageUrl =
-        kept || (source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null);
+      const incoming = source.allowImage
+        ? resolveCandidates(item.imageCandidates ?? imageCandidatesFromUrl(item.imageUrl), item.canonicalUrl)
+        : [];
+      const imageUrl = kept || incoming[0]?.url || null;
       await db
         .update(articles)
         .set({ lastSeen: now, imageUrl })
@@ -381,12 +390,17 @@ async function persistItems(
           aiSummary: seen.aiSummary,
           publication: seen.publication,
           allowImage: source.allowImage,
+          metadata: seen.metadata,
+          imageCandidates: incoming,
         });
       }
       continue;
     }
     const group = byTitle.get(sameStoryKey(item.title)) ?? sameStoryKey(item.title);
     byTitle.set(sameStoryKey(item.title), group);
+    const feedCandidates = source.allowImage
+      ? resolveCandidates(item.imageCandidates ?? imageCandidatesFromUrl(item.imageUrl), item.canonicalUrl)
+      : [];
     const created = await db
       .insert(articles)
       .values({
@@ -398,7 +412,7 @@ async function persistItems(
         guid: item.guid ?? null,
         author: source.allowExcerpt ? item.author ?? null : null,
         publishedAt: Number.isFinite(item.publishedAt) ? item.publishedAt : now,
-        imageUrl: source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null,
+        imageUrl: feedCandidates[0]?.url ?? null,
         excerpt: source.allowExcerpt ? item.excerpt : "",
         editorialScore: publisherScore(source.relevance) + (item.excerpt.length >= 180 ? weights.longForm : 0),
         processed: true,
@@ -433,6 +447,8 @@ async function persistItems(
       aiSummary: row.aiSummary,
       publication: source.publication,
       allowImage: source.allowImage,
+      metadata: row.metadata,
+      imageCandidates: feedCandidates,
     });
     await persistArticleExtraction(row.id);
   }
@@ -542,6 +558,8 @@ type PendingPage = {
   aiSummary: string | null;
   publication: string;
   allowImage: boolean;
+  metadata: string | null;
+  imageCandidates: ImageCandidate[];
 };
 
 async function summarizePending(pending: PendingPage[]): Promise<number> {
@@ -565,10 +583,7 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
     );
     for (const result of results) {
       const stored = isUsableArticleImage(result.item.imageUrl) ? result.item.imageUrl : null;
-      const pageImage = result.item.allowImage
-        ? resolveImageUrl(result.page.imageUrl, result.item.canonicalUrl)
-        : null;
-      const nextImage = pageImage || stored;
+      const existingPayload = parseImagePayload(result.item.metadata);
       if (result.page.summary && !result.item.aiSummary?.trim()) {
         await db
           .update(articles)
@@ -577,15 +592,28 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
         summarized += 1;
         await persistArticleExtraction(result.item.id);
       }
-      if (nextImage && !stored) {
-        await persistArticleImage(result.item.id, nextImage, result.item.publication, result.item.title);
-      } else if (pageImage && stored && pageImage !== stored) {
-        await db
-          .update(articles)
-          .set({ imageUrl: pageImage })
-          .where(eq(articles.id, result.item.id));
-      } else if (!nextImage && result.item.imageUrl) {
-        await db.update(articles).set({ imageUrl: null }).where(eq(articles.id, result.item.id));
+      if (result.item.allowImage && (!stored || !existingPayload)) {
+        const merged = [
+          ...result.item.imageCandidates,
+          ...imageCandidatesFromUrl(stored),
+          ...resolveCandidates(result.page.imageCandidates, result.item.canonicalUrl),
+        ];
+        const payload = await selectPrimaryImage(merged);
+        await persistArticleImages(
+          result.item.id,
+          payload,
+          result.item.publication,
+          result.item.title,
+          result.item.metadata,
+        );
+      } else if (!stored && result.item.imageUrl) {
+        await persistArticleImages(
+          result.item.id,
+          emptyImagePayload(),
+          result.item.publication,
+          result.item.title,
+          result.item.metadata,
+        );
       }
     }
     await delay(150);
@@ -593,24 +621,40 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
   return summarized;
 }
 
-async function persistArticleImage(
+async function persistArticleImages(
   articleId: number,
-  url: string,
+  payload: Awaited<ReturnType<typeof selectPrimaryImage>>,
   publication: string,
   title: string,
+  metadata: string | null,
 ): Promise<void> {
   const db = await getDb();
-  await db.update(articles).set({ imageUrl: url }).where(eq(articles.id, articleId));
-  const existing = (
-    await db.select().from(articleImages).where(eq(articleImages.articleId, articleId)).limit(1)
-  )[0];
-  if (existing) return;
-  await db.insert(articleImages).values({
-    articleId,
-    url,
-    source: publication,
-    alt: title,
-  });
+  await db
+    .update(articles)
+    .set({
+      imageUrl: payload.primary,
+      metadata: mergeImageMetadata(metadata, payload),
+    })
+    .where(eq(articles.id, articleId));
+  await db.delete(articleImages).where(eq(articleImages.articleId, articleId));
+  for (const [index, source] of payload.sources.entries()) {
+    await db.insert(articleImages).values({
+      articleId,
+      url: source.url,
+      source: publication,
+      alt: title,
+      sourceType: source.sourceType,
+      status: source.status ?? "pending",
+      lastValidated: source.lastValidated ?? null,
+      sortOrder: index,
+      isPrimary: payload.primary === source.url,
+    });
+  }
+}
+
+function imageCandidatesFromUrl(url: string | null | undefined): ImageCandidate[] {
+  if (!isUsableArticleImage(url)) return [];
+  return [{ url, sourceType: "article" }];
 }
 
 function toPendingPage(
@@ -622,9 +666,11 @@ function toPendingPage(
     imageUrl: string | null;
     aiSummary: string | null;
     publication: string;
+    metadata?: string | null;
   },
   allowImage = true,
 ): PendingPage {
+  const payload = parseImagePayload(row.metadata);
   return {
     id: row.id,
     title: row.title,
@@ -634,6 +680,10 @@ function toPendingPage(
     aiSummary: row.aiSummary,
     publication: row.publication,
     allowImage,
+    metadata: row.metadata ?? null,
+    imageCandidates: payload?.sources.length
+      ? payload.sources
+      : imageCandidatesFromUrl(row.imageUrl),
   };
 }
 

@@ -157,6 +157,11 @@ export const articleImages = sqliteTable("article_images", {
   url: text("url").notNull(),
   source: text("source"),
   alt: text("alt"),
+  sourceType: text("source_type"),
+  status: text("status"),
+  lastValidated: integer("last_validated"),
+  sortOrder: integer("sort_order").default(0),
+  isPrimary: integer("is_primary", { mode: "boolean" }).default(false),
 });
 
 export const ingestionRuns = sqliteTable("ingestion_runs", {

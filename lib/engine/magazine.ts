@@ -53,12 +53,17 @@ export function tagForArticle(article: EditorialDto) {
 
 export function toMagazineStory(article: EditorialDto): StoryDto {
   const nav = navForArticle(article);
+  const imageUrl = resolveImageUrl(article.imageUrl, article.canonicalUrl);
+  const imageSources = article.imageSources
+    .map((url) => resolveImageUrl(url, article.canonicalUrl))
+    .filter((url): url is string => Boolean(url && url !== imageUrl));
   return {
     id: article.id,
     title: article.title,
     summary: article.excerpt,
     aiSummary: article.aiSummary,
-    imageUrl: resolveImageUrl(article.imageUrl, article.canonicalUrl),
+    imageUrl,
+    imageSources,
     canonicalUrl: article.canonicalUrl,
     publishedAt: article.publishedAt,
     hidden: false,
