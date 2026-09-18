@@ -30,16 +30,19 @@ export type Extraction = {
 };
 
 function haystack(title: string, excerpt: string, paragraph: string): string {
-  return ` ${[title, excerpt, paragraph].filter(Boolean).join(" ")} `.toLowerCase();
+  return ` ${[title, excerpt, paragraph].filter(Boolean).join(" ")} `
+    .toLowerCase()
+    .replace(/[’‘‛]/g, "'");
 }
 
 export function includesToken(text: string, alias: string): boolean {
-  const needle = alias.toLowerCase().trim();
+  const needle = alias.toLowerCase().trim().replace(/[’‘‛]/g, "'");
+  const hay = text.replace(/[’‘‛]/g, "'");
   const parts = needle.split(/\s+/).filter(Boolean).map(escapeReg);
   if (!parts.length) return false;
   const body = parts.join("[\\s-]+");
   const plural = /^[0-9]+$/.test(needle.replace(/[\s-]/g, "")) ? "s?" : "";
-  return new RegExp(`(?:^|[^a-z0-9])${body}${plural}(?:[^a-z0-9]|$)`, "i").test(text);
+  return new RegExp(`(?:^|[^a-z0-9])${body}${plural}(?:[^a-z0-9]|$)`, "i").test(hay);
 }
 
 function escapeReg(value: string): string {

@@ -88,6 +88,8 @@ describe("editorial metadata foundation", () => {
     );
     assert.equal(classified.primary, "events");
     assert.ok(classified.geography.some((place) => place.name === "Villa d'Este" && place.kind === "event"));
+    const curly = classifyArticle("Concorso d’Eleganza Villa d’Este 2026: Another Unforgettable Weekend on Lake Como");
+    assert.ok(curly.geography.some((place) => place.name === "Villa d'Este"));
   });
 
   it("classifies a road trip", () => {
