@@ -186,6 +186,14 @@ describe("image payload", () => {
       ),
       false,
     );
+    assert.equal(
+      isUsableArticleImage("https://www.timeattack.co.uk/wp-content/uploads/2026/01/ta-2026.png"),
+      false,
+    );
+    assert.equal(
+      isUsableArticleImage("https://www.timeattack.co.uk/wp-content/uploads/2026/09/Volkov.jpg"),
+      true,
+    );
     assert.equal(isUsableArticleImage("https://cdn.example.com/uploads/964.jpg"), true);
   });
 });

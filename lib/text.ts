@@ -88,6 +88,8 @@ export function isUsableArticleImage(raw: string | null | undefined): raw is str
   }
   if (/\.(?:woff2?|ttf|otf|eot|css|js)(\?|#|$)/i.test(lower)) return false;
   if (/\/(?:fonts?|font-files)\//i.test(lower)) return false;
+  // Time Attack (and similar) put a season holding/header PNG ahead of the lead photo.
+  if (/(?:^|\/)ta-\d{4}(?:-[^/?#]+)?\.(?:jpe?g|png|gif|webp)(?:\?|#|$)/i.test(lower)) return false;
   if (/(?:\/|_)(?:1x1|pixel|spacer|tracking)(?:[._/-]|$)/i.test(lower)) return false;
   if (/[?&](?:w|width|h|height)=1(?:&|$)/i.test(lower)) return false;
   return true;

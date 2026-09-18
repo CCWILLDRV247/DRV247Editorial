@@ -1175,6 +1175,23 @@ describe("page summary extract", () => {
     </body></html>`;
     assert.equal(extractPageImage(html), "https://bonnetmagazine.com/cdn/shop/articles/hero.jpg");
   });
+  it("skips the Time Attack season holding PNG and keeps the article lead photo", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const { isUsableArticleImage } = await import("../text");
+    const html = `<html><body>
+      <img src="/wp-content/uploads/2026/01/ta-2026.png" alt="Time Attack — It's not racing… It's Time Attack">
+      <img src="https://www.timeattack.co.uk/wp-content/uploads/2026/09/Volkov.jpg" alt="">
+      <img src="https://www.timeattack.co.uk/wp-content/uploads/2026/09/Luke-1-1024x683.jpg" alt="">
+    </body></html>`;
+    assert.equal(
+      extractPageImage(html),
+      "https://www.timeattack.co.uk/wp-content/uploads/2026/09/Volkov.jpg",
+    );
+    assert.equal(
+      isUsableArticleImage("https://www.timeattack.co.uk/wp-content/uploads/2026/01/ta-2026.png"),
+      false,
+    );
+  });
 });
 
 describe("source seed writes", () => {
