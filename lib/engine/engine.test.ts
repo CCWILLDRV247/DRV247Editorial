@@ -1469,3 +1469,151 @@ describe("vehicle-aware For You ranking", () => {
   });
 });
 
+describe("For You centre", () => {
+  function candidate(
+    id: number,
+    title: string,
+    opts: {
+      makes?: string[];
+      models?: string[];
+      interests?: string[];
+      categories?: string[];
+      why?: string[];
+      vehicleTier?: "variant" | "vehicle" | "model" | "generation" | "make" | "category" | "none";
+    } = {},
+  ) {
+    return {
+      id,
+      title,
+      publication: "Octane",
+      makes: opts.makes ?? [],
+      models: opts.models ?? [],
+      interests: opts.interests ?? [],
+      categories: opts.categories ?? [],
+      why: opts.why ?? [],
+      vehicleTier: opts.vehicleTier ?? "none",
+      duplicateGroupId: null,
+      rankScore: 100 - id,
+      imageUrl: `https://img.example/${id}.jpg`,
+    };
+  }
+
+  it("uses make and model in copy, not a generic recommendation label", async () => {
+    const { forYouCopy } = await import("./for-you-home");
+    const { FOR_YOU_DEMO_PROFILES } = await import("./for-you-test");
+    const copy = forYouCopy(FOR_YOU_DEMO_PROFILES.A);
+    assert.equal(copy.headerTitle, "For your Ferrari F355");
+    assert.equal(copy.kicker, "FOR YOUR FERRARI F355");
+    assert.equal(copy.dek, "Ferrari F355 GTB");
+    assert.equal(copy.blurb, "Stories selected for your car.");
+    assert.equal(/personalised recommendations/i.test(copy.kicker + copy.dek + copy.blurb), false);
+    const empty = forYouCopy({ interests: [] });
+    assert.match(empty.dek, /tell us what you drive/i);
+  });
+
+  it("curates different leads for demo profiles A–D from the same corpus", async () => {
+    const { curateForYouHome } = await import("./for-you-home");
+    const { FOR_YOU_DEMO_PROFILES } = await import("./for-you-test");
+    const corpus = [
+      candidate(1, "Ferrari F355 GTB restored", {
+        makes: ["Ferrari"],
+        models: ["F355"],
+        vehicleTier: "variant",
+        why: ["Because you drive a Ferrari F355 GTB"],
+      }),
+      candidate(2, "Ferrari F40 at dusk", { makes: ["Ferrari"], vehicleTier: "make" }),
+      candidate(3, "Porsche 964 C2 on a B-road", {
+        makes: ["Porsche"],
+        models: ["911"],
+        vehicleTier: "variant",
+        why: ["Because you drive a Porsche 911 964 C2"],
+      }),
+      candidate(4, "Air-cooled 911 values", {
+        makes: ["Porsche"],
+        models: ["911"],
+        vehicleTier: "model",
+        interests: ["Air-cooled", "Classic"],
+      }),
+      candidate(5, "Nissan Skyline GT-R in Tokyo", {
+        makes: ["Nissan"],
+        models: ["Skyline"],
+        vehicleTier: "model",
+        interests: ["JDM"],
+        why: ["Because you drive a Nissan Skyline"],
+      }),
+      candidate(6, "S15 with an RB", { makes: ["Nissan"], vehicleTier: "make", interests: ["Modified"] }),
+      candidate(7, "E46 M3 on track", {
+        makes: ["BMW"],
+        models: ["M3"],
+        vehicleTier: "model",
+        interests: ["Performance", "Motorsport"],
+      }),
+      candidate(8, "BMW 1600-2 review", { makes: ["BMW"], vehicleTier: "make" }),
+      candidate(9, "A classic road trip in the Alps", {
+        interests: ["Classic", "Road Trips"],
+        categories: ["Road Trips"],
+        vehicleTier: "category",
+      }),
+      candidate(10, "JDM night meet", {
+        interests: ["JDM", "Modified"],
+        vehicleTier: "category",
+      }),
+      candidate(11, "WRC on the BBC", {
+        interests: ["Motorsport"],
+        vehicleTier: "category",
+      }),
+      candidate(12, "Industry briefing", { vehicleTier: "none" }),
+    ];
+    const leads = (["A", "B", "C", "D"] as const).map((id) => {
+      const plan = curateForYouHome(corpus, FOR_YOU_DEMO_PROFILES[id]);
+      return plan.forYourCar.stories[0]?.id;
+    });
+    assert.equal(leads[0], 1);
+    assert.equal(leads[1], 3);
+    assert.equal(leads[2], 5);
+    assert.equal(leads[3], 7);
+    assert.equal(new Set(leads).size, 4);
+  });
+
+  it("breaks a run of five stories from the same marque", async () => {
+    const { curateForYouHome } = await import("./for-you-home");
+    const ferraris = [1, 2, 3, 4, 5, 6].map((id) =>
+      candidate(id, `Ferrari story ${id}`, { makes: ["Ferrari"], vehicleTier: "make" }),
+    );
+    const other = candidate(20, "Classic road trip", {
+      interests: ["Classic", "Performance"],
+      categories: ["Classic"],
+      vehicleTier: "category",
+      why: ["Because you follow Classic + Performance"],
+    });
+    const plan = curateForYouHome([...ferraris, other], {
+      make: "Ferrari",
+      model: "F355",
+      variant: "GTB",
+      interests: ["Classic", "Performance"],
+    });
+    const makes = plan.forYourCar.stories.map((story) => story.makes[0]);
+    let run = 1;
+    let maxRun = 1;
+    for (let i = 1; i < makes.length; i += 1) {
+      run = makes[i] === makes[i - 1] ? run + 1 : 1;
+      maxRun = Math.max(maxRun, run);
+    }
+    assert.ok(maxRun < 5, `make run ${maxRun} from ${makes.join(",")}`);
+    assert.ok(plan.forYourCar.stories.some((story) => story.id === 20));
+  });
+
+  it("keeps a usable empty state when there is no vehicle", async () => {
+    const { curateForYouHome, forYouCopy } = await import("./for-you-home");
+    const plan = curateForYouHome(
+      [candidate(12, "Industry briefing", { vehicleTier: "none" })],
+      { interests: [] },
+    );
+    assert.equal(plan.vehicleKnown, false);
+    assert.equal(plan.forYourCar.stories.length, 0);
+    assert.ok(plan.discover.stories.length > 0);
+    assert.match(forYouCopy({ interests: [] }).dek, /tell us what you drive/i);
+  });
+});
+
+
