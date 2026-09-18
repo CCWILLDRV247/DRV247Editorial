@@ -73,28 +73,26 @@ export async function rebuildRelatedStories(): Promise<number> {
   }
 
   await db.delete(articleRelated);
-  let count = 0;
+  const rows: { articleId: number; relatedArticleId: number; reason: string; score: number }[] = [];
   for (const [articleId, hits] of related) {
     hits.sort((a, b) => b.score - a.score || a.relatedArticleId - b.relatedArticleId);
     const seen = new Set<number>();
-    const top: RelatedHit[] = [];
     for (const hit of hits) {
       if (seen.has(hit.relatedArticleId)) continue;
       seen.add(hit.relatedArticleId);
-      top.push(hit);
-      if (top.length >= MAX_RELATED) break;
-    }
-    for (const hit of top) {
-      await db.insert(articleRelated).values({
+      rows.push({
         articleId,
         relatedArticleId: hit.relatedArticleId,
         reason: hit.reason,
         score: hit.score,
       });
-      count += 1;
+      if (seen.size >= MAX_RELATED) break;
     }
   }
-  return count;
+  for (let index = 0; index < rows.length; index += 40) {
+    await db.insert(articleRelated).values(rows.slice(index, index + 40));
+  }
+  return rows.length;
 }
 
 export async function relatedForArticle(articleId: number) {

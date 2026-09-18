@@ -15,6 +15,7 @@ import {
   articles,
   ingestionRuns,
   mediaSources,
+  type Article,
   type MediaSource,
 } from "@/lib/db/schema";
 import { parseFeedXml, type EngineItem } from "./adapters/rss";
@@ -747,21 +748,36 @@ export async function extractMissingImages(options?: {
   return { attempted: missing.length, filled };
 }
 
-async function persistArticleExtraction(articleId: number): Promise<void> {
+async function insertAll<T extends Record<string, unknown>>(
+  insert: (values: T[]) => Promise<unknown>,
+  rows: T[],
+) {
+  if (!rows.length) return;
+  const chunk = 40;
+  for (let index = 0; index < rows.length; index += chunk) {
+    await insert(rows.slice(index, index + chunk));
+  }
+}
+
+async function persistArticleExtraction(articleId: number, existing?: Article): Promise<void> {
   const db = await getDb();
-  const row = (await db.select().from(articles).where(eq(articles.id, articleId)).limit(1))[0];
+  const row =
+    existing ?? (await db.select().from(articles).where(eq(articles.id, articleId)).limit(1))[0];
   if (!row) return;
   const classified = classifyArticle(row.title, row.excerpt, row.aiSummary ?? "", row.publication);
-  await db.delete(articleEntities).where(eq(articleEntities.articleId, articleId));
-  await db.delete(articleCategories).where(eq(articleCategories.articleId, articleId));
-  await db.delete(articleInterests).where(eq(articleInterests.articleId, articleId));
-  await db.delete(articleLocations).where(eq(articleLocations.articleId, articleId));
-  await db.delete(articleContentTypes).where(eq(articleContentTypes.articleId, articleId));
-  await db.delete(articleScenes).where(eq(articleScenes.articleId, articleId));
-  await db.delete(articleMotorsport).where(eq(articleMotorsport.articleId, articleId));
-  await db.delete(articleGeography).where(eq(articleGeography.articleId, articleId));
-  for (const entity of classified.entities) {
-    await db.insert(articleEntities).values({
+  await Promise.all([
+    db.delete(articleEntities).where(eq(articleEntities.articleId, articleId)),
+    db.delete(articleCategories).where(eq(articleCategories.articleId, articleId)),
+    db.delete(articleInterests).where(eq(articleInterests.articleId, articleId)),
+    db.delete(articleLocations).where(eq(articleLocations.articleId, articleId)),
+    db.delete(articleContentTypes).where(eq(articleContentTypes.articleId, articleId)),
+    db.delete(articleScenes).where(eq(articleScenes.articleId, articleId)),
+    db.delete(articleMotorsport).where(eq(articleMotorsport.articleId, articleId)),
+    db.delete(articleGeography).where(eq(articleGeography.articleId, articleId)),
+  ]);
+  await insertAll(
+    (values) => db.insert(articleEntities).values(values),
+    classified.entities.map((entity) => ({
       articleId,
       kind: entity.kind,
       name: entity.name,
@@ -773,55 +789,64 @@ async function persistArticleExtraction(articleId: number): Promise<void> {
       chassis: entity.chassis ?? null,
       canonicalId: entity.canonicalId,
       source: entity.source,
-    });
-  }
-  for (const category of classified.categories) {
-    await db.insert(articleCategories).values({ articleId, category });
-  }
-  for (const interest of classified.interests) {
-    await db.insert(articleInterests).values({ articleId, interest });
-  }
-  for (const location of classified.locations) {
-    await db.insert(articleLocations).values({ articleId, location });
-  }
-  for (const rowType of classified.contentTypes) {
-    await db.insert(articleContentTypes).values({
+    })),
+  );
+  await insertAll(
+    (values) => db.insert(articleCategories).values(values),
+    classified.categories.map((category) => ({ articleId, category })),
+  );
+  await insertAll(
+    (values) => db.insert(articleInterests).values(values),
+    classified.interests.map((interest) => ({ articleId, interest })),
+  );
+  await insertAll(
+    (values) => db.insert(articleLocations).values(values),
+    classified.locations.map((location) => ({ articleId, location })),
+  );
+  await insertAll(
+    (values) => db.insert(articleContentTypes).values(values),
+    classified.contentTypes.map((rowType) => ({
       articleId,
       contentType: rowType.name,
       confidence: rowType.confidence,
       source: rowType.source,
-    });
-  }
-  for (const scene of classified.scenes) {
-    await db.insert(articleScenes).values({
+    })),
+  );
+  await insertAll(
+    (values) => db.insert(articleScenes).values(values),
+    classified.scenes.map((scene) => ({
       articleId,
       scene: scene.name,
       confidence: scene.confidence,
       source: scene.source,
-    });
-  }
-  for (const series of classified.motorsport) {
-    await db.insert(articleMotorsport).values({
+    })),
+  );
+  await insertAll(
+    (values) => db.insert(articleMotorsport).values(values),
+    classified.motorsport.map((series) => ({
       articleId,
       series: series.name,
       confidence: series.confidence,
       source: series.source,
-    });
-  }
-  for (const place of classified.geography) {
-    await db.insert(articleGeography).values({
+    })),
+  );
+  await insertAll(
+    (values) => db.insert(articleGeography).values(values),
+    classified.geography.map((place) => ({
       articleId,
       kind: place.kind,
       name: place.name,
       slug: place.slug,
       confidence: place.confidence,
       source: place.source,
-    });
-  }
+    })),
+  );
   await db
     .update(articles)
     .set({
       metadata: mergeClassificationMetadata(row.metadata, classificationSnapshot(classified)),
+      processed: true,
+      lastProcessed: Date.now(),
     })
     .where(eq(articles.id, articleId));
   await upsertArticlePrimary(
@@ -845,11 +870,7 @@ export async function reprocessArticles(): Promise<number> {
   const rows = await db.select().from(articles);
   let count = 0;
   for (const row of rows) {
-    await persistArticleExtraction(row.id);
-    await db
-      .update(articles)
-      .set({ processed: true, lastProcessed: Date.now() })
-      .where(eq(articles.id, row.id));
+    await persistArticleExtraction(row.id, row);
     count += 1;
   }
   await rebuildRelatedStories();
@@ -872,11 +893,7 @@ export async function backfillArticleMetadata(options?: {
   }
   let classified = 0;
   for (const row of rows) {
-    await persistArticleExtraction(row.id);
-    await db
-      .update(articles)
-      .set({ processed: true, lastProcessed: Date.now() })
-      .where(eq(articles.id, row.id));
+    await persistArticleExtraction(row.id, row);
     classified += 1;
   }
   const related = await rebuildRelatedStories();
