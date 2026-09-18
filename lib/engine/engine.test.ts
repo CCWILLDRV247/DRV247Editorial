@@ -145,6 +145,11 @@ describe("sitemap", () => {
       ),
       true,
     );
+    assert.equal(looksLikeArticleUrl("https://dyler.com/sell-car", "https://dyler.com"), false);
+    assert.equal(
+      looksLikeArticleUrl("https://dyler.com/cars/1965-porsche-911", "https://dyler.com"),
+      true,
+    );
   });
 });
 
@@ -574,6 +579,13 @@ describe("non-editorial url skip", () => {
         "https://bonnetmagazine.com/blogs/journal/a-feature",
         "https://bonnetmagazine.com",
       ),
+      false,
+    );
+    assert.equal(isUnusableArticleUrl("https://dyler.com/sell-car"), true);
+    assert.equal(isUnusableArticleUrl("https://dyler.com/sell-car/"), true);
+    assert.equal(isNonEditorialUrl("https://dyler.com/sell-car", "https://dyler.com"), true);
+    assert.equal(
+      isNonEditorialUrl("https://dyler.com/cars/1965-porsche-911", "https://dyler.com"),
       false,
     );
   });

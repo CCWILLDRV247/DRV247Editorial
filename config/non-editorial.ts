@@ -22,6 +22,7 @@ export const UNUSABLE_PATH_SEGMENTS = ["undefined", "null"] as const;
  * Exact pathnames that are section indexes, not teasers.
  * `/news/slug` and `/blog/slug` stay. `/gallery/…` stays.
  * `/pages/articles` is a Shopify magazine listing (Bonnet), not a story.
+ * `/sell-car` is Dyler’s sell-your-car promo, not a teaser.
  */
 export const NON_ARTICLE_EXACT_PATHS = [
   "/",
@@ -31,6 +32,7 @@ export const NON_ARTICLE_EXACT_PATHS = [
   "/classic-cars-a-to-z",
   "/parts-services",
   "/pages/articles",
+  "/sell-car",
 ] as const;
 
 /**
