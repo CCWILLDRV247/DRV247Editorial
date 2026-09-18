@@ -532,6 +532,12 @@ describe("non-editorial url skip", () => {
       false,
     );
     assert.equal(isNonEditorialUrl("https://dyler.com/blog/a-classic-feature", "https://dyler.com"), false);
+    assert.equal(isUnusableArticleUrl("https://engineswapdepot.com/"), true);
+    assert.equal(isUnusableArticleUrl("https://engineswapdepot.com/?p=153222"), false);
+    assert.equal(
+      isNonEditorialUrl("https://engineswapdepot.com/?p=153222", "https://engineswapdepot.com"),
+      false,
+    );
   });
 });
 

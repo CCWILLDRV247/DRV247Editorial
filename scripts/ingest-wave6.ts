@@ -5,7 +5,9 @@ import { ingestEnabledSources } from "../lib/engine/pipeline";
 async function main() {
   await getDb();
   console.log("Underground Priority RSS:", UNDERGROUND_SOURCE_IDS.join(", "));
-  console.log(JSON.stringify(await ingestEnabledSources([...UNDERGROUND_SOURCE_IDS]), null, 2));
+  const results = await ingestEnabledSources([...UNDERGROUND_SOURCE_IDS]);
+  console.log(JSON.stringify(results, null, 2));
+  console.log("UNDERGROUND_INGEST_DONE");
 }
 
 main().catch((error) => {
