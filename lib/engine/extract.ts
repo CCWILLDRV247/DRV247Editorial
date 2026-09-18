@@ -158,7 +158,9 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
   }
   if (
     models.has("911") &&
-    (includesToken(text, "carrera 2") || (includesToken(text, "c2") && includesToken(text, "carrera")))
+    (includesToken(text, "carrera 2") ||
+      includesToken(text, "c2") ||
+      (includesToken(text, "c2") && includesToken(text, "carrera")))
   ) {
     if (!variants.has("Carrera 2")) {
       variants.add("Carrera 2");
@@ -170,6 +172,32 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
         model: "911",
         inTitle: inTitleHay(title, "carrera 2") || inTitleHay(title, "c2"),
         confidence: 0.8,
+      });
+    }
+    if (!variants.has("C2")) {
+      variants.add("C2");
+      entities.push({
+        kind: "variant",
+        name: "C2",
+        slug: "c2",
+        make: "Porsche",
+        model: "911",
+        inTitle: inTitleHay(title, "c2"),
+        confidence: 0.8,
+      });
+    }
+  }
+  if (models.has("F355") && (includesToken(text, "gtb") || includesToken(text, "355 gtb"))) {
+    if (!variants.has("GTB")) {
+      variants.add("GTB");
+      entities.push({
+        kind: "variant",
+        name: "GTB",
+        slug: "gtb",
+        make: "Ferrari",
+        model: "F355",
+        inTitle: inTitleHay(title, "gtb") || inTitleHay(title, "355 gtb"),
+        confidence: 0.84,
       });
     }
   }
@@ -190,6 +218,7 @@ function extractInterests(text: string): Interest[] {
   const hits: Interest[] = [];
   const rules: [Interest, string[]][] = [
     ["Classic", ["classic", "vintage", "historic"]],
+    ["Air-cooled", ["air-cooled", "air cooled", "aircooled"]],
     ["Performance", ["performance", "supercar", "hypercar"]],
     ["Sports Cars", ["sports car", "sportscar", "gt car"]],
     ["Supercars", ["supercar", "hypercar"]],

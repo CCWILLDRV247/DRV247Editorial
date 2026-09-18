@@ -24,7 +24,7 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
       name: "911",
       aliases: ["911", "nine eleven", "carrera", "gt2", "gt3", "gt3 rs", "911 gt3"],
       generations: ["964", "993", "996", "997", "991", "992"],
-      variants: ["Carrera 2", "Carrera 4"],
+      variants: ["Carrera 2", "Carrera 4", "C2"],
       generationImpliesModel: true,
     },
     { name: "356", aliases: ["356"] },
@@ -39,6 +39,7 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
       name: "F355",
       aliases: ["f355", "f 355", "355", "ferrari 355", "355 gtb", "355 berlinetta"],
       generations: ["F355"],
+      variants: ["GTB"],
     },
     { name: "F40", aliases: ["f40"] },
     { name: "F50", aliases: ["f50"] },
@@ -498,6 +499,7 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
 
 export const INTEREST_TAXONOMY = [
   "Classic",
+  "Air-cooled",
   "Performance",
   "Sports Cars",
   "Supercars",

@@ -2,7 +2,10 @@ import { EDITORIAL_LOCATIONS, INTEREST_TAXONOMY, VEHICLE_CATALOG } from "./catal
 
 export const FOR_YOU_TEST_STORAGE_KEY = "drv247-for-you-test";
 
+export type ForYouDemoId = "A" | "B" | "C" | "D";
+
 export type ForYouTestProfile = {
+  preset?: ForYouDemoId;
   make?: string;
   model?: string;
   generation?: string;
@@ -10,6 +13,52 @@ export type ForYouTestProfile = {
   interests: string[];
   location?: string;
 };
+
+/** Switchable test garages. Not production scoring. Same corpus, different rank. */
+export const FOR_YOU_DEMO_PROFILES: Record<
+  ForYouDemoId,
+  ForYouTestProfile & { id: ForYouDemoId; label: string }
+> = {
+  A: {
+    id: "A",
+    label: "Ferrari F355 GTB",
+    preset: "A",
+    make: "Ferrari",
+    model: "F355",
+    variant: "GTB",
+    interests: ["Classic", "Performance"],
+  },
+  B: {
+    id: "B",
+    label: "Porsche 964 C2",
+    preset: "B",
+    make: "Porsche",
+    model: "911",
+    generation: "964",
+    variant: "C2",
+    interests: ["Air-cooled", "Classic", "Road Trips"],
+  },
+  C: {
+    id: "C",
+    label: "Nissan Skyline",
+    preset: "C",
+    make: "Nissan",
+    model: "Skyline",
+    interests: ["JDM", "Modified", "Performance"],
+  },
+  D: {
+    id: "D",
+    label: "BMW M3",
+    preset: "D",
+    make: "BMW",
+    model: "M3",
+    interests: ["Performance", "Motorsport", "Modified"],
+  },
+};
+
+export function isForYouDemoId(value: string | undefined): value is ForYouDemoId {
+  return value === "A" || value === "B" || value === "C" || value === "D";
+}
 
 export type ForYouTestCatalog = {
   makes: {
@@ -62,16 +111,35 @@ export function parseForYouTestProfile(
     return many(params[key]);
   };
 
+  const presetRaw = sanitizeFilterToken(get("profile") || get("preset")).toUpperCase();
+  const preset = isForYouDemoId(presetRaw) ? presetRaw : undefined;
+  const demo = preset ? FOR_YOU_DEMO_PROFILES[preset] : undefined;
   const interests = [
-    ...new Set(getAll("interest").map((item) => sanitizeFilterToken(item)).filter(Boolean)),
+    ...new Set(
+      [...(demo?.interests ?? []), ...getAll("interest")]
+        .map((item) => sanitizeFilterToken(item))
+        .filter(Boolean),
+    ),
   ];
+  if (demo && !get("make") && !get("model") && !getAll("interest").length) {
+    return {
+      preset: demo.preset,
+      make: demo.make,
+      model: demo.model,
+      generation: demo.generation,
+      variant: demo.variant,
+      interests: [...demo.interests],
+      location: demo.location,
+    };
+  }
   return {
-    make: sanitizeFilterToken(get("make")) || undefined,
-    model: sanitizeFilterToken(get("model")) || undefined,
-    generation: sanitizeFilterToken(get("generation")) || undefined,
-    variant: sanitizeFilterToken(get("variant")) || undefined,
-    interests,
-    location: sanitizeFilterToken(get("location")) || undefined,
+    ...(preset ? { preset } : {}),
+    make: sanitizeFilterToken(get("make")) || demo?.make,
+    model: sanitizeFilterToken(get("model")) || demo?.model,
+    generation: sanitizeFilterToken(get("generation")) || demo?.generation,
+    variant: sanitizeFilterToken(get("variant")) || demo?.variant,
+    interests: interests.length ? interests : (demo?.interests ?? []),
+    location: sanitizeFilterToken(get("location")) || demo?.location,
   };
 }
 
@@ -130,6 +198,7 @@ export function forYouTestSummary(profile: ForYouTestProfile) {
 
 export function forYouTestSearchString(profile: ForYouTestProfile) {
   const params = new URLSearchParams();
+  if (profile.preset) params.set("profile", profile.preset);
   if (profile.make) params.set("make", profile.make);
   if (profile.model) params.set("model", profile.model);
   if (profile.generation) params.set("generation", profile.generation);

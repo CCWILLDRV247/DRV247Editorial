@@ -143,7 +143,7 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     limit: 80,
   });
   const stories = uniqueStories(ranked.map(toMagazineStory)).slice(0, 24);
-  const featuredIds = new Set(stories.slice(0, 6).map((story) => story.id));
+  const featuredIds = new Set(stories.map((story) => story.id));
   const carousels = MAGAZINE_NAV.map((nav) => {
     const lane = ranked
       .filter((article) => articleMatchesNav(article, nav.slug))

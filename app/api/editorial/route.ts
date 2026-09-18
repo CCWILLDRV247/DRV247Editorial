@@ -10,11 +10,13 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const testProfile = parseForYouTestProfile(searchParams);
   const testing = forYouTestIsActive(testProfile);
+  const strict = searchParams.get("strict") === "1";
   const articles = await listEditorial({
     userId: testing ? undefined : (searchParams.get("user") ?? undefined),
     section: searchParams.get("section") ?? "for-you",
     sourceId: searchParams.get("source") ?? undefined,
     testProfile: testing ? testProfile : undefined,
+    hardFilter: strict || undefined,
     make: testing ? undefined : (searchParams.get("make") ?? undefined),
     model: testing ? undefined : (searchParams.get("model") ?? undefined),
     generation: testing ? undefined : (searchParams.get("generation") ?? undefined),
@@ -31,6 +33,16 @@ export async function GET(request: Request) {
       section: searchParams.get("section") ?? "for-you",
       user: testing ? "test-filter" : (searchParams.get("user") ?? null),
       testProfile: testing ? testProfile : null,
+      ranking: testing
+        ? articles.map((article) => ({
+            id: article.id,
+            title: article.title,
+            score: article.rankScore,
+            why: article.why,
+            vehicleTier: article.vehicleTier,
+            signals: article.rankSignals,
+          }))
+        : null,
       publications: [...new Set(articles.map((article) => article.publication))],
       articles,
     },
