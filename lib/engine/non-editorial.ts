@@ -34,7 +34,11 @@ export function isUnusableArticleUrl(url: string): boolean {
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return true;
     if (!parsed.hostname) return true;
     const exact = parsed.pathname.replace(/\/+$/, "") || "/";
-    if (EXACT_PATHS.has(exact)) return true;
+    if (EXACT_PATHS.has(exact)) {
+      // WordPress shortlinks are /?p=123, not the site homepage.
+      if (exact === "/" && parsed.searchParams.get("p")) return false;
+      return true;
+    }
     return pathSegments(raw).some((segment) => UNUSABLE_SEGMENTS.has(segment));
   } catch {
     return true;
