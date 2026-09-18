@@ -29,7 +29,7 @@ export default async function HomePage({
     <div className="min-h-full overflow-x-clip bg-white">
       <SiteHeader title={home.copy.headerTitle} testQuery={testQuery} />
       <ForYouTestFilter initial={testProfile} catalog={catalog} />
-      <main className="pt-2">
+      <main className="relative z-0 pt-2">
         <ForYouHome
           copy={home.copy}
           forYourCar={home.forYourCar}
