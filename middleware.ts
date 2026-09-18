@@ -35,7 +35,8 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api/admin") &&
     pathname !== "/api/editorial/ingest" &&
-    pathname !== "/api/editorial/reprocess"
+    pathname !== "/api/editorial/reprocess" &&
+    pathname !== "/api/editorial/metadata"
   ) {
     return NextResponse.next();
   }
@@ -65,5 +66,6 @@ export const config = {
     "/api/admin/:path*",
     "/api/editorial/ingest",
     "/api/editorial/reprocess",
+    "/api/editorial/metadata",
   ],
 };

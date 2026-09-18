@@ -24,6 +24,7 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
       name: "911",
       aliases: ["911", "nine eleven", "carrera", "gt2", "gt3", "gt3 rs", "911 gt3"],
       generations: ["964", "993", "996", "997", "991", "992"],
+      variants: ["Carrera 2", "Carrera 4"],
       generationImpliesModel: true,
     },
     { name: "356", aliases: ["356"] },
@@ -181,7 +182,14 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
     { name: "GT-R", aliases: ["gt-r", "nissan gtr"] },
     { name: "240Z", aliases: ["240z", "fairlady z"] },
     { name: "300ZX", aliases: ["300zx"] },
-    { name: "Silvia", aliases: ["silvia"] },
+    {
+      name: "240SX",
+      aliases: ["240sx", "240 sx", "nissan 240sx"],
+      generations: ["S13", "S14"],
+      generationImpliesModel: true,
+    },
+    { name: "Silvia", aliases: ["silvia"], generations: ["S13", "S14", "S15"] },
+    { name: "180SX", aliases: ["180sx"] },
     { name: "Figaro", aliases: ["figaro"] },
   ]),
   marque("Mazda", ["mazda"], [
@@ -492,16 +500,29 @@ export const INTEREST_TAXONOMY = [
   "Classic",
   "Performance",
   "Sports Cars",
+  "Supercars",
+  "Modern Classics",
   "Modified",
+  "Tuning",
+  "JDM",
+  "Euro",
+  "American",
   "Motorsport",
+  "Rally",
+  "Drift",
+  "Drag Racing",
+  "Track",
   "Design",
+  "Automotive Design",
   "Car Culture",
   "Road Trips",
   "Collector Cars",
+  "Collecting",
   "Restoration",
   "Detailing",
   "Photography",
   "Events",
+  "Engine Swaps",
 ] as const;
 
 export const EDITORIAL_CATEGORIES = [
@@ -545,4 +566,86 @@ export const EDITORIAL_LOCATIONS = [
   "Villa d'Este",
   "Retromobile",
   "Amelia Island",
+  "Stelvio Pass",
+  "United States",
+  "United Kingdom",
+  "Japan",
+  "Italy",
+  "Germany",
+  "France",
+  "Alps",
 ] as const;
+
+export const CONTENT_TYPES = [
+  "News",
+  "Feature",
+  "Build",
+  "Review",
+  "Technical",
+  "Guide",
+  "Interview",
+  "Opinion",
+  "History",
+  "Event",
+  "Road Trip",
+  "Motorsport",
+  "Video",
+] as const;
+
+export const SCENE_TAXONOMY = [
+  "JDM",
+  "VIP",
+  "Stance",
+  "Drift",
+  "Drag",
+  "Lowrider",
+  "Euro",
+  "Classic",
+  "Air-cooled",
+  "Hot Rod",
+  "Restomod",
+  "Street",
+  "Tuning",
+  "Underground",
+] as const;
+
+export const MOTORSPORT_SERIES = [
+  "F1",
+  "WRC",
+  "GT",
+  "Endurance",
+  "Touring Cars",
+  "Rallycross",
+  "NASCAR",
+  "Drag",
+  "Drift",
+] as const;
+
+export type GeoKind = "country" | "region" | "city" | "circuit" | "event";
+
+export const GEOGRAPHY_CATALOG: { name: string; aliases: string[]; kind: GeoKind }[] = [
+  { name: "Goodwood", aliases: ["goodwood", "goodwood revival", "goodwood fos"], kind: "circuit" },
+  { name: "Monza", aliases: ["monza"], kind: "circuit" },
+  { name: "Le Mans", aliases: ["le mans", "lemans"], kind: "circuit" },
+  { name: "Spa", aliases: ["spa-francorchamps", "spa francorchamps"], kind: "circuit" },
+  { name: "Nürburgring", aliases: ["nurburgring", "nürburgring", "nordschleife"], kind: "circuit" },
+  { name: "Stelvio Pass", aliases: ["stelvio"], kind: "region" },
+  { name: "Alps", aliases: ["alps", "alpine pass"], kind: "region" },
+  { name: "London", aliases: ["london"], kind: "city" },
+  { name: "Milan", aliases: ["milan", "milano"], kind: "city" },
+  { name: "Paris", aliases: ["paris"], kind: "city" },
+  { name: "Monaco", aliases: ["monaco", "monte carlo"], kind: "city" },
+  { name: "Villa d'Este", aliases: ["villa d'este", "villa deste"], kind: "event" },
+  { name: "Retromobile", aliases: ["retromobile", "rétromobile"], kind: "event" },
+  { name: "Amelia Island", aliases: ["amelia island"], kind: "event" },
+  { name: "United States", aliases: ["united states", "usa", "u.s."], kind: "country" },
+  { name: "United Kingdom", aliases: ["united kingdom", "great britain"], kind: "country" },
+  { name: "Japan", aliases: ["japan"], kind: "country" },
+  { name: "Italy", aliases: ["italy"], kind: "country" },
+  { name: "Germany", aliases: ["germany"], kind: "country" },
+  { name: "France", aliases: ["france"], kind: "country" },
+];
+
+export type ContentType = (typeof CONTENT_TYPES)[number];
+export type Scene = (typeof SCENE_TAXONOMY)[number];
+export type MotorsportSeries = (typeof MOTORSPORT_SERIES)[number];

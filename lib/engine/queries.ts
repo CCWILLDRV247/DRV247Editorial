@@ -21,6 +21,11 @@ import { classifyPrimary, isContentPrimary } from "./taxonomy";
 import { displayImageUrls, parseImagePayload } from "./images";
 import { loadArticlePrimaries } from "./article-primary";
 import {
+  parseClassificationSnapshot,
+  type ClassificationSnapshot,
+} from "./classify";
+import { relatedForArticle } from "./related";
+import {
   articleMatchesForYouTest,
   buildForYouTestCatalog,
   forYouTestIsActive,
@@ -55,6 +60,9 @@ export type EditorialDto = {
   locations: string[];
   duplicateGroupId: string | null;
   primaryCategory: string;
+  primaryConfidence: number | null;
+  classification: ClassificationSnapshot | null;
+  related: { id: number; title: string; publication: string; reason: string; score: number }[];
 };
 
 type FeedArticle = Pick<
@@ -170,6 +178,9 @@ function toDto(
     locations: string[];
     rankScore: number;
     primaryCategory: string;
+    primaryConfidence?: number | null;
+    classification?: ClassificationSnapshot | null;
+    related?: EditorialDto["related"];
   },
 ): EditorialDto {
   const image = parseImagePayload(article.metadata);
@@ -202,6 +213,9 @@ function toDto(
     locations: extras.locations,
     duplicateGroupId: article.duplicateGroupId,
     primaryCategory: extras.primaryCategory,
+    primaryConfidence: extras.primaryConfidence ?? parseClassificationSnapshot(article.metadata)?.primaryConfidence ?? null,
+    classification: extras.classification ?? parseClassificationSnapshot(article.metadata),
+    related: extras.related ?? [],
   };
 }
 
@@ -427,10 +441,11 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
     await db.select(ARTICLE_FEED_COLUMNS).from(articles).where(eq(articles.id, id)).limit(1)
   )[0];
   if (!article) return null;
-  const [extrasMap, primaryMap, source] = await Promise.all([
+  const [extrasMap, primaryMap, source, related] = await Promise.all([
     extrasByArticleIds([article.id]),
     loadArticlePrimaries([article.id]),
     db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1),
+    relatedForArticle(article.id),
   ]);
   const extras = extrasMap.get(article.id)!;
   const rankScore = scoreArticle({
@@ -449,7 +464,46 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
       categories: extras.categories,
       interests: extras.interests,
     });
-  return toDto(article, { ...extras, rankScore, primaryCategory });
+  const snap = parseClassificationSnapshot(article.metadata);
+  return toDto(article, {
+    ...extras,
+    rankScore,
+    primaryCategory,
+    primaryConfidence: snap?.primaryConfidence ?? null,
+    classification: snap,
+    related,
+  });
+}
+
+export type ClassificationDebugRow = {
+  id: number;
+  title: string;
+  publication: string;
+  excerpt: string;
+  classification: ClassificationSnapshot | null;
+};
+
+export async function listClassificationDebug(limit = 40): Promise<ClassificationDebugRow[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({
+      id: articles.id,
+      title: articles.title,
+      publication: articles.publication,
+      excerpt: articles.excerpt,
+      metadata: articles.metadata,
+      lastProcessed: articles.lastProcessed,
+    })
+    .from(articles)
+    .orderBy(desc(articles.lastProcessed), desc(articles.publishedAt))
+    .limit(limit);
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    publication: row.publication,
+    excerpt: row.excerpt,
+    classification: parseClassificationSnapshot(row.metadata),
+  }));
 }
 
 async function loadForYouTestCatalogFresh() {

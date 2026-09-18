@@ -77,12 +77,25 @@ export const INTEREST_TO_PRIMARY: Record<string, ContentPrimary> = {
   Classic: "cars",
   Performance: "cars",
   "Sports Cars": "cars",
+  Supercars: "cars",
+  "Modern Classics": "cars",
   Modified: "cars",
+  Tuning: "cars",
   Restoration: "cars",
   "Collector Cars": "cars",
+  Collecting: "cars",
   Detailing: "cars",
+  "Engine Swaps": "cars",
+  JDM: "culture",
+  Euro: "culture",
+  American: "culture",
   Motorsport: "motorsport",
+  Rally: "motorsport",
+  Drift: "motorsport",
+  "Drag Racing": "motorsport",
+  Track: "motorsport",
   Design: "culture",
+  "Automotive Design": "culture",
   "Car Culture": "culture",
   Photography: "culture",
   "Road Trips": "driving",
@@ -204,6 +217,7 @@ const CULTURE_KEYWORDS = [
   "architecture",
   "fashion",
   "car culture",
+  "building a",
 ];
 
 const CARS_KEYWORDS = [
@@ -225,10 +239,20 @@ export type ClassifyInput = {
   publication?: string;
   categories?: string[];
   interests?: string[];
+  contentTypes?: string[];
+  scenes?: string[];
 };
 
 function haystack(input: ClassifyInput) {
-  return [input.title, input.excerpt, input.publication, ...(input.categories ?? []), ...(input.interests ?? [])]
+  return [
+    input.title,
+    input.excerpt,
+    input.publication,
+    ...(input.categories ?? []),
+    ...(input.interests ?? []),
+    ...(input.contentTypes ?? []),
+    ...(input.scenes ?? []),
+  ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -238,7 +262,13 @@ function keywordHits(text: string, needles: string[]) {
   return needles.reduce((count, needle) => (text.includes(needle) ? count + 1 : count), 0);
 }
 
-export function classifyPrimary(input: ClassifyInput): ContentPrimary {
+const BUILD_SCENES = new Set(["JDM", "Drift", "Stance", "Tuning", "Restomod", "Underground"]);
+
+export function classifyPrimaryDetailed(input: ClassifyInput): {
+  primary: ContentPrimary;
+  confidence: number;
+  scores: Record<ContentPrimary, number>;
+} {
   const scores: Record<ContentPrimary, number> = {
     events: 0,
     motorsport: 0,
@@ -264,6 +294,11 @@ export function classifyPrimary(input: ClassifyInput): ContentPrimary {
   scores.culture += keywordHits(text, CULTURE_KEYWORDS) * 2;
   scores.cars += keywordHits(text, CARS_KEYWORDS) * 2;
 
+  const hasBuild = (input.contentTypes ?? []).includes("Build");
+  const sceneHit = (input.scenes ?? []).some((scene) => BUILD_SCENES.has(scene));
+  if (hasBuild && sceneHit) scores.culture += 8;
+  else if (hasBuild) scores.cars += 3;
+
   const pub = (input.publication ?? "").toLowerCase().trim();
   if (
     CULTURE_PUBLICATIONS.has(pub) &&
@@ -282,8 +317,18 @@ export function classifyPrimary(input: ClassifyInput): ContentPrimary {
       bestScore = scores[slug];
     }
   }
-  if (bestScore <= 0) return "culture";
-  return best;
+  if (bestScore <= 0) {
+    return { primary: "culture", confidence: 50, scores };
+  }
+  const sorted = Object.values(scores).sort((a, b) => b - a);
+  const lead = sorted[0] ?? 0;
+  const runner = sorted[1] ?? 0;
+  const confidence = Math.max(55, Math.min(95, 58 + lead * 3 + Math.max(0, lead - runner) * 2));
+  return { primary: best, confidence, scores };
+}
+
+export function classifyPrimary(input: ClassifyInput): ContentPrimary {
+  return classifyPrimaryDetailed(input).primary;
 }
 
 export function isContentPrimary(value: string): value is ContentPrimary {

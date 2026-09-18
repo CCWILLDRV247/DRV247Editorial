@@ -227,6 +227,7 @@ async function ensureSchema(client: Client) {
   }
   await ensureTaxonomy(client);
   await ensureArticleImageColumns(client);
+  await ensureMetadataFoundation(client);
 }
 
 const INDEX_STATEMENTS = [
@@ -279,6 +280,65 @@ async function ensureArticleImageColumns(client: Client) {
       await client.execute(sql);
     } catch {
       // Column already exists on live Turso / local sqlite.
+    }
+  }
+}
+
+const METADATA_STATEMENTS = [
+  "ALTER TABLE article_entities ADD COLUMN relevance TEXT",
+  "ALTER TABLE article_entities ADD COLUMN chassis TEXT",
+  "ALTER TABLE article_entities ADD COLUMN canonical_id TEXT",
+  "ALTER TABLE article_entities ADD COLUMN source TEXT",
+  `CREATE TABLE IF NOT EXISTS article_content_types (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      content_type TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_scenes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      scene TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_motorsport (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      series TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_geography (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      kind TEXT NOT NULL,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_related (
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      related_article_id INTEGER NOT NULL REFERENCES articles(id),
+      reason TEXT NOT NULL,
+      score INTEGER NOT NULL DEFAULT 0
+    )`,
+  `CREATE INDEX IF NOT EXISTS article_content_types_article_idx ON article_content_types (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_scenes_article_idx ON article_scenes (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_motorsport_article_idx ON article_motorsport (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_geography_article_idx ON article_geography (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_related_article_idx ON article_related (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_entities_canonical_idx ON article_entities (canonical_id)`,
+];
+
+async function ensureMetadataFoundation(client: Client) {
+  for (const sql of METADATA_STATEMENTS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Column/table already exists on live Turso / local sqlite.
     }
   }
 }

@@ -1,4 +1,4 @@
-export const ENGINE_BRANCH = "cursor/image-pipeline-b554";
+export const ENGINE_BRANCH = "cursor/editorial-metadata-f4cb";
 export const ENGINE_WAVE = "wave-6-74";
 
 export function engineCommit() {

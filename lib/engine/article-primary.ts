@@ -7,11 +7,17 @@ import {
   articles,
 } from "@/lib/db/schema";
 import { MAGAZINE_NAV, type ContentPrimary } from "../../config/magazine-nav";
-import { classifyPrimary, type ClassifyInput } from "./taxonomy";
+import { classifyPrimaryDetailed, type ClassifyInput } from "./taxonomy";
 
-export async function upsertArticlePrimary(articleId: number, input: ClassifyInput) {
+export async function upsertArticlePrimary(
+  articleId: number,
+  input: ClassifyInput,
+  confidence = 80,
+) {
   const db = await getDb();
-  const primarySlug = classifyPrimary(input);
+  const detailed = classifyPrimaryDetailed(input);
+  const primarySlug = detailed.primary;
+  const nextConfidence = confidence || detailed.confidence;
   const existing = (
     await db.select().from(articlePrimary).where(eq(articlePrimary.articleId, articleId)).limit(1)
   )[0];
@@ -19,13 +25,13 @@ export async function upsertArticlePrimary(articleId: number, input: ClassifyInp
   if (existing) {
     await db
       .update(articlePrimary)
-      .set({ primarySlug, confidence: 80, source: "rule" })
+      .set({ primarySlug, confidence: nextConfidence, source: "rule" })
       .where(eq(articlePrimary.articleId, articleId));
   } else {
     await db.insert(articlePrimary).values({
       articleId,
       primarySlug,
-      confidence: 80,
+      confidence: nextConfidence,
       source: "rule",
     });
   }

@@ -2,11 +2,16 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   articleCategories,
+  articleContentTypes,
   articleEntities,
+  articleGeography,
   articleImages,
   articleInterests,
   articleLocations,
+  articleMotorsport,
   articlePrimary,
+  articleRelated,
+  articleScenes,
   articles,
   ingestionRuns,
   mediaSources,
@@ -15,7 +20,6 @@ import {
 import { parseFeedXml, type EngineItem } from "./adapters/rss";
 import { isSitemapIndex, looksLikeArticleUrl, parseSitemapXml } from "./adapters/sitemap";
 import { parseArticleMetadata, parseHomeLinks, robotsAllows } from "./adapters/scrape";
-import { extractEntities } from "./extract";
 import { fetchText, looksLikeFeed } from "./http";
 import {
   emptyImagePayload,
@@ -33,6 +37,12 @@ import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
 import { extractOriginalPage } from "./summarize";
 import { upsertArticlePrimary } from "./article-primary";
+import {
+  classifyArticle,
+  classificationSnapshot,
+  mergeClassificationMetadata,
+} from "./classify";
+import { rebuildRelatedStories } from "./related";
 import { DISABLED_SOURCE_SET, ENABLED_SOURCE_SET } from "@/config/wave1-sources";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -462,6 +472,12 @@ export async function deleteArticleById(id: number): Promise<void> {
   await db.delete(articleCategories).where(eq(articleCategories.articleId, id));
   await db.delete(articleInterests).where(eq(articleInterests.articleId, id));
   await db.delete(articleLocations).where(eq(articleLocations.articleId, id));
+  await db.delete(articleContentTypes).where(eq(articleContentTypes.articleId, id));
+  await db.delete(articleScenes).where(eq(articleScenes.articleId, id));
+  await db.delete(articleMotorsport).where(eq(articleMotorsport.articleId, id));
+  await db.delete(articleGeography).where(eq(articleGeography.articleId, id));
+  await db.delete(articleRelated).where(eq(articleRelated.articleId, id));
+  await db.delete(articleRelated).where(eq(articleRelated.relatedArticleId, id));
   await db.delete(articleImages).where(eq(articleImages.articleId, id));
   await db.delete(articlePrimary).where(eq(articlePrimary.articleId, id));
   await db.delete(articles).where(eq(articles.id, id));
@@ -735,12 +751,16 @@ async function persistArticleExtraction(articleId: number): Promise<void> {
   const db = await getDb();
   const row = (await db.select().from(articles).where(eq(articles.id, articleId)).limit(1))[0];
   if (!row) return;
-  const extracted = extractEntities(row.title, row.excerpt, row.aiSummary ?? "");
+  const classified = classifyArticle(row.title, row.excerpt, row.aiSummary ?? "", row.publication);
   await db.delete(articleEntities).where(eq(articleEntities.articleId, articleId));
   await db.delete(articleCategories).where(eq(articleCategories.articleId, articleId));
   await db.delete(articleInterests).where(eq(articleInterests.articleId, articleId));
   await db.delete(articleLocations).where(eq(articleLocations.articleId, articleId));
-  for (const entity of extracted.entities) {
+  await db.delete(articleContentTypes).where(eq(articleContentTypes.articleId, articleId));
+  await db.delete(articleScenes).where(eq(articleScenes.articleId, articleId));
+  await db.delete(articleMotorsport).where(eq(articleMotorsport.articleId, articleId));
+  await db.delete(articleGeography).where(eq(articleGeography.articleId, articleId));
+  for (const entity of classified.entities) {
     await db.insert(articleEntities).values({
       articleId,
       kind: entity.kind,
@@ -749,24 +769,74 @@ async function persistArticleExtraction(articleId: number): Promise<void> {
       make: entity.make ?? null,
       model: entity.model ?? null,
       confidence: Math.round(entity.confidence * 100),
+      relevance: entity.relevance,
+      chassis: entity.chassis ?? null,
+      canonicalId: entity.canonicalId,
+      source: entity.source,
     });
   }
-  for (const category of extracted.categories) {
+  for (const category of classified.categories) {
     await db.insert(articleCategories).values({ articleId, category });
   }
-  for (const interest of extracted.interests) {
+  for (const interest of classified.interests) {
     await db.insert(articleInterests).values({ articleId, interest });
   }
-  for (const location of extracted.locations) {
+  for (const location of classified.locations) {
     await db.insert(articleLocations).values({ articleId, location });
   }
-  await upsertArticlePrimary(articleId, {
-    title: row.title,
-    excerpt: row.excerpt,
-    publication: row.publication,
-    categories: extracted.categories,
-    interests: extracted.interests,
-  });
+  for (const rowType of classified.contentTypes) {
+    await db.insert(articleContentTypes).values({
+      articleId,
+      contentType: rowType.name,
+      confidence: rowType.confidence,
+      source: rowType.source,
+    });
+  }
+  for (const scene of classified.scenes) {
+    await db.insert(articleScenes).values({
+      articleId,
+      scene: scene.name,
+      confidence: scene.confidence,
+      source: scene.source,
+    });
+  }
+  for (const series of classified.motorsport) {
+    await db.insert(articleMotorsport).values({
+      articleId,
+      series: series.name,
+      confidence: series.confidence,
+      source: series.source,
+    });
+  }
+  for (const place of classified.geography) {
+    await db.insert(articleGeography).values({
+      articleId,
+      kind: place.kind,
+      name: place.name,
+      slug: place.slug,
+      confidence: place.confidence,
+      source: place.source,
+    });
+  }
+  await db
+    .update(articles)
+    .set({
+      metadata: mergeClassificationMetadata(row.metadata, classificationSnapshot(classified)),
+    })
+    .where(eq(articles.id, articleId));
+  await upsertArticlePrimary(
+    articleId,
+    {
+      title: row.title,
+      excerpt: row.excerpt,
+      publication: row.publication,
+      categories: classified.categories,
+      interests: classified.interests,
+      contentTypes: classified.contentTypes.map((item) => item.name),
+      scenes: classified.scenes.map((item) => item.name),
+    },
+    classified.primaryConfidence,
+  );
 }
 
 export async function reprocessArticles(): Promise<number> {
@@ -782,5 +852,33 @@ export async function reprocessArticles(): Promise<number> {
       .where(eq(articles.id, row.id));
     count += 1;
   }
+  await rebuildRelatedStories();
   return count;
+}
+
+/** Classify stored teasers/extracts only. No page fetch, no ingest wave. Idempotent. */
+export async function backfillArticleMetadata(options?: {
+  ids?: number[];
+  limit?: number;
+}): Promise<{ classified: number; related: number }> {
+  const db = await getDb();
+  let rows = await db.select().from(articles);
+  if (options?.ids?.length) {
+    const wanted = new Set(options.ids);
+    rows = rows.filter((row) => wanted.has(row.id));
+  }
+  if (options?.limit && options.limit > 0) {
+    rows = rows.slice(0, options.limit);
+  }
+  let classified = 0;
+  for (const row of rows) {
+    await persistArticleExtraction(row.id);
+    await db
+      .update(articles)
+      .set({ processed: true, lastProcessed: Date.now() })
+      .where(eq(articles.id, row.id));
+    classified += 1;
+  }
+  const related = await rebuildRelatedStories();
+  return { classified, related };
 }
