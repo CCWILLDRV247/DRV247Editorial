@@ -70,6 +70,38 @@ export const WAVE5_SOURCE_IDS = [
   "auto_050", // 911 & Porsche World
 ] as const;
 
+/** Underground Priority titles. Research further / Manual only / Reference only stay out. Fast Car is already live. Dark list stays off. */
+export const UNDERGROUND_SOURCE_IDS = [
+  "auto_054", // Petrolicious
+  "auto_057", // Japanese Nostalgic Car
+  "auto_059", // Performance VW
+  "auto_061", // Fuel Curve
+  "auto_063", // The Rodder's Journal
+  "auto_064", // Hop Up Magazine
+  "auto_066", // Street Machine
+  "auto_070", // Silodrome
+  "auto_071", // SpeedHolics
+  "auto_076", // NIWWRD
+  "auto_078", // Gridline Press
+  "auto_079", // Kaido Racer
+  "auto_081", // MotoIQ
+  "auto_082", // DSPORT
+  "auto_084", // Hagerty Media
+  "auto_085", // Hot Rod
+  "auto_086", // EngineLabs
+  "auto_089", // DirtFish
+  "auto_090", // DailySportsCar
+  "auto_095", // Auto Italia
+  "auto_103", // Classic Cars
+  "auto_111", // Engine Swap Depot
+  "auto_118", // Retro Ford
+  "auto_120", // RallySport Magazine
+  "auto_127", // In the Garage Media
+  "auto_128", // Time Attack UK
+  "auto_130", // Motorsport Retro
+  "auto_131", // Racecar Engineering
+] as const;
+
 /** Wave-2 titles kept in the wave list but not ingested. Autoitaliana is omitted from every wave (no DNS). */
 export const DISABLED_SOURCE_IDS = [
   "auto_012", // AUTOMOBILSPORT — German-only
@@ -86,6 +118,7 @@ export const ENABLED_SOURCE_IDS = [
   ...WAVE3_SOURCE_IDS,
   ...WAVE4_SOURCE_IDS,
   ...WAVE5_SOURCE_IDS,
+  ...UNDERGROUND_SOURCE_IDS,
 ] as const;
 
 export type Wave1SourceId = (typeof WAVE1_SOURCE_IDS)[number];

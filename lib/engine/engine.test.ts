@@ -314,24 +314,37 @@ describe("entities and ranking", () => {
 });
 
 describe("enabled sources", () => {
-  it("enables the remaining CSV titles and keeps the dark list off", async () => {
+  it("enables underground Priority titles and keeps the dark list off", async () => {
     const {
       WAVE1_SOURCE_IDS,
       WAVE2_SOURCE_IDS,
       WAVE3_SOURCE_IDS,
       WAVE4_SOURCE_IDS,
       WAVE5_SOURCE_IDS,
+      UNDERGROUND_SOURCE_IDS,
       ENABLED_SOURCE_IDS,
       DISABLED_SOURCE_IDS,
       ENABLED_SOURCE_SET,
     } = await import("../../config/wave1-sources");
+    const { loadCsvSources } = await import("./seed");
     assert.equal(WAVE1_SOURCE_IDS.length, 10);
     assert.equal(WAVE2_SOURCE_IDS.length, 11);
     assert.equal(WAVE3_SOURCE_IDS.length, 10);
     assert.equal(WAVE4_SOURCE_IDS.length, 10);
     assert.equal(WAVE5_SOURCE_IDS.length, 9);
-    assert.equal(ENABLED_SOURCE_IDS.length, 46);
+    assert.equal(UNDERGROUND_SOURCE_IDS.length, 28);
+    assert.equal(ENABLED_SOURCE_IDS.length, 74);
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
+    assert.ok((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_022"));
+    assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_022"), false);
+    assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
+    assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_012"), false);
+    assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_013"), false);
+    assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_048"), false);
+    assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_049"), false);
+    assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_054"));
+    assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_103"));
+    assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_131"));
     assert.equal((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
     assert.equal((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
     assert.equal((WAVE5_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
@@ -351,9 +364,22 @@ describe("enabled sources", () => {
     assert.equal(ENABLED_SOURCE_SET.has("auto_049"), false);
     assert.equal(ENABLED_SOURCE_SET.has("auto_018"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_020"), true);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_022"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_023"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_035"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_044"), true);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_054"), true);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_095"), true);
+    const csv = loadCsvSources();
+    assert.equal(csv.length, 79);
+    const byId = new Map(csv.map((row) => [row.id, row]));
+    assert.equal(byId.get("auto_022")?.publication, "Fast Car");
+    assert.equal(byId.get("auto_054")?.publication, "Petrolicious");
+    assert.equal(byId.get("auto_054")?.enabled.toLowerCase(), "true");
+    assert.equal(byId.get("auto_103")?.publication, "Classic Cars");
+    assert.equal(byId.get("auto_111")?.publication, "Engine Swap Depot");
+    assert.equal(byId.has("auto_052"), false);
+    assert.equal(byId.has("auto_011"), true);
   });
 });
 
