@@ -892,9 +892,11 @@ export async function backfillArticleMetadata(options?: {
     rows = rows.slice(0, options.limit);
   }
   let classified = 0;
-  for (const row of rows) {
-    await persistArticleExtraction(row.id, row);
-    classified += 1;
+  const concurrency = 6;
+  for (let index = 0; index < rows.length; index += concurrency) {
+    const batch = rows.slice(index, index + concurrency);
+    await Promise.all(batch.map((row) => persistArticleExtraction(row.id, row)));
+    classified += batch.length;
   }
   const related = await rebuildRelatedStories();
   return { classified, related };
