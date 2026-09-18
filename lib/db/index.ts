@@ -228,6 +228,7 @@ async function ensureSchema(client: Client) {
   await ensureTaxonomy(client);
   await ensureArticleImageColumns(client);
   await ensureMetadataFoundation(client);
+  await ensureDeskPicks(client);
 }
 
 const INDEX_STATEMENTS = [
@@ -339,6 +340,33 @@ async function ensureMetadataFoundation(client: Client) {
       await client.execute(sql);
     } catch {
       // Column/table already exists on live Turso / local sqlite.
+    }
+  }
+}
+
+const DESK_PICK_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS desk_picks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL UNIQUE REFERENCES articles(id),
+      note TEXT,
+      curator TEXT NOT NULL DEFAULT 'DRV247 Desk',
+      selected_at INTEGER NOT NULL,
+      expires_at INTEGER,
+      featured INTEGER NOT NULL DEFAULT 0,
+      category TEXT,
+      label TEXT NOT NULL DEFAULT 'from-the-desk',
+      active INTEGER NOT NULL DEFAULT 1
+    )`,
+  `CREATE INDEX IF NOT EXISTS desk_picks_article_idx ON desk_picks (article_id)`,
+  `CREATE INDEX IF NOT EXISTS desk_picks_active_idx ON desk_picks (active, featured, selected_at)`,
+];
+
+async function ensureDeskPicks(client: Client) {
+  for (const sql of DESK_PICK_STATEMENTS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Table/index already exists on live Turso / local sqlite.
     }
   }
 }

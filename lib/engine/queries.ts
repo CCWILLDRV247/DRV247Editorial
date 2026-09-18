@@ -12,6 +12,7 @@ import {
   demoUserInterests,
   demoUsers,
   demoVehicles,
+  deskPicks,
   ingestionRuns,
   mediaSources,
   type Article,
@@ -46,6 +47,11 @@ import {
   contextFromDemoUser,
   contextFromTestProfile,
 } from "./personalize";
+import {
+  liveDeskByArticle,
+  selectHomepagePicks,
+  type DeskPublic,
+} from "./desk";
 
 export type EditorialDto = {
   id: number;
@@ -81,6 +87,7 @@ export type EditorialDto = {
   why: string[];
   rankSignals: RankSignal[];
   vehicleTier: VehicleTier;
+  desk: DeskPublic | null;
 };
 
 type FeedArticle = Pick<
@@ -141,6 +148,11 @@ export const loadArticleGraph = cache(async (): Promise<ArticleGraph> => {
     db.select().from(mediaSources),
   ]);
   return { entities, categories, interests, locations, primaries, sources };
+});
+
+export const loadDeskPickRows = cache(async () => {
+  const db = await getDb();
+  return db.select().from(deskPicks);
 });
 
 function emptyExtras() {
@@ -210,6 +222,7 @@ function toDto(
     why?: string[];
     rankSignals?: RankSignal[];
     vehicleTier?: VehicleTier;
+    desk?: DeskPublic | null;
   },
 ): EditorialDto {
   const image = parseImagePayload(article.metadata);
@@ -248,6 +261,7 @@ function toDto(
     why: extras.why ?? [],
     rankSignals: extras.rankSignals ?? [],
     vehicleTier: extras.vehicleTier ?? "none",
+    desk: extras.desk ?? null,
   };
 }
 
@@ -327,10 +341,12 @@ export async function listEditorial(options?: {
   limit?: number;
 }): Promise<EditorialDto[]> {
   const db = await getDb();
-  const [selected, graph] = await Promise.all([
+  const [selected, graph, deskRows] = await Promise.all([
     db.select(ARTICLE_FEED_COLUMNS).from(articles).orderBy(desc(articles.publishedAt)),
     loadArticleGraph(),
+    loadDeskPickRows(),
   ]);
+  const deskMap = liveDeskByArticle(deskRows);
   let rows = selected;
   if (options?.sourceId) rows = rows.filter((row) => row.sourceId === options.sourceId);
   if (options?.q) {
@@ -427,6 +443,7 @@ export async function listEditorial(options?: {
     if (!useTestProfile && options?.interest && !extras.interests.includes(options.interest)) return null;
     const source = sourceMap.get(article.sourceId);
     const relevance = source?.relevance ?? "";
+    const desk = deskMap.get(article.id) ?? null;
     const rankInput = {
       ...extras,
       excerpt: article.excerpt,
@@ -440,20 +457,24 @@ export async function listEditorial(options?: {
       geography: (snap?.geography ?? []).map((place) => place.name),
       publishedAt: article.publishedAt,
       primaryCategory,
+      deskPick: Boolean(desk),
     };
     const personalized = useTestProfile || (curated && vehicles.length > 0);
     const breakdown = personalized
       ? explainArticle(rankInput, weights)
       : {
-          score: curated
-            ? scoreForYou({
-                relevance,
-                publishedAt: article.publishedAt,
-                excerptLength: article.excerpt.length,
-              })
-            : scoreArticle(rankInput, weights),
-          reasons: [] as string[],
-          signals: [] as EditorialDto["rankSignals"],
+          score:
+            (curated
+              ? scoreForYou({
+                  relevance,
+                  publishedAt: article.publishedAt,
+                  excerptLength: article.excerpt.length,
+                })
+              : scoreArticle(rankInput, weights)) + (desk ? weights.deskPick : 0),
+          reasons: desk ? (["From the DRV247 Desk"] as string[]) : ([] as string[]),
+          signals: desk
+            ? [{ kind: "desk", points: weights.deskPick, detail: "DRV247 Desk" }]
+            : ([] as EditorialDto["rankSignals"]),
           vehicleTier: "none" as const,
         };
     return toDto(article, {
@@ -464,6 +485,7 @@ export async function listEditorial(options?: {
       why: breakdown.reasons,
       rankSignals: breakdown.signals,
       vehicleTier: breakdown.vehicleTier,
+      desk,
     });
   });
 
@@ -500,19 +522,22 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
     await db.select(ARTICLE_FEED_COLUMNS).from(articles).where(eq(articles.id, id)).limit(1)
   )[0];
   if (!article) return null;
-  const [extrasMap, primaryMap, source, related] = await Promise.all([
+  const [extrasMap, primaryMap, source, related, deskRows] = await Promise.all([
     extrasByArticleIds([article.id]),
     loadArticlePrimaries([article.id]),
     db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1),
     relatedForArticle(article.id),
+    loadDeskPickRows(),
   ]);
   const extras = extrasMap.get(article.id)!;
+  const desk = liveDeskByArticle(deskRows).get(article.id) ?? null;
   const rankScore = scoreArticle({
     ...extras,
     excerpt: article.excerpt,
     relevance: source[0]?.relevance ?? "",
     vehicles: [],
     userInterests: [],
+    deskPick: Boolean(desk),
   });
   const primaryCategory =
     primaryMap.get(article.id) ??
@@ -531,7 +556,24 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
     primaryConfidence: snap?.primaryConfidence ?? null,
     classification: snap,
     related,
+    desk,
   });
+}
+
+export async function listDeskHomepage(limit = 3): Promise<EditorialDto[]> {
+  const picks = selectHomepagePicks(
+    [...liveDeskByArticle(await loadDeskPickRows()).values()],
+    limit,
+  );
+  if (!picks.length) return [];
+  const byId = new Map(picks.map((pick) => [pick.articleId, pick]));
+  const rows: EditorialDto[] = [];
+  for (const pick of picks) {
+    const article = await getEditorial(pick.articleId);
+    if (!article) continue;
+    rows.push({ ...article, desk: byId.get(pick.articleId) ?? article.desk });
+  }
+  return rows;
 }
 
 export type ClassificationDebugRow = {

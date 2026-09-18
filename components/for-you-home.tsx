@@ -1,4 +1,5 @@
 import { CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
+import { DeskModule } from "@/components/desk-module";
 import { Interstitial, SectionIntro } from "@/components/site-chrome";
 import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
@@ -65,12 +66,14 @@ export function ForYouHome({
   forYourCar,
   yourInterests,
   discover,
+  desk,
   carousels,
 }: {
   copy: ForYouCopy;
   forYourCar: ForYouLaneDisplay;
   yourInterests: ForYouLaneDisplay;
   discover: ForYouLaneDisplay;
+  desk: StoryDto[];
   carousels: CategoryLane[];
 }) {
   const vehicleStories = forYourCar.stories;
@@ -115,6 +118,7 @@ export function ForYouHome({
           </div>
         </section>
       ) : null}
+      <DeskModule stories={desk} />
       <Interstitial text={copy.interstitial} size="home" />
       <CompactLane
         heading={yourInterests.heading}

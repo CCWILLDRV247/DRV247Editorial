@@ -16,6 +16,7 @@ import { ENGINE_BRANCH, engineCommit } from "@/lib/engine/version";
 import type { Article, IngestionRun, MediaSource } from "@/lib/db/schema";
 import type { ClassificationDebugRow } from "@/lib/engine/queries";
 import { FOR_YOU_DEMO_PROFILES, type ForYouDemoId } from "@/lib/engine/for-you-test";
+import { DeskCuration } from "@/components/admin/desk-curation";
 
 type Props = {
   sources: MediaSource[];
@@ -107,8 +108,9 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
             stay dark. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled (Cloudflare
             403). Ingest skips non-English items, shop/product/collection/cart/merch URLs, auction
             and subscribe paths, empty or /undefined URLs, and off-site magazine-shop canonicals.
-            Desk can backfill structured metadata on stored teasers. For You ranking debug is below
-            (article / score / why). {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
+            Desk can backfill structured metadata on stored teasers. Mark human Desk picks in
+            the section below — labels and optional notes, never generated copy. For You ranking
+            debug is further down (article / score / why). {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>
         <div className="flex gap-2">
@@ -130,6 +132,8 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
         </div>
       </div>
       {message ? <p className="text-sm text-[#1b1d1f]/80">{message}</p> : null}
+
+      <DeskCuration />
 
       <section>
         <h2 className="mb-3 font-display text-xl font-bold uppercase">For You ranking</h2>

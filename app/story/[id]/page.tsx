@@ -40,9 +40,21 @@ export default async function StoryPage({
               {story.source.name}
             </span>
           </p>
+          {story.desk ? (
+            <p className="mt-3">
+              <span className="inline-flex w-fit items-center rounded-[4px] border border-[#1b1d1f] px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-[#1b1d1f]">
+                {story.desk.labelName}
+              </span>
+            </p>
+          ) : null}
           <p className="mt-2 font-display text-lg font-bold uppercase text-[#1b1d1f]/70">
             {formatStoryDate(story.publishedAt)} · {story.category.name}
           </p>
+          {story.desk?.note ? (
+            <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
+              {story.desk.note}
+            </p>
+          ) : null}
           {intro ? (
             <p className="mt-6 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
               {intro}
