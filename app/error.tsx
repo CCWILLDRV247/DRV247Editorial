@@ -13,7 +13,7 @@ export default function ErrorState({
     <div className="min-h-full bg-white">
       <SiteHeader title="Stories" />
       <div className="mx-auto max-w-xl px-7 py-16">
-        <p className="font-display text-5xl font-black uppercase leading-[0.62] tracking-[-0.02em]">
+        <p className="font-display text-5xl font-black uppercase leading-[0.88] tracking-[-0.02em]">
           Desk
           <br />
           jammed
