@@ -51,6 +51,20 @@ describe("rss/atom", () => {
     const enclosure = items.find((item) => item.title === "Enclosure type first");
     assert.equal(enclosure?.imageUrl, "https://cdn.example.com/hero-untyped-path");
   });
+  it("prefers media:content over enclosure and html images", () => {
+    const items = parseFeedXml(`<?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel>
+        <item>
+          <title>Both media and enclosure</title>
+          <link>https://example.com/both</link>
+          <enclosure type="image/jpeg" url="https://cdn.example.com/enclosure.jpg" />
+          <media:content url="https://cdn.example.com/media.jpg" medium="image" />
+          <description><![CDATA[<img src="https://cdn.example.com/body.jpg" />]]></description>
+        </item>
+      </channel></rss>`);
+    assert.equal(items[0]?.imageUrl, "https://cdn.example.com/media.jpg");
+    assert.equal(items[0]?.imageCandidates?.[0]?.sourceType, "rss_media");
+  });
   it("parses Atom entries", () => {
     const items = parseFeedXml(atom);
     assert.equal(items.length, 1);
@@ -1116,6 +1130,14 @@ describe("page summary extract", () => {
       "https://media.classicandsportscar.com/sites/default/files/styles/slideshow_slide/public/2026-09/01-intro-lotus-elises.jpg?itok=PUnBNUXF",
     );
     assert.equal(isUsableArticleImage("/themes/custom/classic/logo.png"), false);
+  });
+  it("skips webfont CSS backgrounds so they cannot become article photos", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const html = `<html><head></head><body>
+      <div style="background-image:url(https://bonnetmagazine.com/cdn/fonts/assistant/assistant_n4.woff2)"></div>
+      <img src="https://bonnetmagazine.com/cdn/shop/articles/hero.jpg">
+    </body></html>`;
+    assert.equal(extractPageImage(html), "https://bonnetmagazine.com/cdn/shop/articles/hero.jpg");
   });
 });
 

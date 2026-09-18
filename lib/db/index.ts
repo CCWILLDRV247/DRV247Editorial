@@ -133,7 +133,12 @@ const SCHEMA_STATEMENTS = [
       article_id INTEGER NOT NULL REFERENCES articles(id),
       url TEXT NOT NULL,
       source TEXT,
-      alt TEXT
+      alt TEXT,
+      source_type TEXT,
+      status TEXT,
+      last_validated INTEGER,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      is_primary INTEGER NOT NULL DEFAULT 0
     )`,
   `CREATE TABLE IF NOT EXISTS ingestion_runs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -221,6 +226,7 @@ async function ensureSchema(client: Client) {
     }
   }
   await ensureTaxonomy(client);
+  await ensureArticleImageColumns(client);
 }
 
 const INDEX_STATEMENTS = [
@@ -257,6 +263,24 @@ async function ensureTaxonomy(client: Client) {
     )`),
   ]);
   await Promise.all(INDEX_STATEMENTS.map((sql) => client.execute(sql)));
+}
+
+const ARTICLE_IMAGE_COLUMNS = [
+  "ALTER TABLE article_images ADD COLUMN source_type TEXT",
+  "ALTER TABLE article_images ADD COLUMN status TEXT",
+  "ALTER TABLE article_images ADD COLUMN last_validated INTEGER",
+  "ALTER TABLE article_images ADD COLUMN sort_order INTEGER",
+  "ALTER TABLE article_images ADD COLUMN is_primary INTEGER",
+];
+
+async function ensureArticleImageColumns(client: Client) {
+  for (const sql of ARTICLE_IMAGE_COLUMNS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Column already exists on live Turso / local sqlite.
+    }
+  }
 }
 
 async function createDb() {

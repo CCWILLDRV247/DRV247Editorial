@@ -1,4 +1,6 @@
-import { capSummary, firstImageFromHtml, isUsableArticleImage, stripHtml } from "../text";
+import { capSummary, htmlImageUrls, isUsableArticleImage, stripHtml } from "../text";
+import type { ImageCandidate } from "./images";
+import { pickBestImage } from "./images";
 
 const MIN_EXTRACT_CHARS = 40;
 
@@ -7,21 +9,25 @@ const BOILERPLATE =
 
 const BYLINE = /^(words|by|author|photography|photos|written by|pictured)\b/i;
 
+export function extractPageImageCandidates(html: string): ImageCandidate[] {
+  const candidates: ImageCandidate[] = [];
+  const push = (url: string | null | undefined, sourceType: ImageCandidate["sourceType"]) => {
+    if (!isUsableArticleImage(url)) return;
+    candidates.push({ url, sourceType });
+  };
+  push(metaContent(html, "og:image:secure_url"), "og");
+  push(metaContent(html, "og:image:url"), "og");
+  push(metaContent(html, "og:image"), "og");
+  push(metaContent(html, "twitter:image:src"), "twitter");
+  push(metaContent(html, "twitter:image"), "twitter");
+  for (const url of jsonLdImages(html)) push(url, "article");
+  for (const url of cssBackgroundImages(html)) push(url, "article");
+  for (const url of htmlImageUrls(html)) push(url, "article");
+  return candidates;
+}
+
 export function extractPageImage(html: string): string | null {
-  const candidates = [
-    metaContent(html, "og:image:secure_url"),
-    metaContent(html, "og:image:url"),
-    metaContent(html, "og:image"),
-    metaContent(html, "twitter:image:src"),
-    metaContent(html, "twitter:image"),
-    ...jsonLdImages(html),
-    cssBackgroundImage(html),
-    firstImageFromHtml(html),
-  ];
-  for (const candidate of candidates) {
-    if (isUsableArticleImage(candidate)) return candidate;
-  }
-  return null;
+  return pickBestImage(extractPageImageCandidates(html))?.url ?? null;
 }
 
 export function extractPageSummary(
@@ -133,11 +139,12 @@ function jsonLdImages(html: string): string[] {
   return urls;
 }
 
-function cssBackgroundImage(html: string): string | null {
+function cssBackgroundImages(html: string): string[] {
+  const urls: string[] = [];
   for (const match of html.matchAll(/url\((['"]?)([^'")]+)\1\)/gi)) {
-    if (isUsableArticleImage(match[2])) return match[2];
+    if (isUsableArticleImage(match[2])) urls.push(match[2]);
   }
-  return null;
+  return urls;
 }
 
 function isolate(html: string, tag: string): string | null {

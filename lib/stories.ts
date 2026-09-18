@@ -8,6 +8,7 @@ export type StoryDto = {
   summary: string;
   aiSummary: string | null;
   imageUrl: string | null;
+  imageSources: string[];
   canonicalUrl: string;
   publishedAt: string;
   hidden: boolean;
@@ -26,6 +27,7 @@ function toDto(row: {
     summary: row.story.summary,
     aiSummary: null,
     imageUrl: row.story.imageUrl,
+    imageSources: [],
     canonicalUrl: row.story.canonicalUrl,
     publishedAt: new Date(row.story.publishedAt).toISOString(),
     hidden: row.story.hidden,

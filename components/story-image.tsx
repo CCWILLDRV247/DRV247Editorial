@@ -1,50 +1,48 @@
-import { cn } from "cn";
-
-function Fallback({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "flex size-full items-center justify-center bg-[#cfcfcf] text-[#1b1d1f]",
-        className,
-      )}
-    >
-      <span className="font-display text-3xl font-black uppercase tracking-[-0.04em]">
-        DRV247
-      </span>
-    </div>
-  );
-}
+import { isUsableArticleImage } from "@/lib/text";
+import { StoryImageFallback } from "./story-image-fallback";
+import { StoryImageFrame } from "./story-image-frame";
 
 export function StoryImage({
   src,
+  sources = [],
   alt,
   className,
+  category,
   priority = false,
   eager = false,
 }: {
   src: string | null;
+  sources?: string[];
   alt: string;
   className?: string;
+  category?: string;
   priority?: boolean;
   eager?: boolean;
 }) {
-  if (!src) {
-    return <Fallback className={className} />;
+  const urls = uniqueImageUrls([src, ...sources]);
+  if (!urls.length) {
+    return <StoryImageFallback className={className} category={category} />;
   }
 
-  const loadEager = priority || eager;
-
   return (
-    // Remote hosts vary per feed; skip next/image optimization.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
+    <StoryImageFrame
+      urls={urls}
       alt={alt}
-      referrerPolicy="no-referrer"
-      loading={loadEager ? "eager" : "lazy"}
-      fetchPriority={priority ? "high" : "low"}
-      decoding="async"
-      className={cn("size-full object-cover", className)}
+      className={className}
+      category={category}
+      priority={priority}
+      eager={eager}
     />
   );
+}
+
+function uniqueImageUrls(values: Array<string | null | undefined>): string[] {
+  const urls: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (!isUsableArticleImage(value) || seen.has(value)) continue;
+    seen.add(value);
+    urls.push(value);
+  }
+  return urls;
 }
