@@ -188,7 +188,7 @@ export function DeskCuration() {
                     {DESK_LABELS.find((item) => item.slug === label)?.name}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent side="top" className="z-[60]">
                   {DESK_LABELS.map((item) => (
                     <SelectItem key={item.slug} value={item.slug}>
                       {item.name}
@@ -207,12 +207,13 @@ export function DeskCuration() {
             </label>
           </div>
         </div>
-        <div className="flex flex-col gap-2 self-end">
-          <Button type="submit" variant="outline" disabled={Boolean(busy)}>
+        <div className="flex w-full flex-col gap-2 self-end sm:w-auto">
+          <Button type="submit" variant="outline" disabled={Boolean(busy)} className="w-full sm:w-auto">
             Search
           </Button>
           <Button
             type="button"
+            className="w-full sm:w-auto"
             disabled={!selected || Boolean(busy)}
             onClick={() => selected && void save(selected.id)}
           >
@@ -221,73 +222,126 @@ export function DeskCuration() {
         </div>
       </form>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Story</TableHead>
-            <TableHead>Label</TableHead>
-            <TableHead>Note</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {picks.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-sm text-[#1b1d1f]/60">
-                Nothing on the Desk yet. Search a teaser above.
-              </TableCell>
-            </TableRow>
-          ) : (
-            picks.map((pick) => (
-              <TableRow key={pick.id}>
-                <TableCell>
-                  <p className="font-medium">{pick.article?.title ?? `Article #${pick.articleId}`}</p>
-                  <p className="text-xs text-[#1b1d1f]/60">
-                    #{pick.articleId} · {pick.article?.publication ?? "missing"}
-                    {pick.featured ? " · featured" : ""}
-                  </p>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{pick.labelName}</Badge>
-                </TableCell>
-                <TableCell className="max-w-xs text-sm text-[#1b1d1f]/80">
-                  {pick.note ?? "—"}
-                </TableCell>
-                <TableCell className="text-xs">
+      {picks.length === 0 ? (
+        <p className="text-sm text-[#1b1d1f]/60">Nothing on the Desk yet. Search a teaser above.</p>
+      ) : (
+        <ul className="space-y-3 md:hidden">
+          {picks.map((pick) => (
+            <li key={pick.id} className="rounded-lg border border-[#1b1d1f]/10 p-3">
+              <p className="font-medium">{pick.article?.title ?? `Article #${pick.articleId}`}</p>
+              <p className="mt-1 text-xs text-[#1b1d1f]/60">
+                #{pick.articleId} · {pick.article?.publication ?? "missing"}
+                {pick.featured ? " · featured" : ""}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">{pick.labelName}</Badge>
+                <span className="text-xs text-[#1b1d1f]/60">
                   {pick.live ? "live" : pick.active ? "expired" : "inactive"}
-                </TableCell>
-                <TableCell className="space-x-2 whitespace-nowrap">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={Boolean(busy)}
-                    onClick={() => void patch(pick, { active: !pick.active })}
-                  >
-                    {pick.active ? "Deactivate" : "Activate"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={Boolean(busy)}
-                    onClick={() => void patch(pick, { featured: !pick.featured })}
-                  >
-                    {pick.featured ? "Unfeature" : "Feature"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={Boolean(busy)}
-                    onClick={() => void remove(pick.id)}
-                  >
-                    Remove
-                  </Button>
+                </span>
+              </div>
+              {pick.note ? (
+                <p className="mt-2 text-sm text-[#1b1d1f]/80">{pick.note}</p>
+              ) : null}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={Boolean(busy)}
+                  onClick={() => void patch(pick, { active: !pick.active })}
+                >
+                  {pick.active ? "Deactivate" : "Activate"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={Boolean(busy)}
+                  onClick={() => void patch(pick, { featured: !pick.featured })}
+                >
+                  {pick.featured ? "Unfeature" : "Feature"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={Boolean(busy)}
+                  onClick={() => void remove(pick.id)}
+                >
+                  Remove
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="hidden overflow-x-auto md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Story</TableHead>
+              <TableHead>Label</TableHead>
+              <TableHead>Note</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {picks.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-sm text-[#1b1d1f]/60">
+                  Nothing on the Desk yet. Search a teaser above.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              picks.map((pick) => (
+                <TableRow key={pick.id}>
+                  <TableCell>
+                    <p className="font-medium">{pick.article?.title ?? `Article #${pick.articleId}`}</p>
+                    <p className="text-xs text-[#1b1d1f]/60">
+                      #{pick.articleId} · {pick.article?.publication ?? "missing"}
+                      {pick.featured ? " · featured" : ""}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{pick.labelName}</Badge>
+                  </TableCell>
+                  <TableCell className="max-w-xs text-sm text-[#1b1d1f]/80">
+                    {pick.note ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {pick.live ? "live" : pick.active ? "expired" : "inactive"}
+                  </TableCell>
+                  <TableCell className="space-x-2 whitespace-nowrap">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={Boolean(busy)}
+                      onClick={() => void patch(pick, { active: !pick.active })}
+                    >
+                      {pick.active ? "Deactivate" : "Activate"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={Boolean(busy)}
+                      onClick={() => void patch(pick, { featured: !pick.featured })}
+                    >
+                      {pick.featured ? "Unfeature" : "Feature"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={Boolean(busy)}
+                      onClick={() => void remove(pick.id)}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </section>
   );
 }

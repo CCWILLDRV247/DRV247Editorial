@@ -93,7 +93,7 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end md:justify-between">
         <div>
           <p className="font-display text-sm font-bold uppercase tracking-wide text-[#1b1d1f]/60">
             Automotive Culture Engine
@@ -113,7 +113,7 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
             debug is further down (article / score / why). {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full min-w-0 flex-wrap gap-2 md:w-auto md:justify-end">
           <Link
             href="/admin"
             className="inline-flex h-8 items-center rounded-lg border border-border px-2.5 text-sm"
