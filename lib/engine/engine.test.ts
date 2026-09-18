@@ -134,6 +134,17 @@ describe("sitemap", () => {
       ),
       true,
     );
+    assert.equal(
+      looksLikeArticleUrl("https://bonnetmagazine.com/pages/articles", "https://bonnetmagazine.com"),
+      false,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://bonnetmagazine.com/blogs/journal/a-feature",
+        "https://bonnetmagazine.com",
+      ),
+      true,
+    );
   });
 });
 
@@ -550,6 +561,19 @@ describe("non-editorial url skip", () => {
     assert.equal(isUnusableArticleUrl("https://engineswapdepot.com/?p=153222"), false);
     assert.equal(
       isNonEditorialUrl("https://engineswapdepot.com/?p=153222", "https://engineswapdepot.com"),
+      false,
+    );
+    assert.equal(isUnusableArticleUrl("https://bonnetmagazine.com/pages/articles"), true);
+    assert.equal(isUnusableArticleUrl("https://bonnetmagazine.com/pages/articles/"), true);
+    assert.equal(
+      isNonEditorialUrl("https://bonnetmagazine.com/pages/articles", "https://bonnetmagazine.com"),
+      true,
+    );
+    assert.equal(
+      isNonEditorialUrl(
+        "https://bonnetmagazine.com/blogs/journal/a-feature",
+        "https://bonnetmagazine.com",
+      ),
       false,
     );
   });
