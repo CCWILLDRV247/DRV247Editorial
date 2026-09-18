@@ -4,6 +4,8 @@ import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import type { StoryDto } from "@/lib/stories";
 
+type ForYouLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
+
 function storyCardGrid(cards: StoryDto[]) {
   if (cards.length === 0) return null;
   return (
@@ -66,9 +68,9 @@ export function ForYouHome({
   carousels,
 }: {
   copy: ForYouCopy;
-  forYourCar: ForYouLane & { stories: StoryDto[] };
-  yourInterests: ForYouLane & { stories: StoryDto[] };
-  discover: ForYouLane & { stories: StoryDto[] };
+  forYourCar: ForYouLaneDisplay;
+  yourInterests: ForYouLaneDisplay;
+  discover: ForYouLaneDisplay;
   carousels: CategoryLane[];
 }) {
   const vehicleStories = forYourCar.stories;
