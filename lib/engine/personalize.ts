@@ -64,8 +64,12 @@ export function variantsMatch(left?: string | null, right?: string | null) {
   const a = norm(left);
   const b = norm(right);
   if (a === b) return true;
-  const aliases = new Set([...(VARIANT_ALIASES[a] ?? [a]), ...(VARIANT_ALIASES[b] ?? [b])]);
-  return aliases.has(a) && aliases.has(b);
+  const leftKeys = new Set(VARIANT_ALIASES[a] ?? [a]);
+  const rightKeys = new Set(VARIANT_ALIASES[b] ?? [b]);
+  for (const key of leftKeys) {
+    if (rightKeys.has(key)) return true;
+  }
+  return false;
 }
 
 export function garageVehicleLabel(vehicle: GarageVehicle) {

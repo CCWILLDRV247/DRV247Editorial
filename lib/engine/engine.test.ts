@@ -1319,6 +1319,31 @@ describe("vehicle-aware For You ranking", () => {
     assert.equal(why.reasons.some((reason) => /popular with/i.test(reason)), false);
   });
 
+  it("does not treat GT3 as a C2 variant match", async () => {
+    const { variantsMatch } = await import("./personalize");
+    assert.equal(variantsMatch("C2", "Carrera 2"), true);
+    assert.equal(variantsMatch("GTB", "355 GTB"), true);
+    assert.equal(variantsMatch("C2", "GT3"), false);
+    assert.equal(variantsMatch("GT3", "C2"), false);
+    const gt3 = score(
+      { makes: ["Porsche"], models: ["911"], variants: ["GT3"], publishedAt: old },
+      garageB,
+      [],
+    );
+    const c2 = score(
+      {
+        makes: ["Porsche"],
+        models: ["911"],
+        generations: ["964"],
+        variants: ["C2"],
+        publishedAt: old,
+      },
+      garageB,
+      [],
+    );
+    assert.ok(c2 > gt3, `C2 ${c2} vs GT3 ${gt3}`);
+  });
+
   it("does not let a fresh generic story beat a relevant car match", async () => {
     const vehicles = garageB;
     const car = score(
