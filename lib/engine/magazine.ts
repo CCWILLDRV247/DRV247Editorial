@@ -1,5 +1,5 @@
 import type { StoryDto } from "@/lib/stories";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, unstable_noStore as noStore } from "next/cache";
 import {
   LEGACY_NAV_TO_PRIMARY,
   MAGAZINE_NAV,
@@ -113,13 +113,23 @@ export async function listMagazineStories(options?: {
   testProfile?: ForYouTestProfile;
   limit?: number;
 }): Promise<StoryDto[]> {
+  const navSlug = options?.navSlug ?? "for-you";
+  const limit = options?.limit ?? 24;
+  const testProfile =
+    options?.testProfile && forYouTestIsActive(options.testProfile) ? options.testProfile : undefined;
+  if (testProfile) {
+    noStore();
+    const articles = await listEditorial({
+      section: navSlug && navSlug !== "for-you" ? navSlug : "for-you",
+      testProfile,
+      limit: 80,
+    });
+    return articles.slice(0, limit).map((article) => toMagazineStory(article));
+  }
   const key = JSON.stringify({
-    navSlug: options?.navSlug ?? "for-you",
-    limit: options?.limit ?? 24,
-    profile:
-      options?.testProfile && forYouTestIsActive(options.testProfile)
-        ? forYouTestSearchString(options.testProfile)
-        : "default",
+    navSlug,
+    limit,
+    profile: "default",
   });
   return unstable_cache(
     async (cacheKey: string) => {
@@ -215,8 +225,11 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
 }
 
 export async function getMagazineHome(testProfile?: ForYouTestProfile) {
-  const key =
-    testProfile && forYouTestIsActive(testProfile) ? forYouTestSearchString(testProfile) : "default";
+  if (testProfile && forYouTestIsActive(testProfile)) {
+    noStore();
+    return getMagazineHomeFresh(testProfile);
+  }
+  const key = "default";
   return unstable_cache(
     async (cacheKey: string) => {
       const profile =

@@ -14,7 +14,7 @@ import { listMagazineStories } from "@/lib/engine/magazine";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({
   params,
@@ -44,7 +44,7 @@ export default async function CategoryPage({
   return (
     <div className="min-h-full overflow-x-clip bg-white">
       <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
-      <ForYouTestFilter initial={testProfile} catalog={catalog} />
+      <ForYouTestFilter initial={testProfile} catalog={catalog} pathname={`/category/${slug}`} />
       <main className="pt-2">
         <StoryFeed stories={stories} copyKey={category.slug} categoryName={category.name} />
       </main>
