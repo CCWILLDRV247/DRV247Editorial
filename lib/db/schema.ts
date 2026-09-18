@@ -117,6 +117,10 @@ export const articleEntities = sqliteTable("article_entities", {
   make: text("make"),
   model: text("model"),
   confidence: integer("confidence").notNull().default(80),
+  relevance: text("relevance"),
+  chassis: text("chassis"),
+  canonicalId: text("canonical_id"),
+  source: text("source").notNull().default("rule"),
 });
 
 export const vehicleEntities = sqliteTable("vehicle_entities", {
@@ -230,6 +234,59 @@ export const articlePrimary = sqliteTable("article_primary", {
   primarySlug: text("primary_slug").notNull(),
   confidence: integer("confidence").notNull().default(80),
   source: text("source").notNull().default("rule"),
+});
+
+export const articleContentTypes = sqliteTable("article_content_types", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  contentType: text("content_type").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
+export const articleScenes = sqliteTable("article_scenes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  scene: text("scene").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
+export const articleMotorsport = sqliteTable("article_motorsport", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  series: text("series").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
+export const articleGeography = sqliteTable("article_geography", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  kind: text("kind").notNull(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
+export const articleRelated = sqliteTable("article_related", {
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  relatedArticleId: integer("related_article_id")
+    .notNull()
+    .references(() => articles.id),
+  reason: text("reason").notNull(),
+  score: integer("score").notNull().default(0),
 });
 
 export type MediaSource = typeof mediaSources.$inferSelect;

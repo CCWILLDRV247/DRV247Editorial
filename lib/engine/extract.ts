@@ -13,6 +13,8 @@ export type ExtractedEntity = {
   slug: string;
   make?: string;
   model?: string;
+  chassis?: string;
+  inTitle?: boolean;
   confidence: number;
 };
 
@@ -28,20 +30,27 @@ export type Extraction = {
 };
 
 function haystack(title: string, excerpt: string, paragraph: string): string {
-  return ` ${[title, excerpt, paragraph].filter(Boolean).join(" ")} `.toLowerCase();
+  return ` ${[title, excerpt, paragraph].filter(Boolean).join(" ")} `
+    .toLowerCase()
+    .replace(/[’‘‛]/g, "'");
 }
 
-function includesToken(text: string, alias: string): boolean {
-  const needle = alias.toLowerCase().trim();
+export function includesToken(text: string, alias: string): boolean {
+  const needle = alias.toLowerCase().trim().replace(/[’‘‛]/g, "'");
+  const hay = text.replace(/[’‘‛]/g, "'");
   const parts = needle.split(/\s+/).filter(Boolean).map(escapeReg);
   if (!parts.length) return false;
   const body = parts.join("[\\s-]+");
   const plural = /^[0-9]+$/.test(needle.replace(/[\s-]/g, "")) ? "s?" : "";
-  return new RegExp(`(?:^|[^a-z0-9])${body}${plural}(?:[^a-z0-9]|$)`, "i").test(text);
+  return new RegExp(`(?:^|[^a-z0-9])${body}${plural}(?:[^a-z0-9]|$)`, "i").test(hay);
 }
 
 function escapeReg(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function inTitleHay(title: string, alias: string) {
+  return includesToken(` ${title} `, alias);
 }
 
 /** Gazetteer over title + teaser + extracted first paragraph. No LLM. */
@@ -67,12 +76,17 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
 
       modelHit = model.name;
       models.add(model.name);
+      const chassis = matchedGens[0];
       entities.push({
         kind: "model",
         name: model.name,
         slug: slugify(model.name),
         make: record.make,
         model: model.name,
+        chassis,
+        inTitle:
+          model.aliases.some((alias) => inTitleHay(title, alias)) ||
+          matchedGens.some((generation) => inTitleHay(title, generation)),
         confidence: aliasHit ? 0.86 : 0.82,
       });
       for (const generation of matchedGens) {
@@ -83,6 +97,8 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
           slug: slugify(generation),
           make: record.make,
           model: model.name,
+          chassis: generation,
+          inTitle: inTitleHay(title, generation),
           confidence: 0.9,
         });
       }
@@ -95,6 +111,8 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
           slug: slugify(variant),
           make: record.make,
           model: model.name,
+          chassis,
+          inTitle: inTitleHay(title, variant),
           confidence: 0.8,
         });
       }
@@ -107,6 +125,7 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
         name: record.make,
         slug: slugify(record.make),
         make: record.make,
+        inTitle: record.aliases.some((alias) => inTitleHay(title, alias)),
         confidence: makeHit ? 0.92 : 0.8,
       });
     }
@@ -133,8 +152,26 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
       slug: "gt3",
       make: "Porsche",
       model: "911",
+      inTitle: inTitleHay(title, "gt3"),
       confidence: 0.84,
     });
+  }
+  if (
+    models.has("911") &&
+    (includesToken(text, "carrera 2") || (includesToken(text, "c2") && includesToken(text, "carrera")))
+  ) {
+    if (!variants.has("Carrera 2")) {
+      variants.add("Carrera 2");
+      entities.push({
+        kind: "variant",
+        name: "Carrera 2",
+        slug: "carrera-2",
+        make: "Porsche",
+        model: "911",
+        inTitle: inTitleHay(title, "carrera 2") || inTitleHay(title, "c2"),
+        confidence: 0.8,
+      });
+    }
   }
 
   return {
@@ -155,15 +192,28 @@ function extractInterests(text: string): Interest[] {
     ["Classic", ["classic", "vintage", "historic"]],
     ["Performance", ["performance", "supercar", "hypercar"]],
     ["Sports Cars", ["sports car", "sportscar", "gt car"]],
+    ["Supercars", ["supercar", "hypercar"]],
+    ["Modern Classics", ["modern classic", "youngtimer"]],
     ["Modified", ["modified", "stance", "tuned", "restomod"]],
+    ["Tuning", ["tuning", "tuned", "aftermarket"]],
+    ["JDM", ["jdm"]],
+    ["Euro", ["euro"]],
+    ["American", ["american muscle", "muscle car", "hot rod"]],
     ["Motorsport", ["motorsport", "racing", "grand prix", "le mans", "rally"]],
+    ["Rally", ["rally", "wrc"]],
+    ["Drift", ["drift", "drifting"]],
+    ["Drag Racing", ["drag racing", "drag strip"]],
+    ["Track", ["track day", "time attack"]],
     ["Design", ["design", "styling", "concept", "studio"]],
+    ["Automotive Design", ["automotive design", "car design"]],
     ["Car Culture", ["culture", "lifestyle", "scene"]],
     ["Road Trips", ["road trip", "touring", "drive"]],
     ["Collector Cars", ["collector", "concours", "auction"]],
+    ["Collecting", ["collecting"]],
     ["Restoration", ["restoration", "restore", "barn find"]],
     ["Photography", ["photography", "photographer", "shoot"]],
     ["Events", ["event", "goodwood", "villa d'este", "retromobile"]],
+    ["Engine Swaps", ["engine swap", "ls swap", "k-swap"]],
   ];
   for (const [interest, needles] of rules) {
     if (needles.some((needle) => text.includes(needle))) hits.push(interest);
@@ -205,6 +255,8 @@ function extractCategories(text: string): EditorialCategory[] {
 function extractLocations(text: string): string[] {
   return EDITORIAL_LOCATIONS.filter((place) => text.includes(place.toLowerCase()));
 }
+
+export { haystack as entityHaystack };
 
 export function isKnownInterest(value: string): value is Interest {
   return (INTEREST_TAXONOMY as readonly string[]).includes(value);

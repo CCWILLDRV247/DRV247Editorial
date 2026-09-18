@@ -14,14 +14,16 @@ import {
 } from "@/components/ui/table";
 import { ENGINE_BRANCH, engineCommit } from "@/lib/engine/version";
 import type { Article, IngestionRun, MediaSource } from "@/lib/db/schema";
+import type { ClassificationDebugRow } from "@/lib/engine/queries";
 
 type Props = {
   sources: MediaSource[];
   runs: IngestionRun[];
   articles: Article[];
+  classified: ClassificationDebugRow[];
 };
 
-export function EngineDesk({ sources, runs, articles }: Props) {
+export function EngineDesk({ sources, runs, articles, classified }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -56,6 +58,20 @@ export function EngineDesk({ sources, runs, articles }: Props) {
     window.location.reload();
   }
 
+  async function backfillMetadata() {
+    setBusy("metadata");
+    setMessage(null);
+    const response = await fetch("/api/editorial/metadata", { method: "POST" });
+    const data = (await response.json()) as { classified?: number; related?: number; error?: string };
+    setMessage(
+      data.error
+        ? data.error
+        : `Metadata backfill: ${data.classified ?? 0} classified · ${data.related ?? 0} related links`,
+    );
+    setBusy(null);
+    window.location.reload();
+  }
+
   const enabled = sources.filter((source) => source.enabled);
 
   return (
@@ -74,7 +90,8 @@ export function EngineDesk({ sources, runs, articles }: Props) {
             row. Flat 6 (French), AUTOMOBILSPORT (German), 9WERKS (paywall), and EuroStance (Shopify shop)
             stay dark. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled (Cloudflare
             403). Ingest skips non-English items, shop/product/collection/cart/merch URLs, auction
-            and subscribe paths, empty or /undefined URLs, and off-site magazine-shop canonicals.{" "}
+            and subscribe paths, empty or /undefined URLs, and off-site magazine-shop canonicals.
+            Visible nav is unchanged. Desk can backfill structured metadata on stored teasers.{" "}
             {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>
@@ -85,6 +102,9 @@ export function EngineDesk({ sources, runs, articles }: Props) {
           >
             v1 desk
           </Link>
+          <Button variant="outline" disabled={Boolean(busy)} onClick={() => void backfillMetadata()}>
+            {busy === "metadata" ? "Classifying…" : "Backfill metadata"}
+          </Button>
           <Button variant="outline" disabled={Boolean(busy)} onClick={() => void reprocess()}>
             Reprocess
           </Button>
@@ -168,6 +188,72 @@ export function EngineDesk({ sources, runs, articles }: Props) {
                 <TableCell className="max-w-xs truncate text-xs">{run.errorMessage}</TableCell>
               </TableRow>
             ))}
+          </TableBody>
+        </Table>
+      </section>
+
+      <section>
+        <h2 className="mb-3 font-display text-xl font-bold uppercase">Classification</h2>
+        <p className="mb-3 max-w-3xl text-sm text-[#1b1d1f]/70">
+          Desk-only. Primary lens, vehicles (about / relevant / mentioned), interests, content type,
+          geography, and rule confidence. Not shown in the magazine nav.
+        </p>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Story</TableHead>
+              <TableHead>Primary</TableHead>
+              <TableHead>Vehicles</TableHead>
+              <TableHead>Type / scene</TableHead>
+              <TableHead>Where</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {classified.map((row) => {
+              const snap = row.classification;
+              const vehicles = (snap?.vehicles ?? [])
+                .filter((vehicle) => vehicle.kind === "model" || vehicle.kind === "generation")
+                .map(
+                  (vehicle) =>
+                    `${vehicle.make ? `${vehicle.make} ` : ""}${vehicle.name}${
+                      vehicle.chassis && vehicle.kind !== "generation" ? ` ${vehicle.chassis}` : ""
+                    } · ${vehicle.relevance} ${vehicle.confidence}`,
+                );
+              return (
+                <TableRow key={row.id}>
+                  <TableCell>
+                    <p className="font-medium">{row.title}</p>
+                    <p className="text-xs text-[#1b1d1f]/60">
+                      {row.publication} · #{row.id}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    {snap ? (
+                      <>
+                        <Badge>{snap.primary}</Badge>
+                        <p className="mt-1 text-xs text-[#1b1d1f]/60">
+                          {snap.primaryConfidence} · {snap.source}
+                        </p>
+                      </>
+                    ) : (
+                      <span className="text-xs text-[#1b1d1f]/50">unclassified</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {vehicles.length ? vehicles.join(" · ") : "—"}
+                    {snap?.interests.length ? (
+                      <p className="mt-1 text-[#1b1d1f]/60">{snap.interests.join(" · ")}</p>
+                    ) : null}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {[...(snap?.contentTypes ?? []), ...(snap?.scenes ?? [])].join(" · ") || "—"}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {(snap?.geography ?? []).map((place) => place.name).join(" · ") || "—"}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </section>
