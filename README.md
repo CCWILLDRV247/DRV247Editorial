@@ -10,7 +10,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open [http://localhost:43127](http://localhost:43127).
+Open [http://localhost:43131](http://localhost:43131).
 
 Default desk password (when `ADMIN_PASSWORD` is unset): `desk247`.
 
@@ -41,10 +41,10 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 
 ## What you get
 
-- **Home / For You** — vehicle-first centre: for your car (3–6), your interests, discover, then Cars / Culture / Driving / Events. Header reads “For your Ferrari F355” when a car is set. A–D demo cars look different.
+- **Home / For You** — vehicle-first centre: for your car (3–6), **From the DRV247 Desk** (1–3 human picks), your interests, discover, then Cars / Culture / Driving / Events. Header reads “For your Ferrari F355” when a car is set. A–D demo cars look different.
 - **Category** — Cars, Culture, Driving, Motorsport, Events, with the same test picker (old Racing/Classic/Modified/Concourse URLs redirect). Category pages still AND-filter.
-- **Story** — hero, source tag, title, feed teaser, short extract from the original, **Read on [outlet]**
-- **Admin** (`/admin/engine`) — ingest now, source health, classification, For You ranking debug (article / score / why)
+- **Story** — hero, source tag, title, feed teaser, short extract from the original, **Read on [outlet]**. Desk-curated stories also show their label and optional human note.
+- **Admin** (`/admin/engine`) — ingest now, source health, classification, **Desk curation** (select a teaser, label, optional note, active/featured), For You ranking debug (article / score / why)
 - **JSON** — `GET /api/editorial` (includes `ranking` why/score when a test profile is set), `GET /api/editorial/status`
 - **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
 
@@ -54,7 +54,7 @@ Desk **Ingest now** runs the enabled culture pipeline (74 titles). Non-English i
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds. Magazine pages cache for 60 seconds (`s-maxage=60`, stale-while-revalidate 300).
 
-On **For You**, the page is organised around the car: **For your Ferrari F355** (or the test car you pick), then **Your interests**, then **Discover**, then the existing Cars / Culture / Driving / Events carousels. Without a car it still runs — “Tell us what you drive to make DRV247 yours.” Tap **Set test** or A–D (F355 GTB, 964 C2, Skyline, M3). Saved in the URL and in `localStorage` (`drv247-for-you-test`). Weights live in `config/ranking.json`. Preview: `/?profile=A`.
+On **For You**, the page is organised around the car: **For your Ferrari F355** (or the test car you pick), then **From the DRV247 Desk** (human picks, honest labels, no invented notes), then **Your interests**, then **Discover**, then the existing Cars / Culture / Driving / Events carousels. Without a car it still runs — “Tell us what you drive to make DRV247 yours.” Tap **Set test** or A–D (F355 GTB, 964 C2, Skyline, M3). Saved in the URL and in `localStorage` (`drv247-for-you-test`). Weights live in `config/ranking.json` (`deskPick` / `deskPickRelevant` are modest boosts only). Preview: `/?profile=A`.
 
 Add a marque in `lib/engine/catalog.ts` to grow the list. This is a placeholder until the real DRV247 personalization string exists. No real garage.
 

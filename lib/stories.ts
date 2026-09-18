@@ -14,6 +14,13 @@ export type StoryDto = {
   hidden: boolean;
   category: { id: number; slug: string; name: string };
   source: { id: number; name: string; type: string };
+  desk?: {
+    label: string;
+    labelName: string;
+    note: string | null;
+    curator: string;
+    featured: boolean;
+  } | null;
 };
 
 function toDto(row: {

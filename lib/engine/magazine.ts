@@ -16,7 +16,7 @@ import {
   parseForYouTestProfile,
   type ForYouTestProfile,
 } from "./for-you-test";
-import { getEditorial, listEditorial, type EditorialDto } from "./queries";
+import { getEditorial, listEditorial, listDeskHomepage, type EditorialDto } from "./queries";
 import { classifyPrimary } from "./taxonomy";
 import { curateForYouHome } from "./for-you-home";
 
@@ -70,6 +70,15 @@ export function toMagazineStory(article: EditorialDto): StoryDto {
     hidden: false,
     category: { id: 0, slug: nav.slug, name: nav.name },
     source: { id: 0, name: article.publication, type: article.ingestionMethod },
+    desk: article.desk
+      ? {
+          label: article.desk.label,
+          labelName: article.desk.labelName,
+          note: article.desk.note,
+          curator: article.desk.curator,
+          featured: article.desk.featured,
+        }
+      : null,
   };
 }
 
@@ -138,11 +147,14 @@ function uniqueStories(stories: StoryDto[]) {
 }
 
 async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
-  const ranked = await listEditorial({
-    section: "for-you",
-    testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
-    limit: 80,
-  });
+  const [ranked, deskArticles] = await Promise.all([
+    listEditorial({
+      section: "for-you",
+      testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
+      limit: 80,
+    }),
+    listDeskHomepage(3),
+  ]);
   const plan = curateForYouHome(ranked, testProfile);
   const byId = new Map(ranked.map((article) => [article.id, article]));
   const toStories = (articles: { id: number }[]) =>
@@ -154,9 +166,16 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     );
   const forYourCar = { ...plan.forYourCar, stories: toStories(plan.forYourCar.stories) };
   const yourInterests = { ...plan.yourInterests, stories: toStories(plan.yourInterests.stories) };
-  const discover = { ...plan.discover, stories: toStories(plan.discover.stories) };
+  const desk = uniqueStories(deskArticles.map(toMagazineStory));
+  const deskIds = new Set(desk.map((story) => story.id));
+  const discover = {
+    ...plan.discover,
+    stories: toStories(plan.discover.stories).filter((story) => !deskIds.has(story.id)),
+  };
   const featuredIds = new Set(
-    [...forYourCar.stories, ...yourInterests.stories, ...discover.stories].map((story) => story.id),
+    [...forYourCar.stories, ...yourInterests.stories, ...discover.stories, ...desk].map(
+      (story) => story.id,
+    ),
   );
   const carousels = MAGAZINE_NAV.map((nav) => {
     const lane = ranked
@@ -175,6 +194,7 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     forYourCar,
     yourInterests,
     discover,
+    desk,
     carousels,
     stories: [...forYourCar.stories, ...yourInterests.stories, ...discover.stories],
   };

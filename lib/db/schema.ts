@@ -289,9 +289,26 @@ export const articleRelated = sqliteTable("article_related", {
   score: integer("score").notNull().default(0),
 });
 
+export const deskPicks = sqliteTable("desk_picks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id)
+    .unique(),
+  note: text("note"),
+  curator: text("curator").notNull().default("DRV247 Desk"),
+  selectedAt: integer("selected_at").notNull(),
+  expiresAt: integer("expires_at"),
+  featured: integer("featured", { mode: "boolean" }).notNull().default(false),
+  category: text("category"),
+  label: text("label").notNull().default("from-the-desk"),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+});
+
 export type MediaSource = typeof mediaSources.$inferSelect;
 export type Article = typeof articles.$inferSelect;
 export type IngestionRun = typeof ingestionRuns.$inferSelect;
 export type DemoUser = typeof demoUsers.$inferSelect;
 export type DemoVehicle = typeof demoVehicles.$inferSelect;
+export type DeskPick = typeof deskPicks.$inferSelect;
 
