@@ -1504,11 +1504,25 @@ describe("For You centre", () => {
     const copy = forYouCopy(FOR_YOU_DEMO_PROFILES.A);
     assert.equal(copy.headerTitle, "For your Ferrari F355");
     assert.equal(copy.kicker, "FOR YOUR FERRARI F355");
-    assert.equal(copy.dek, "Ferrari F355 GTB");
-    assert.equal(copy.blurb, "Stories selected for your car.");
+    assert.equal(copy.dek, "Ferrari F355 GTB · Classic · Performance");
+    assert.equal(copy.blurb, "Stories selected around your cars and interests.");
     assert.equal(/personalised recommendations/i.test(copy.kicker + copy.dek + copy.blurb), false);
     const empty = forYouCopy({ interests: [] });
     assert.match(empty.dek, /tell us what you drive/i);
+  });
+
+  it("uses profile interests in lane headings, not hard-coded labels", async () => {
+    const { curateForYouHome } = await import("./for-you-home");
+    const { FOR_YOU_DEMO_PROFILES } = await import("./for-you-test");
+    const corpus = [
+      candidate(1, "JDM night meet", { interests: ["JDM", "Modified"], vehicleTier: "category" }),
+      candidate(2, "WRC on the BBC", { interests: ["Motorsport"], vehicleTier: "category" }),
+    ];
+    const skyline = curateForYouHome(corpus, FOR_YOU_DEMO_PROFILES.C);
+    const m3 = curateForYouHome(corpus, FOR_YOU_DEMO_PROFILES.D);
+    assert.equal(skyline.yourInterests.heading, "JDM · Modified · Performance");
+    assert.equal(m3.yourInterests.heading, "Performance · Motorsport · Modified");
+    assert.notEqual(skyline.yourInterests.heading, m3.yourInterests.heading);
   });
 
   it("curates different leads for demo profiles A–D from the same corpus", async () => {

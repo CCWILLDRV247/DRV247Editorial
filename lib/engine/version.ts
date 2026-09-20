@@ -1,4 +1,4 @@
-export const ENGINE_BRANCH = "cursor/relevance-explanations-cacd";
+export const ENGINE_BRANCH = "cursor/for-you-personalisation-0c1e";
 export const ENGINE_WAVE = "wave-6-74";
 
 export function engineCommit() {
