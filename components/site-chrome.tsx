@@ -166,16 +166,22 @@ export function SectionIntro({
 export function Interstitial({
   text,
   size = "default",
+  tuck = true,
 }: {
   text: string;
   size?: "default" | "home";
+  /** When false, skip negative margins so a block above (e.g. Desk) is not pulled into the type. */
+  tuck?: boolean;
 }) {
   return (
     <p
       className={cn(
         "px-7 font-display font-black uppercase tracking-[-0.02em] text-[#1b1d1f] md:px-0",
         size === "home"
-          ? "-mt-8 -mb-8 pt-[52px] pb-[52px] text-[135px] leading-[0.64]"
+          ? cn(
+              tuck ? "-mt-8 -mb-8" : "mt-0 mb-0",
+              "pt-[52px] pb-[52px] text-[135px] leading-[0.64]",
+            )
           : "text-[clamp(4.5rem,14vw,8.4rem)] leading-[0.62]",
       )}
     >

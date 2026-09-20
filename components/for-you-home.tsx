@@ -119,7 +119,7 @@ export function ForYouHome({
         </section>
       ) : null}
       <DeskModule stories={desk} />
-      <Interstitial text={copy.interstitial} size="home" />
+      <Interstitial text={copy.interstitial} size="home" tuck={desk.length === 0} />
       <CompactLane
         heading={yourInterests.heading}
         dek={yourInterests.dek}
