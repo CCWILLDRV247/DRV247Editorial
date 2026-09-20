@@ -30,6 +30,14 @@ export type RankWeights = {
   popularity: number;
   deskPick: number;
   deskPickRelevant: number;
+  minDrvRelevance: number;
+  drvMetadataVehicle: number;
+  drvMetadataInterest: number;
+  drvMetadataCategory: number;
+  drvMetadataEntity: number;
+  drvSourceExcellent: number;
+  drvSourceGood: number;
+  drvSourceBase: number;
   /** @deprecated use exactModel */
   model?: number;
 };
@@ -56,6 +64,14 @@ export const DEFAULT_RANK_WEIGHTS: RankWeights = {
   popularity: 0,
   deskPick: 8,
   deskPickRelevant: 10,
+  minDrvRelevance: 40,
+  drvMetadataVehicle: 12,
+  drvMetadataInterest: 6,
+  drvMetadataCategory: 8,
+  drvMetadataEntity: 3,
+  drvSourceExcellent: 40,
+  drvSourceGood: 20,
+  drvSourceBase: 8,
 };
 
 export function loadRankWeights(cwd = process.cwd()): RankWeights {

@@ -1801,3 +1801,218 @@ describe("relevance explanations", () => {
   });
 });
 
+describe("relevance engine", () => {
+  const garage964 = [{ make: "Porsche", model: "911", generation: "964", variant: "C2" }];
+
+  it("buckets signals into DRV, user, freshness, and editorial quality", async () => {
+    const { DEFAULT_RANK_WEIGHTS } = await import("./rank");
+    const {
+      DEFAULT_RELEVANCE_ENGINE_WEIGHTS,
+      evaluateRelevanceEngine,
+      formatRelevanceEngineDebug,
+    } = await import("./relevance-engine");
+    const { explainArticle } = await import("./rank");
+    const weights = { ...DEFAULT_RANK_WEIGHTS, ...DEFAULT_RELEVANCE_ENGINE_WEIGHTS };
+    const breakdown = explainArticle({
+      makes: ["Porsche"],
+      models: ["911"],
+      generations: ["964"],
+      variants: ["C2"],
+      interests: ["Air-cooled", "Classic"],
+      categories: ["Classic"],
+      locations: [],
+      excerpt: "A long enough teaser for editorial quality scoring on this article.",
+      relevance: "Excellent",
+      vehicles: garage964,
+      userInterests: ["Air-cooled", "Classic"],
+      publishedAt: Date.now() - 86_400_000,
+      primaryCategory: "cars",
+      entityHits: [{ kind: "generation", name: "964", relevance: "about" }],
+    }, weights);
+    const engine = evaluateRelevanceEngine(
+      breakdown,
+      {
+        makes: ["Porsche"],
+        models: ["911"],
+        interests: ["Air-cooled", "Classic"],
+        categories: ["Classic"],
+        primaryCategory: "cars",
+        entityHits: [{ kind: "generation", name: "964", relevance: "about" }],
+        relevance: "Excellent",
+        deskPick: false,
+      },
+      weights,
+    );
+    assert.ok(engine.drvRelevance >= weights.minDrvRelevance);
+    assert.ok(engine.vehicleMatch > 0);
+    assert.ok(engine.interestMatch > 0);
+    assert.ok(engine.freshness > 0);
+    assert.ok(engine.editorialQuality > 0);
+    assert.ok(engine.userRelevance >= engine.vehicleMatch);
+    assert.equal(engine.passedQualityGate, true);
+    const debug = formatRelevanceEngineDebug({
+      title: "Porsche 964 restoration",
+      engine,
+      explanation: "Because you drive a Porsche 911 964 C2",
+    });
+    assert.match(debug, /DRV relevance: /);
+    assert.match(debug, /Vehicle match: \+/);
+    assert.match(debug, /Interest match: \+/);
+    assert.match(debug, /Freshness: \+/);
+    assert.match(debug, /Editorial quality: \+/);
+    assert.match(debug, /Quality gate: pass/);
+  });
+
+  it("blocks thin generic industry news below the DRV quality gate", async () => {
+    const { DEFAULT_RANK_WEIGHTS, explainArticle } = await import("./rank");
+    const { DEFAULT_RELEVANCE_ENGINE_WEIGHTS, evaluateRelevanceEngine } = await import(
+      "./relevance-engine",
+    );
+    const weights = { ...DEFAULT_RANK_WEIGHTS, ...DEFAULT_RELEVANCE_ENGINE_WEIGHTS };
+    const breakdown = explainArticle({
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: [],
+      categories: [],
+      locations: [],
+      excerpt: "Brief",
+      relevance: "Low",
+      vehicles: garage964,
+      userInterests: ["Classic"],
+      publishedAt: Date.now(),
+    }, weights);
+    const engine = evaluateRelevanceEngine(
+      breakdown,
+      {
+        makes: [],
+        models: [],
+        interests: [],
+        categories: [],
+        relevance: "Low",
+        deskPick: false,
+      },
+      weights,
+    );
+    assert.ok(engine.drvRelevance < weights.minDrvRelevance);
+    assert.equal(engine.passedQualityGate, false);
+  });
+
+  it("keeps a strong user match even when DRV metadata is thin", async () => {
+    const { DEFAULT_RANK_WEIGHTS, explainArticle } = await import("./rank");
+    const { DEFAULT_RELEVANCE_ENGINE_WEIGHTS, evaluateRelevanceEngine } = await import(
+      "./relevance-engine",
+    );
+    const weights = { ...DEFAULT_RANK_WEIGHTS, ...DEFAULT_RELEVANCE_ENGINE_WEIGHTS };
+    const breakdown = explainArticle({
+      makes: ["Nissan"],
+      models: ["Skyline"],
+      generations: [],
+      variants: [],
+      interests: ["JDM", "Modified"],
+      categories: ["Modified"],
+      locations: [],
+      excerpt: "S15 drift build",
+      relevance: "Good",
+      vehicles: [{ make: "Nissan", model: "Skyline" }],
+      userInterests: ["JDM", "Modified", "Performance"],
+      publishedAt: Date.now() - 2 * 86_400_000,
+    }, weights);
+    const engine = evaluateRelevanceEngine(
+      breakdown,
+      {
+        makes: ["Nissan"],
+        models: ["Skyline"],
+        interests: ["JDM", "Modified"],
+        categories: ["Modified"],
+        relevance: "Good",
+        deskPick: false,
+      },
+      weights,
+    );
+    assert.ok(engine.userRelevance >= weights.minDrvRelevance);
+    assert.equal(engine.passedQualityGate, true);
+    assert.match(engine.gateNote, /strong user match|pass/);
+  });
+
+  it("ranks demo profiles A–D differently through the relevance engine path", async () => {
+    const { FOR_YOU_DEMO_PROFILES } = await import("./for-you-test");
+    const { explainArticle, loadRankWeights } = await import("./rank");
+    const { evaluateRelevanceEngine } = await import("./relevance-engine");
+    const { contextFromTestProfile } = await import("./personalize");
+    const loaded = loadRankWeights();
+    const corpus = [
+      {
+        makes: ["Ferrari"],
+        models: ["F355"],
+        variants: ["GTB"],
+        interests: ["Classic", "Performance"],
+        title: "Ferrari F355 GTB restored",
+      },
+      {
+        makes: ["Porsche"],
+        models: ["911"],
+        generations: ["964"],
+        variants: ["C2"],
+        interests: ["Air-cooled", "Classic"],
+        title: "Porsche 964 C2 on a B-road",
+      },
+      {
+        makes: ["Nissan"],
+        models: ["Skyline"],
+        interests: ["JDM", "Modified"],
+        title: "Nissan Skyline GT-R in Tokyo",
+      },
+      {
+        makes: ["BMW"],
+        models: ["M3"],
+        interests: ["Performance", "Motorsport"],
+        title: "E46 M3 on track",
+      },
+    ];
+    const topIds = [];
+    for (const id of ["A", "B", "C", "D"] as const) {
+      const profile = FOR_YOU_DEMO_PROFILES[id];
+      const personal = contextFromTestProfile(profile);
+      const scored = corpus.map((item, index) => {
+        const breakdown = explainArticle(
+          {
+            makes: item.makes,
+            models: item.models,
+            generations: item.generations ?? [],
+            variants: item.variants ?? [],
+            interests: item.interests,
+            categories: item.interests,
+            locations: [],
+            excerpt: item.title,
+            relevance: "Excellent",
+            vehicles: personal.vehicles,
+            userInterests: personal.interests,
+            publishedAt: Date.now() - index * 86_400_000,
+            primaryCategory: "cars",
+          },
+          loaded,
+        );
+        const engine = evaluateRelevanceEngine(
+          breakdown,
+          {
+            makes: item.makes,
+            models: item.models,
+            interests: item.interests,
+            categories: item.interests,
+            relevance: "Excellent",
+            primaryCategory: "cars",
+            deskPick: false,
+          },
+          loaded,
+        );
+        return { id: index + 1, score: breakdown.score, pass: engine.passedQualityGate };
+      });
+      const visible = scored.filter((row) => row.pass).sort((a, b) => b.score - a.score);
+      topIds.push(visible[0]?.id);
+    }
+    assert.deepEqual(topIds, [1, 2, 3, 4]);
+  });
+});
+

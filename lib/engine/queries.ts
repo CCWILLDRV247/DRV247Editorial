@@ -48,6 +48,10 @@ import {
   contextFromTestProfile,
 } from "./personalize";
 import {
+  evaluateRelevanceEngine,
+  type RelevanceEngineWeights,
+} from "./relevance-engine";
+import {
   liveDeskByArticle,
   selectHomepagePicks,
   type DeskPublic,
@@ -88,6 +92,10 @@ export type EditorialDto = {
   rankSignals: RankSignal[];
   vehicleTier: VehicleTier;
   desk: DeskPublic | null;
+  drvRelevance: number;
+  userRelevance: number;
+  passedQualityGate: boolean;
+  relevanceGateNote: string;
 };
 
 type FeedArticle = Pick<
@@ -223,6 +231,10 @@ function toDto(
     rankSignals?: RankSignal[];
     vehicleTier?: VehicleTier;
     desk?: DeskPublic | null;
+    drvRelevance?: number;
+    userRelevance?: number;
+    passedQualityGate?: boolean;
+    relevanceGateNote?: string;
   },
 ): EditorialDto {
   const image = parseImagePayload(article.metadata);
@@ -262,6 +274,10 @@ function toDto(
     rankSignals: extras.rankSignals ?? [],
     vehicleTier: extras.vehicleTier ?? "none",
     desk: extras.desk ?? null,
+    drvRelevance: extras.drvRelevance ?? extras.rankScore,
+    userRelevance: extras.userRelevance ?? 0,
+    passedQualityGate: extras.passedQualityGate ?? true,
+    relevanceGateNote: extras.relevanceGateNote ?? "pass",
   };
 }
 
@@ -406,7 +422,8 @@ export async function listEditorial(options?: {
     }
   }
 
-  const weights = loadRankWeights();
+  const weights = loadRankWeights() as RelevanceEngineWeights;
+  const applyQualityGate = personalizedForYou(useTestProfile, curated);
   const ranked = rows.map((article) => {
     const extras = extrasMap.get(article.id) ?? emptyExtras();
     const snap = parseClassificationSnapshot(article.metadata);
@@ -477,6 +494,8 @@ export async function listEditorial(options?: {
             : ([] as EditorialDto["rankSignals"]),
           vehicleTier: "none" as const,
         };
+    const engine = evaluateRelevanceEngine(breakdown, rankInput, weights);
+    if (applyQualityGate && !engine.passedQualityGate) return null;
     return toDto(article, {
       ...extras,
       rankScore: breakdown.score,
@@ -486,6 +505,10 @@ export async function listEditorial(options?: {
       rankSignals: breakdown.signals,
       vehicleTier: breakdown.vehicleTier,
       desk,
+      drvRelevance: engine.drvRelevance,
+      userRelevance: engine.userRelevance,
+      passedQualityGate: engine.passedQualityGate,
+      relevanceGateNote: engine.gateNote,
     });
   });
 
