@@ -65,16 +65,22 @@ export function forYouVehicleSpec(profile?: ForYouTestProfile) {
   return forYouVehicleName(profile);
 }
 
+export function forYouInterestLabel(profile?: ForYouTestProfile) {
+  if (!profile?.interests.length) return "";
+  return profile.interests.map(canonicalInterest).join(" · ");
+}
+
 export function forYouCopy(profile?: ForYouTestProfile): ForYouCopy {
   const active = profile && forYouTestIsActive(profile);
   const car = forYouVehicleName(profile);
   const spec = forYouVehicleSpec(profile);
+  const interests = forYouInterestLabel(profile);
   if (car) {
     return {
       headerTitle: `For your ${car}`,
       kicker: `FOR YOUR ${car.toUpperCase()}`,
-      dek: spec,
-      blurb: "Stories selected for your car.",
+      dek: interests ? `${spec} · ${interests}` : spec,
+      blurb: "Stories selected around your cars and interests.",
       interstitial: "THE TRUTH SHALL SET YOU FREE",
     };
   }
@@ -82,8 +88,8 @@ export function forYouCopy(profile?: ForYouTestProfile): ForYouCopy {
     return {
       headerTitle: "For You",
       kicker: "FOR YOU",
-      dek: "Tell us what you drive to make DRV247 yours.",
-      blurb: "Your interests are in the mix. Add a car and the desk organises around it.",
+      dek: interests,
+      blurb: "Stories selected around your interests. Add a car and the desk organises around it.",
       interstitial: "THE TRUTH SHALL SET YOU FREE",
     };
   }
@@ -91,7 +97,7 @@ export function forYouCopy(profile?: ForYouTestProfile): ForYouCopy {
     headerTitle: "For You",
     kicker: "FOR YOU",
     dek: "Tell us what you drive to make DRV247 yours.",
-    blurb: "The automotive internet, organised around your car — once we know what you drive.",
+    blurb: "Your personalised front door to the car world.",
     interstitial: "THE TRUTH SHALL SET YOU FREE",
   };
 }
@@ -110,6 +116,28 @@ function matchesInterest(article: Pick<ForYouCandidate, "interests" | "why">, pr
   return profile.interests.some((interest) =>
     article.interests.some((item) => interestsMatch(item, canonicalInterest(interest))),
   );
+}
+
+function primaryInterestIndex(
+  article: Pick<ForYouCandidate, "interests" | "why">,
+  profile?: ForYouTestProfile,
+) {
+  if (!profile?.interests.length) return Number.POSITIVE_INFINITY;
+  for (let index = 0; index < profile.interests.length; index += 1) {
+    const interest = canonicalInterest(profile.interests[index]!);
+    if (article.why.some((reason) => reason.toLowerCase().includes(interest.toLowerCase()))) return index;
+    if (article.interests.some((item) => interestsMatch(item, interest))) return index;
+  }
+  return Number.POSITIVE_INFINITY;
+}
+
+function sortByProfileInterests<T extends ForYouCandidate>(pool: T[], profile?: ForYouTestProfile) {
+  return [...pool].sort((left, right) => {
+    const leftIndex = primaryInterestIndex(left, profile);
+    const rightIndex = primaryInterestIndex(right, profile);
+    if (leftIndex !== rightIndex) return leftIndex - rightIndex;
+    return right.rankScore - left.rankScore;
+  });
 }
 
 function matchesUserCar(article: Pick<ForYouCandidate, "makes" | "models">, profile?: ForYouTestProfile) {
@@ -181,7 +209,10 @@ export function curateForYouHome(ranked: ForYouCandidate[], profile?: ForYouTest
   const culture = ranked.filter(
     (article) => article.vehicleTier === "category" || matchesCulture(article, profile),
   );
-  const interestHits = ranked.filter((article) => matchesInterest(article, profile));
+  const interestHits = sortByProfileInterests(
+    ranked.filter((article) => matchesInterest(article, profile)),
+    profile,
+  );
 
   let forYourCarStories: ForYouCandidate[] = [];
   let forYourCarEmpty: string | undefined;
@@ -233,6 +264,7 @@ export function curateForYouHome(ranked: ForYouCandidate[], profile?: ForYouTest
     usedSubjects,
     { avoidMake: profile?.make },
   );
+  const interestLabel = forYouInterestLabel(profile);
 
   return {
     copy,
@@ -240,13 +272,13 @@ export function curateForYouHome(ranked: ForYouCandidate[], profile?: ForYouTest
     interestsKnown,
     forYourCar: {
       heading: vehicleKnown ? `For your ${forYouVehicleName(profile)}` : "For You",
-      dek: vehicleKnown ? "Stories selected for your car" : undefined,
+      dek: vehicleKnown ? "Stories selected around your cars and interests" : undefined,
       empty: forYourCarEmpty,
       stories: forYourCarStories,
     },
     yourInterests: {
-      heading: "Your interests",
-      dek: profile?.interests.length ? profile.interests.map(canonicalInterest).join(" · ") : undefined,
+      heading: interestLabel || "Your interests",
+      dek: interestsKnown ? "Selected around what you follow" : undefined,
       empty:
         interestsKnown && yourInterestsStories.length === 0
           ? "No interest matches on the desk yet — Discover still runs."
@@ -255,7 +287,11 @@ export function curateForYouHome(ranked: ForYouCandidate[], profile?: ForYouTest
     },
     discover: {
       heading: "Discover",
-      dek: vehicleKnown ? "The rest of the car world" : "The desk, unfiltered",
+      dek: vehicleKnown
+        ? interestLabel
+          ? `Wider stories beyond ${forYouVehicleName(profile)}`
+          : "The rest of the car world"
+        : "The desk, unfiltered",
       stories: discoverStories,
     },
   };

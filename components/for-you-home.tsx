@@ -109,12 +109,14 @@ export function ForYouHome({
   carousels: CategoryLane[];
 }) {
   const vehicleStories = forYourCar.stories;
-  const hero = vehicleStories[0] ?? discover.stories[0];
+  const hero = vehicleStories[0] ?? yourInterests.stories[0] ?? discover.stories[0];
   const vehicleRest = vehicleStories.slice(1);
   const leadCards = vehicleRest.slice(0, 2);
   const moreVehicle = vehicleRest.slice(2, 5);
   const discoverStories =
-    hero && !vehicleStories[0] ? discover.stories.filter((story) => story.id !== hero.id) : discover.stories;
+    hero && !vehicleStories[0]
+      ? discover.stories.filter((story) => story.id !== hero.id)
+      : discover.stories;
 
   return (
     <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 pb-16 md:max-w-6xl">
@@ -141,8 +143,13 @@ export function ForYouHome({
       {moreVehicle.length > 0 ? (
         <section className="min-w-0 pl-4 pr-0 md:px-0">
           <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
-            For your car
+            {forYourCar.heading}
           </p>
+          {forYourCar.dek ? (
+            <p className="mt-2 font-display text-sm font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55">
+              {forYourCar.dek}
+            </p>
+          ) : null}
           <div className="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-2">
             {moreVehicle.map((story) => (
               <PickCard key={story.id} story={story} />
@@ -150,8 +157,6 @@ export function ForYouHome({
           </div>
         </section>
       ) : null}
-      <DeskModule stories={desk} />
-      <Interstitial text={copy.interstitial} size="home" tuck={desk.length === 0} />
       <CompactLane
         heading={yourInterests.heading}
         dek={yourInterests.dek}
@@ -159,6 +164,8 @@ export function ForYouHome({
         stories={yourInterests.stories}
         picks
       />
+      <DeskModule stories={desk} />
+      <Interstitial text={copy.interstitial} size="home" tuck={desk.length === 0} />
       <CompactLane
         heading={discover.heading}
         dek={discover.dek}
