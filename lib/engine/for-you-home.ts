@@ -27,6 +27,8 @@ export type ForYouCandidate = Pick<
   | "duplicateGroupId"
   | "rankScore"
   | "imageUrl"
+  | "showInPrimaryFeed"
+  | "qualityBand"
 >;
 
 export type ForYouCopy = {
@@ -203,16 +205,18 @@ export function curateForYouHome(ranked: ForYouCandidate[], profile?: ForYouTest
   const spec = forYouVehicleSpec(profile);
   const used = new Set<number>();
   const usedSubjects = new Set<string>();
+  const primaryPool = ranked.filter((article) => article.showInPrimaryFeed !== false);
+  const discoverPool = ranked;
 
-  const direct = ranked.filter(
+  const direct = primaryPool.filter(
     (article) => DIRECT_TIERS.has(article.vehicleTier) && matchesUserCar(article, profile),
   );
-  const marque = ranked.filter((article) => article.vehicleTier === "make" && matchesUserCar(article, profile));
-  const culture = ranked.filter(
+  const marque = primaryPool.filter((article) => article.vehicleTier === "make" && matchesUserCar(article, profile));
+  const culture = primaryPool.filter(
     (article) => article.vehicleTier === "category" || matchesCulture(article, profile),
   );
   const interestHits = sortByProfileInterests(
-    ranked.filter((article) => matchesInterest(article, profile)),
+    primaryPool.filter((article) => matchesInterest(article, profile)),
     profile,
   );
 
@@ -257,8 +261,9 @@ export function curateForYouHome(ranked: ForYouCandidate[], profile?: ForYouTest
     ? takeDiverse(interestHits, 6, used, usedSubjects, { avoidMake: profile?.make })
     : [];
   const discoverStories = takeDiverse(
-    ranked.filter((article) => {
+    discoverPool.filter((article) => {
       if (!vehicleKnown) return true;
+      if (article.showInPrimaryFeed === false) return true;
       return makeOf(article) !== (profile?.make ?? "").toLowerCase() || article.vehicleTier === "none";
     }),
     6,

@@ -41,6 +41,8 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
       user?: string;
       explanation?: string | null;
       confidence?: string;
+      qualityBand?: string;
+      qualityReason?: string;
       debug?: string;
     }[] | null
   >(null);
@@ -181,6 +183,7 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
                   <p className="font-medium">{row.title}</p>
                   <p className="text-xs text-[#1b1d1f]/60">
                     #{row.id} · {row.vehicleTier}
+                    {row.qualityBand ? ` · ${row.qualityBand}` : ""}
                     {row.confidence ? ` · ${row.confidence}` : ""}
                   </p>
                 </TableCell>

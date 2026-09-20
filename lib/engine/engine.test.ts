@@ -2053,3 +2053,150 @@ describe("relevance engine", () => {
   });
 });
 
+describe("quality filter", () => {
+  const garage964 = [{ make: "Porsche", model: "911", generation: "964", variant: "C2" }];
+
+  it("marks a strong build/feature as featured (high band)", async () => {
+    const { DEFAULT_RANK_WEIGHTS, explainArticle } = await import("./rank");
+    const { DEFAULT_RELEVANCE_ENGINE_WEIGHTS, evaluateRelevanceEngine } = await import(
+      "./relevance-engine",
+    );
+    const { DEFAULT_QUALITY_FILTER_WEIGHTS, evaluateQualityFilter } = await import("./quality-filter");
+    const weights = {
+      ...DEFAULT_RANK_WEIGHTS,
+      ...DEFAULT_RELEVANCE_ENGINE_WEIGHTS,
+      ...DEFAULT_QUALITY_FILTER_WEIGHTS,
+    };
+    const meta = {
+      makes: ["Porsche"],
+      models: ["911"],
+      generations: ["964"],
+      variants: ["C2"],
+      interests: ["Air-cooled", "Classic"],
+      categories: ["Classic"],
+      locations: [],
+      excerpt: "A long enough teaser for editorial quality scoring on this restoration build.",
+      relevance: "Excellent",
+      vehicles: garage964,
+      userInterests: ["Air-cooled", "Classic"],
+      publishedAt: Date.now() - 86_400_000,
+      primaryCategory: "cars",
+      contentTypes: ["Build"],
+      entityHits: [{ kind: "generation", name: "964", relevance: "about" }],
+      deskPick: false,
+    };
+    const breakdown = explainArticle(meta, weights);
+    const engine = evaluateRelevanceEngine(breakdown, meta, weights);
+    const quality = evaluateQualityFilter(engine, meta, weights);
+    assert.equal(quality.band, "featured");
+    assert.equal(quality.showInPrimaryFeed, true);
+    assert.match(quality.reason, /strong DRV247 fit|desk pick/);
+  });
+
+  it("deprioritises thin but potentially relevant stories (medium band)", async () => {
+    const { DEFAULT_RANK_WEIGHTS, explainArticle } = await import("./rank");
+    const { DEFAULT_RELEVANCE_ENGINE_WEIGHTS, evaluateRelevanceEngine } = await import(
+      "./relevance-engine",
+    );
+    const { DEFAULT_QUALITY_FILTER_WEIGHTS, evaluateQualityFilter } = await import("./quality-filter");
+    const weights = {
+      ...DEFAULT_RANK_WEIGHTS,
+      ...DEFAULT_RELEVANCE_ENGINE_WEIGHTS,
+      ...DEFAULT_QUALITY_FILTER_WEIGHTS,
+    };
+    const meta = {
+      makes: ["BMW"],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: ["Air-cooled"],
+      categories: ["Classic"],
+      locations: [],
+      excerpt: "Short",
+      relevance: "Good",
+      vehicles: garage964,
+      userInterests: ["Air-cooled"],
+      publishedAt: Date.now(),
+      primaryCategory: "news",
+      contentTypes: ["News"],
+      deskPick: false,
+    };
+    const breakdown = explainArticle(meta, weights);
+    const engine = evaluateRelevanceEngine(breakdown, meta, weights);
+    const quality = evaluateQualityFilter(engine, meta, weights);
+    assert.equal(quality.band, "deprioritised");
+    assert.equal(quality.showInPrimaryFeed, false);
+    assert.ok(quality.sortPenalty > 0);
+  });
+
+  it("excludes generic industry news with weak automotive connection (low band)", async () => {
+    const { DEFAULT_RANK_WEIGHTS, explainArticle } = await import("./rank");
+    const { DEFAULT_RELEVANCE_ENGINE_WEIGHTS, evaluateRelevanceEngine } = await import(
+      "./relevance-engine",
+    );
+    const { DEFAULT_QUALITY_FILTER_WEIGHTS, evaluateQualityFilter } = await import("./quality-filter");
+    const weights = {
+      ...DEFAULT_RANK_WEIGHTS,
+      ...DEFAULT_RELEVANCE_ENGINE_WEIGHTS,
+      ...DEFAULT_QUALITY_FILTER_WEIGHTS,
+    };
+    const meta = {
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: [],
+      categories: [],
+      locations: [],
+      excerpt: "Brief",
+      relevance: "Low",
+      vehicles: garage964,
+      userInterests: ["Classic"],
+      publishedAt: Date.now(),
+      primaryCategory: "news",
+      contentTypes: ["News"],
+      deskPick: false,
+    };
+    const breakdown = explainArticle(meta, weights);
+    const engine = evaluateRelevanceEngine(breakdown, meta, weights);
+    const quality = evaluateQualityFilter(engine, meta, weights);
+    assert.equal(quality.band, "excluded");
+    assert.equal(quality.showInPrimaryFeed, false);
+    assert.match(quality.reason, /generic industry news|below quality threshold|below deprioritised/i);
+  });
+
+  it("keeps a strong user match eligible even when DRV metadata is thin", async () => {
+    const { DEFAULT_RANK_WEIGHTS, explainArticle } = await import("./rank");
+    const { DEFAULT_RELEVANCE_ENGINE_WEIGHTS, evaluateRelevanceEngine } = await import(
+      "./relevance-engine",
+    );
+    const { DEFAULT_QUALITY_FILTER_WEIGHTS, evaluateQualityFilter } = await import("./quality-filter");
+    const weights = {
+      ...DEFAULT_RANK_WEIGHTS,
+      ...DEFAULT_RELEVANCE_ENGINE_WEIGHTS,
+      ...DEFAULT_QUALITY_FILTER_WEIGHTS,
+    };
+    const meta = {
+      makes: ["Nissan"],
+      models: ["Skyline"],
+      generations: [],
+      variants: [],
+      interests: ["JDM", "Modified"],
+      categories: ["Modified"],
+      locations: [],
+      excerpt: "S15 drift build",
+      relevance: "Good",
+      vehicles: [{ make: "Nissan", model: "Skyline" }],
+      userInterests: ["JDM", "Modified", "Performance"],
+      publishedAt: Date.now() - 2 * 86_400_000,
+      primaryCategory: "cars",
+      deskPick: false,
+    };
+    const breakdown = explainArticle(meta, weights);
+    const engine = evaluateRelevanceEngine(breakdown, meta, weights);
+    const quality = evaluateQualityFilter(engine, meta, weights);
+    assert.equal(quality.band, "eligible");
+    assert.equal(quality.showInPrimaryFeed, true);
+  });
+});
+

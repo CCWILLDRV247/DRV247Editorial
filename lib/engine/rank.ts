@@ -31,6 +31,11 @@ export type RankWeights = {
   deskPick: number;
   deskPickRelevant: number;
   minDrvRelevance: number;
+  minAutomotiveRelevance: number;
+  minEditorialQuality: number;
+  eligibleDrvRelevance: number;
+  deprioritisedDrvRelevance: number;
+  featuredDrvRelevance: number;
   drvMetadataVehicle: number;
   drvMetadataInterest: number;
   drvMetadataCategory: number;
@@ -65,6 +70,11 @@ export const DEFAULT_RANK_WEIGHTS: RankWeights = {
   deskPick: 8,
   deskPickRelevant: 10,
   minDrvRelevance: 40,
+  minAutomotiveRelevance: 12,
+  minEditorialQuality: 8,
+  eligibleDrvRelevance: 40,
+  deprioritisedDrvRelevance: 28,
+  featuredDrvRelevance: 56,
   drvMetadataVehicle: 12,
   drvMetadataInterest: 6,
   drvMetadataCategory: 8,

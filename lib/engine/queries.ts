@@ -52,6 +52,11 @@ import {
   type RelevanceEngineWeights,
 } from "./relevance-engine";
 import {
+  evaluateQualityFilter,
+  type QualityBand,
+  type QualityFilterWeights,
+} from "./quality-filter";
+import {
   liveDeskByArticle,
   selectHomepagePicks,
   type DeskPublic,
@@ -96,6 +101,10 @@ export type EditorialDto = {
   userRelevance: number;
   passedQualityGate: boolean;
   relevanceGateNote: string;
+  qualityBand: QualityBand;
+  qualityReason: string;
+  showInPrimaryFeed: boolean;
+  qualityAutomotiveScore: number;
 };
 
 type FeedArticle = Pick<
@@ -235,6 +244,10 @@ function toDto(
     userRelevance?: number;
     passedQualityGate?: boolean;
     relevanceGateNote?: string;
+    qualityBand?: QualityBand;
+    qualityReason?: string;
+    showInPrimaryFeed?: boolean;
+    qualityAutomotiveScore?: number;
   },
 ): EditorialDto {
   const image = parseImagePayload(article.metadata);
@@ -278,6 +291,10 @@ function toDto(
     userRelevance: extras.userRelevance ?? 0,
     passedQualityGate: extras.passedQualityGate ?? true,
     relevanceGateNote: extras.relevanceGateNote ?? "pass",
+    qualityBand: extras.qualityBand ?? "eligible",
+    qualityReason: extras.qualityReason ?? "eligible DRV relevance",
+    showInPrimaryFeed: extras.showInPrimaryFeed ?? true,
+    qualityAutomotiveScore: extras.qualityAutomotiveScore ?? 0,
   };
 }
 
@@ -422,7 +439,7 @@ export async function listEditorial(options?: {
     }
   }
 
-  const weights = loadRankWeights() as RelevanceEngineWeights;
+  const weights = loadRankWeights() as QualityFilterWeights;
   const applyQualityGate = personalizedForYou(useTestProfile, curated);
   const ranked = rows.map((article) => {
     const extras = extrasMap.get(article.id) ?? emptyExtras();
@@ -495,10 +512,11 @@ export async function listEditorial(options?: {
           vehicleTier: "none" as const,
         };
     const engine = evaluateRelevanceEngine(breakdown, rankInput, weights);
-    if (applyQualityGate && !engine.passedQualityGate) return null;
+    const quality = evaluateQualityFilter(engine, rankInput, weights);
+    if (applyQualityGate && quality.band === "excluded") return null;
     return toDto(article, {
       ...extras,
-      rankScore: breakdown.score,
+      rankScore: Math.max(0, breakdown.score - quality.sortPenalty),
       primaryCategory,
       classification: snap,
       why: breakdown.reasons,
@@ -509,11 +527,21 @@ export async function listEditorial(options?: {
       userRelevance: engine.userRelevance,
       passedQualityGate: engine.passedQualityGate,
       relevanceGateNote: engine.gateNote,
+      qualityBand: quality.band,
+      qualityReason: quality.reason,
+      showInPrimaryFeed: quality.showInPrimaryFeed,
+      qualityAutomotiveScore: quality.automotiveScore,
     });
   });
 
   const list = ranked.filter((row): row is EditorialDto => Boolean(row));
-  list.sort((a, b) => b.rankScore - a.rankScore || Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+  list.sort((a, b) => {
+    const bandRank = (band: QualityBand) =>
+      band === "featured" ? 3 : band === "eligible" ? 2 : band === "deprioritised" ? 1 : 0;
+    const bandDelta = bandRank(b.qualityBand) - bandRank(a.qualityBand);
+    if (bandDelta !== 0) return bandDelta;
+    return b.rankScore - a.rankScore || Date.parse(b.publishedAt) - Date.parse(a.publishedAt);
+  });
 
   const seenGroups = new Set<string>();
   const deduped: EditorialDto[] = [];
