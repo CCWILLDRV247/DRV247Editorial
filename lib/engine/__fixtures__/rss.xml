@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Test Mag</title>
+    <item>
+      <title>Porsche 964 Carrera RS at Goodwood</title>
+      <link>https://example.com/porsche-964-carrera-rs</link>
+      <guid>https://example.com/porsche-964-carrera-rs</guid>
+      <pubDate>Mon, 14 Sep 2026 10:00:00 GMT</pubDate>
+      <description>A classic air-cooled 911 on the hill.</description>
+      <media:content url="https://cdn.example.com/964.jpg" medium="image" />
+    </item>
+    <item>
+      <title>Ferrari F355 on the autostrada</title>
+      <link>https://example.com/ferrari-f355</link>
+      <description>The 355 remains a sports car benchmark.</description>
+    </item>
+    <item>
+      <title>Autocar encoded image</title>
+      <link>https://example.com/volvo-teaser</link>
+      <description>&lt;a href=&quot;/volvo-teaser&quot;&gt;&lt;img src=&quot;https://cdn.example.com/volvo.jpg?itok=1&quot; width=&quot;190&quot; /&gt;&lt;/a&gt;</description>
+    </item>
+    <item>
+      <title>Enclosure type first</title>
+      <link>https://example.com/enclosure-hero</link>
+      <enclosure type="image/jpeg" url="https://cdn.example.com/hero-untyped-path" />
+    </item>
+  </channel>
+</rss>
