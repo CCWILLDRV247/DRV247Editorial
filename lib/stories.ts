@@ -12,6 +12,7 @@ export type StoryDto = {
   canonicalUrl: string;
   publishedAt: string;
   hidden: boolean;
+  relevanceExplanation?: string | null;
   category: { id: number; slug: string; name: string };
   source: { id: number; name: string; type: string };
   desk?: {

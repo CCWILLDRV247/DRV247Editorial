@@ -1,4 +1,4 @@
-export const ENGINE_BRANCH = "cursor/drv247-desk-fb00";
+export const ENGINE_BRANCH = "cursor/relevance-explanations-cacd";
 export const ENGINE_WAVE = "wave-6-74";
 
 export function engineCommit() {

@@ -10,7 +10,7 @@ import { getMagazineHome } from "@/lib/engine/magazine";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage({
   searchParams,
@@ -28,7 +28,7 @@ export default async function HomePage({
   return (
     <div className="min-h-full overflow-x-clip bg-white">
       <SiteHeader title={home.copy.headerTitle} testQuery={testQuery} />
-      <ForYouTestFilter initial={testProfile} catalog={catalog} />
+      <ForYouTestFilter initial={testProfile} catalog={catalog} pathname="/" />
       <main className="relative z-0 pt-2">
         <ForYouHome
           copy={home.copy}

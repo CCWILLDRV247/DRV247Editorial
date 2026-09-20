@@ -7,10 +7,13 @@ import type { StoryDto } from "@/lib/stories";
 
 type ForYouLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
 
+const PAGE_GUTTER =
+  "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]";
+
 function storyCardGrid(cards: StoryDto[]) {
   if (cards.length === 0) return null;
   return (
-    <div className="min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]">
+    <div className={PAGE_GUTTER}>
       <div className="grid w-full min-w-0 gap-2 md:grid-cols-2">
         {cards.map((story) => (
           <StoryCard key={story.id} story={story} />
@@ -34,6 +37,36 @@ function CompactLane({
   picks?: boolean;
 }) {
   if (stories.length === 0 && !empty) return null;
+
+  if (!picks) {
+    return (
+      <section className="min-w-0">
+        <div className={PAGE_GUTTER}>
+          <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
+            {heading}
+          </p>
+          {dek ? (
+            <p className="mt-2 font-display text-sm font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55">
+              {dek}
+            </p>
+          ) : null}
+          {empty && stories.length === 0 ? (
+            <p className="mt-4 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
+              {empty}
+            </p>
+          ) : null}
+          {stories.length > 0 ? (
+            <div className="mt-4 grid w-full min-w-0 gap-2 md:grid-cols-2">
+              {stories.map((story) => (
+                <StoryCard key={story.id} story={story} />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="min-w-0 pl-4 pr-0 md:px-0">
       <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
@@ -56,7 +89,6 @@ function CompactLane({
           ))}
         </div>
       ) : null}
-      {!picks && stories.length > 0 ? <div className="mt-4">{storyCardGrid(stories)}</div> : null}
     </section>
   );
 }
