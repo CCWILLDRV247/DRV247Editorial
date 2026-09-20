@@ -17,5 +17,7 @@
   "freshnessMax": 10,
   "freshnessHalfLifeDays": 12,
   "genericNews": 3,
-  "popularity": 0
+  "popularity": 0,
+  "deskPick": 8,
+  "deskPickRelevant": 10
 }

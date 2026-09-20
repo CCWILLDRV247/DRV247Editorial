@@ -28,6 +28,8 @@ export type RankWeights = {
   freshnessHalfLifeDays: number;
   genericNews: number;
   popularity: number;
+  deskPick: number;
+  deskPickRelevant: number;
   /** @deprecated use exactModel */
   model?: number;
 };
@@ -52,6 +54,8 @@ export const DEFAULT_RANK_WEIGHTS: RankWeights = {
   freshnessHalfLifeDays: 12,
   genericNews: 3,
   popularity: 0,
+  deskPick: 8,
+  deskPickRelevant: 10,
 };
 
 export function loadRankWeights(cwd = process.cwd()): RankWeights {
@@ -121,6 +125,7 @@ export type RankInput = {
   geography?: string[];
   publishedAt?: number;
   primaryCategory?: string;
+  deskPick?: boolean;
 };
 
 const TIER_RANK: Record<VehicleTier, number> = {
@@ -343,6 +348,28 @@ export function explainArticle(
 
   if (weights.popularity > 0) {
     signals.push({ kind: "popularity", points: weights.popularity, detail: "owner popularity" });
+  }
+
+  if (input.deskPick) {
+    signals.push({
+      kind: "desk",
+      points: weights.deskPick,
+      detail: "DRV247 Desk",
+    });
+    const deskRelevant =
+      vehicleTier === "variant" ||
+      vehicleTier === "vehicle" ||
+      vehicleTier === "model" ||
+      vehicleTier === "generation" ||
+      vehicleTier === "make";
+    if (deskRelevant) {
+      signals.push({
+        kind: "desk.relevant",
+        points: weights.deskPickRelevant,
+        detail: "desk + car",
+      });
+    }
+    reasons.push("From the DRV247 Desk");
   }
 
   if (vehicleTier === "none" && !matchedInterests.length) {

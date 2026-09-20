@@ -35,6 +35,7 @@ export default async function HomePage({
           forYourCar={home.forYourCar}
           yourInterests={home.yourInterests}
           discover={home.discover}
+          desk={home.desk}
           carousels={home.carousels}
         />
       </main>

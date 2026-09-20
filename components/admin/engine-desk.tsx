@@ -16,6 +16,7 @@ import { ENGINE_BRANCH, engineCommit } from "@/lib/engine/version";
 import type { Article, IngestionRun, MediaSource } from "@/lib/db/schema";
 import type { ClassificationDebugRow } from "@/lib/engine/queries";
 import { FOR_YOU_DEMO_PROFILES, type ForYouDemoId } from "@/lib/engine/for-you-test";
+import { DeskCuration } from "@/components/admin/desk-curation";
 
 type Props = {
   sources: MediaSource[];
@@ -104,7 +105,7 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end md:justify-between">
         <div>
           <p className="font-display text-sm font-bold uppercase tracking-wide text-[#1b1d1f]/60">
             Automotive Culture Engine
@@ -119,11 +120,12 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
             stay dark. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled (Cloudflare
             403). Ingest skips non-English items, shop/product/collection/cart/merch URLs, auction
             and subscribe paths, empty or /undefined URLs, and off-site magazine-shop canonicals.
-            Desk can backfill structured metadata on stored teasers. For You ranking debug is below
-            (article / score / why). {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
+            Desk can backfill structured metadata on stored teasers. Mark human Desk picks in
+            the section below — labels and optional notes, never generated copy. For You ranking
+            debug is further down (article / score / card copy / debug). {ENGINE_BRANCH} @ {engineCommit().slice(0, 7)}.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full min-w-0 flex-wrap gap-2 md:w-auto md:justify-end">
           <Link
             href="/admin"
             className="inline-flex h-8 items-center rounded-lg border border-border px-2.5 text-sm"
@@ -142,6 +144,8 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
         </div>
       </div>
       {message ? <p className="text-sm text-[#1b1d1f]/80">{message}</p> : null}
+
+      <DeskCuration />
 
       <section>
         <h2 className="mb-3 font-display text-xl font-bold uppercase">For You ranking</h2>
