@@ -19,5 +19,13 @@
   "genericNews": 3,
   "popularity": 0,
   "deskPick": 8,
-  "deskPickRelevant": 10
+  "deskPickRelevant": 10,
+  "minDrvRelevance": 40,
+  "drvMetadataVehicle": 12,
+  "drvMetadataInterest": 6,
+  "drvMetadataCategory": 8,
+  "drvMetadataEntity": 3,
+  "drvSourceExcellent": 40,
+  "drvSourceGood": 20,
+  "drvSourceBase": 8
 }

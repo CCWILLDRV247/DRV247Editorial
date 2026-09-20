@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { forYouTestIsActive, parseForYouTestProfile } from "@/lib/engine/for-you-test";
 import { listEditorial } from "@/lib/engine/queries";
 import { contextFromTestProfile } from "@/lib/engine/personalize";
-import { buildRelevanceDebugRow, formatRelevanceDebugBlock } from "@/lib/engine/relevance-explanation";
+import { buildRelevanceDebugRow } from "@/lib/engine/relevance-explanation";
+import {
+  bucketRankSignals,
+  formatRelevanceEngineDebug,
+} from "@/lib/engine/relevance-engine";
 import { ENGINE_BRANCH, ENGINE_WAVE, engineCommit } from "@/lib/engine/version";
 
 export const runtime = "nodejs";
@@ -43,6 +47,7 @@ export async function GET(request: Request) {
               profileContext?.vehicles ?? [],
               profileContext?.interests ?? [],
             );
+            const buckets = bucketRankSignals(article.rankSignals);
             return {
               id: row.id,
               title: row.title,
@@ -54,7 +59,21 @@ export async function GET(request: Request) {
               user: row.user,
               explanation: row.explanation,
               confidence: row.confidence,
-              debug: formatRelevanceDebugBlock(row),
+              drvRelevance: article.drvRelevance,
+              userRelevance: article.userRelevance,
+              passedQualityGate: article.passedQualityGate,
+              debug: formatRelevanceEngineDebug({
+                title: row.title,
+                engine: {
+                  ...buckets,
+                  drvRelevance: article.drvRelevance,
+                  userRelevance: article.userRelevance,
+                  totalScore: article.rankScore,
+                  passedQualityGate: article.passedQualityGate,
+                  gateNote: article.relevanceGateNote,
+                },
+                explanation: row.explanation,
+              }),
             };
           })
         : null,

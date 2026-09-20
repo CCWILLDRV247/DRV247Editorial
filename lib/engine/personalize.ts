@@ -101,6 +101,18 @@ export function vehicleCultureTags(vehicle: GarageVehicle): string[] {
   return [...tags];
 }
 
+/** Culture tags shared with the article that are not already direct user-interest matches. */
+export function cultureBridgeTags(
+  vehicle: GarageVehicle,
+  articleTags: string[],
+  userInterests: string[] = [],
+): string[] {
+  const culture = vehicleCultureTags(vehicle).map(norm);
+  const articleNorms = articleTags.map(norm);
+  const interestNorms = new Set(userInterests.map((interest) => norm(canonicalInterest(interest))));
+  return culture.filter((tag) => articleNorms.includes(tag) && !interestNorms.has(tag));
+}
+
 export function contextFromTestProfile(profile: ForYouTestProfile): PersonalisationContext {
   const vehicles: GarageVehicle[] =
     profile.make || profile.model
