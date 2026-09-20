@@ -7,6 +7,7 @@ import {
   bucketRankSignals,
   formatRelevanceEngineDebug,
 } from "@/lib/engine/relevance-engine";
+import { formatQualityFilterDebug } from "@/lib/engine/quality-filter";
 import { ENGINE_BRANCH, ENGINE_WAVE, engineCommit } from "@/lib/engine/version";
 
 export const runtime = "nodejs";
@@ -62,18 +63,39 @@ export async function GET(request: Request) {
               drvRelevance: article.drvRelevance,
               userRelevance: article.userRelevance,
               passedQualityGate: article.passedQualityGate,
-              debug: formatRelevanceEngineDebug({
-                title: row.title,
-                engine: {
-                  ...buckets,
-                  drvRelevance: article.drvRelevance,
-                  userRelevance: article.userRelevance,
-                  totalScore: article.rankScore,
-                  passedQualityGate: article.passedQualityGate,
-                  gateNote: article.relevanceGateNote,
-                },
-                explanation: row.explanation,
-              }),
+              qualityBand: article.qualityBand,
+              qualityReason: article.qualityReason,
+              debug: [
+                formatRelevanceEngineDebug({
+                  title: row.title,
+                  engine: {
+                    ...buckets,
+                    drvRelevance: article.drvRelevance,
+                    userRelevance: article.userRelevance,
+                    totalScore: article.rankScore,
+                    passedQualityGate: article.passedQualityGate,
+                    gateNote: article.relevanceGateNote,
+                  },
+                  explanation: row.explanation,
+                }),
+                formatQualityFilterDebug({
+                  quality: {
+                    band: article.qualityBand,
+                    reason: article.qualityReason,
+                    automotiveScore: article.qualityAutomotiveScore,
+                    showInPrimaryFeed: article.showInPrimaryFeed,
+                    sortPenalty: 0,
+                  },
+                  engine: {
+                    ...buckets,
+                    drvRelevance: article.drvRelevance,
+                    userRelevance: article.userRelevance,
+                    totalScore: article.rankScore,
+                    passedQualityGate: article.passedQualityGate,
+                    gateNote: article.relevanceGateNote,
+                  },
+                }),
+              ].join("\n\n"),
             };
           })
         : null,
