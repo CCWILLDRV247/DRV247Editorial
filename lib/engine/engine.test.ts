@@ -2014,5 +2014,42 @@ describe("relevance engine", () => {
     }
     assert.deepEqual(topIds, [1, 2, 3, 4]);
   });
+
+  it("does not treat shared interest tags as a Ferrari vehicle match (Airstream false positive)", async () => {
+    const { explainArticle } = await import("./rank");
+    const { pickRelevanceExplanation } = await import("./relevance-explanation");
+    const { cultureBridgeTags } = await import("./personalize");
+    const garageA = [{ make: "Ferrari", model: "F355", variant: "GTB" }];
+    const bridge = cultureBridgeTags(garageA[0]!, ["Classic"], ["Classic", "Performance"]);
+    assert.deepEqual(bridge, []);
+    const breakdown = explainArticle({
+      makes: [],
+      models: [],
+      generations: [],
+      variants: [],
+      interests: ["Classic"],
+      categories: ["Classic"],
+      locations: [],
+      excerpt: "This is a refurbished 1965 Airstream Globe Trotter Land Yacht from the golden era.",
+      relevance: "Excellent",
+      vehicles: garageA,
+      userInterests: ["Classic", "Performance"],
+      publishedAt: Date.now() - 4 * 86_400_000,
+      primaryCategory: "cars",
+    });
+    assert.equal(breakdown.vehicleTier, "none");
+    assert.ok(!breakdown.signals.some((signal) => signal.kind.startsWith("vehicle.")));
+    assert.ok(breakdown.signals.some((signal) => signal.kind === "interest" && signal.detail === "Classic"));
+    assert.equal(
+      pickRelevanceExplanation({
+        why: breakdown.reasons,
+        rankSignals: breakdown.signals,
+        vehicleTier: breakdown.vehicleTier,
+        lane: "vehicle",
+        vehicles: garageA,
+      }),
+      "Because you follow Classic",
+    );
+  });
 });
 

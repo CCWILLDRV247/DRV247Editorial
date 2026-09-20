@@ -5,7 +5,7 @@ import {
   garageVehicleLabel,
   interestsMatch,
   variantsMatch,
-  vehicleCultureTags,
+  cultureBridgeTags,
 } from "./personalize";
 
 export type RankWeights = {
@@ -240,9 +240,12 @@ export function explainArticle(
       tier = "make";
       base = weights.make;
     } else {
-      const culture = vehicleCultureTags(vehicle).map(norm);
-      const articleTags = [...input.interests, ...input.categories, ...(input.scenes ?? [])].map(norm);
-      if (culture.some((tag) => articleTags.includes(tag))) {
+      const bridge = cultureBridgeTags(
+        vehicle,
+        [...input.interests, ...input.categories, ...(input.scenes ?? [])],
+        input.userInterests,
+      );
+      if (bridge.length) {
         tier = "category";
         base = weights.vehicleCategory;
       }

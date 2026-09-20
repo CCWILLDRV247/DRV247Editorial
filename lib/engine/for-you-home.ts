@@ -2,9 +2,9 @@ import { sameStoryKey } from "./normalize";
 import {
   canonicalInterest,
   contextFromTestProfile,
+  cultureBridgeTags,
   garageVehicleLabel,
   interestsMatch,
-  vehicleCultureTags,
 } from "./personalize";
 import type { EditorialDto } from "./queries";
 import type { ForYouTestProfile } from "./for-you-test";
@@ -154,10 +154,12 @@ function matchesCulture(
 ) {
   const vehicle = profile ? contextFromTestProfile(profile).vehicles[0] : undefined;
   if (!vehicle) return false;
-  const tags = vehicleCultureTags(vehicle).map((tag) => tag.toLowerCase());
-  if (!tags.length) return false;
-  const hay = [...article.interests, ...article.categories].map((item) => item.toLowerCase());
-  return tags.some((tag) => hay.includes(tag));
+  const bridge = cultureBridgeTags(
+    vehicle,
+    [...article.interests, ...article.categories],
+    profile?.interests ?? [],
+  );
+  return bridge.length > 0;
 }
 
 function consecutiveMakeRun<T extends Pick<ForYouCandidate, "makes">>(picked: T[], make: string) {
