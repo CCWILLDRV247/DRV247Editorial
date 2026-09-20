@@ -73,6 +73,7 @@ export async function POST(request: Request) {
     active?: boolean;
     expiresAt?: number | null;
     category?: string | null;
+    sortOrder?: number;
   } | null;
   const articleId = Number(body?.articleId);
   if (!articleId) {
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
     active: body?.active,
     expiresAt: body?.expiresAt,
     category: body?.category,
+    sortOrder: body?.sortOrder,
   });
   if ("error" in result) {
     return NextResponse.json({ error: result.error }, { status: 404 });
@@ -106,6 +108,7 @@ export async function PATCH(request: Request) {
     active?: boolean;
     expiresAt?: number | null;
     category?: string | null;
+    sortOrder?: number;
   } | null;
   const db = await getDb();
   let articleId = Number(body?.articleId);
@@ -126,6 +129,7 @@ export async function PATCH(request: Request) {
     active: body?.active,
     expiresAt: body?.expiresAt,
     category: body?.category,
+    sortOrder: body?.sortOrder,
   });
   if ("error" in result) {
     return NextResponse.json({ error: result.error }, { status: 404 });

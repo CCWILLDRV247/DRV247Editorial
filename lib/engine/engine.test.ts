@@ -1628,6 +1628,35 @@ describe("For You centre", () => {
     assert.ok(plan.discover.stories.length > 0);
     assert.match(forYouCopy({ interests: [] }).dek, /tell us what you drive/i);
   });
+
+  it("reserves homepage pick ids from For You lanes", async () => {
+    const { curateForYouHome } = await import("./for-you-home");
+    const { FOR_YOU_DEMO_PROFILES } = await import("./for-you-test");
+    const corpus = [
+      candidate(332, "Hand-Painting a 1956 Ferrari 500 TR", {
+        makes: ["Ferrari"],
+        vehicleTier: "make",
+        rankScore: 200,
+      }),
+      candidate(537, "LM and 212 win at Florida Ferrari concours", {
+        makes: ["Ferrari"],
+        vehicleTier: "make",
+        rankScore: 180,
+      }),
+      candidate(578, "GM seeks differentiation via diesel", {
+        vehicleTier: "none",
+        rankScore: 40,
+      }),
+    ];
+    const reserved = new Set([332]);
+    const plan = curateForYouHome(corpus, FOR_YOU_DEMO_PROFILES.A, reserved);
+    const ids = [
+      ...plan.forYourCar.stories,
+      ...plan.yourInterests.stories,
+      ...plan.discover.stories,
+    ].map((story) => story.id);
+    assert.ok(!ids.includes(332), "reserved pick should not repeat in For You lanes");
+  });
 });
 
 describe("relevance explanations", () => {

@@ -11,11 +11,14 @@ import {
 export {
   DESK_CURATOR,
   DESK_LABELS,
+  PICKS_SECTION_DEK,
+  PICKS_SECTION_HEADING,
   deskLabelName,
   deskNote,
   isDeskLabelSlug,
   isDeskPickLive,
   liveDeskByArticle,
+  pickArticleIds,
   selectHomepagePicks,
   toDeskPublic,
   type DeskLabelName,
@@ -88,6 +91,7 @@ export async function upsertDeskPick(
     expiresAt?: number | null;
     category?: string | null;
     curator?: string;
+    sortOrder?: number;
   },
 ) {
   const article = (
@@ -109,6 +113,7 @@ export async function upsertDeskPick(
     category: input.category === undefined ? (existing?.category ?? null) : input.category,
     label,
     active: input.active ?? true,
+    sortOrder: input.sortOrder ?? existing?.sortOrder ?? 0,
   };
   if (existing) {
     const updated = (

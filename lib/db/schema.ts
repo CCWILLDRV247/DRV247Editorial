@@ -303,6 +303,7 @@ export const deskPicks = sqliteTable("desk_picks", {
   category: text("category"),
   label: text("label").notNull().default("from-the-desk"),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
 });
 
 export type MediaSource = typeof mediaSources.$inferSelect;

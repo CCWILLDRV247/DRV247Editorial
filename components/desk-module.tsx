@@ -2,6 +2,7 @@ import Link from "next/link";
 import { StoryCard } from "@/components/story-card";
 import { StoryImage } from "@/components/story-image";
 import { formatStoryDate } from "@/lib/format";
+import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
 import type { StoryDto } from "@/lib/stories";
 
 const PAGE_GUTTER =
@@ -44,19 +45,21 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
   const note = featured.desk?.note ?? null;
 
   return (
-    <section className="relative z-10 min-w-0">
+    <section className="relative z-10 min-w-0 border-t border-[#1b1d1f]/10 pt-8">
       <div className={PAGE_GUTTER}>
         <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
-          From the DRV247 Desk
+          {PICKS_SECTION_HEADING}
         </p>
         <p className="mt-2 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
-          A few stories we actually chose — not the algorithm.
+          {PICKS_SECTION_DEK}
         </p>
       </div>
       <div className={`mt-4 min-w-0 ${PAGE_GUTTER}`}>
-        <StoryCard story={featured} />
+        <div className="rounded-[12px] border border-[#1b1d1f]/10 bg-[#fafafa] p-3 md:p-4">
+          <StoryCard story={featured} />
+        </div>
         {note ? (
-          <p className="mt-4 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
+          <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
             {note}
           </p>
         ) : null}
