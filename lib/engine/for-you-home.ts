@@ -198,15 +198,20 @@ export function takeDiverse<T extends Pick<ForYouCandidate, "id" | "title" | "ma
   return picked;
 }
 
-export function curateForYouHome(ranked: ForYouCandidate[], profile?: ForYouTestProfile): ForYouHomePlan {
+export function curateForYouHome(
+  ranked: ForYouCandidate[],
+  profile?: ForYouTestProfile,
+  reserveIds: ReadonlySet<number> = new Set(),
+): ForYouHomePlan {
   const copy = forYouCopy(profile);
   const vehicleKnown = Boolean(profile?.make || profile?.model);
   const interestsKnown = Boolean(profile?.interests.length);
   const spec = forYouVehicleSpec(profile);
-  const used = new Set<number>();
+  const used = new Set<number>(reserveIds);
   const usedSubjects = new Set<string>();
-  const primaryPool = ranked.filter((article) => article.showInPrimaryFeed !== false);
-  const discoverPool = ranked;
+  const available = ranked.filter((article) => !reserveIds.has(article.id));
+  const primaryPool = available.filter((article) => article.showInPrimaryFeed !== false);
+  const discoverPool = available;
 
   const direct = primaryPool.filter(
     (article) => DIRECT_TIERS.has(article.vehicleTier) && matchesUserCar(article, profile),

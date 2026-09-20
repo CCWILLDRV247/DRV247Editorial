@@ -359,6 +359,7 @@ const DESK_PICK_STATEMENTS = [
     )`,
   `CREATE INDEX IF NOT EXISTS desk_picks_article_idx ON desk_picks (article_id)`,
   `CREATE INDEX IF NOT EXISTS desk_picks_active_idx ON desk_picks (active, featured, selected_at)`,
+  "ALTER TABLE desk_picks ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0",
 ];
 
 async function ensureDeskPicks(client: Client) {

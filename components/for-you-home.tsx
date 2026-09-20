@@ -98,18 +98,22 @@ export function ForYouHome({
   forYourCar,
   yourInterests,
   discover,
-  desk,
+  picks,
   carousels,
 }: {
   copy: ForYouCopy;
   forYourCar: ForYouLaneDisplay;
   yourInterests: ForYouLaneDisplay;
   discover: ForYouLaneDisplay;
-  desk: StoryDto[];
+  picks: StoryDto[];
   carousels: CategoryLane[];
 }) {
-  const vehicleStories = forYourCar.stories;
-  const hero = vehicleStories[0] ?? yourInterests.stories[0] ?? discover.stories[0];
+  const pickIds = new Set(picks.map((story) => story.id));
+  const vehicleStories = forYourCar.stories.filter((story) => !pickIds.has(story.id));
+  const hero =
+    vehicleStories[0] ??
+    yourInterests.stories.find((story) => !pickIds.has(story.id)) ??
+    discover.stories.find((story) => !pickIds.has(story.id));
   const vehicleRest = vehicleStories.slice(1);
   const leadCards = vehicleRest.slice(0, 2);
   const moreVehicle = vehicleRest.slice(2, 5);
@@ -140,6 +144,7 @@ export function ForYouHome({
           {leadCards.length > 0 ? storyCardGrid(leadCards) : null}
         </div>
       </div>
+      <DeskModule stories={picks} />
       {moreVehicle.length > 0 ? (
         <section className="min-w-0 pl-4 pr-0 md:px-0">
           <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
@@ -164,8 +169,7 @@ export function ForYouHome({
         stories={yourInterests.stories}
         picks
       />
-      <DeskModule stories={desk} />
-      <Interstitial text={copy.interstitial} size="home" tuck={desk.length === 0} />
+      <Interstitial text={copy.interstitial} size="home" tuck={picks.length === 0} />
       <CompactLane
         heading={discover.heading}
         dek={discover.dek}

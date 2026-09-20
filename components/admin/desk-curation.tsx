@@ -33,6 +33,7 @@ type DeskRow = {
   featured: boolean;
   active: boolean;
   live: boolean;
+  sortOrder: number;
   article: { id: number; title: string; publication: string } | null;
 };
 
@@ -47,6 +48,7 @@ export function DeskCuration() {
   const [label, setLabel] = useState<DeskLabelSlug>("from-the-desk");
   const [featured, setFeatured] = useState(false);
   const [active, setActive] = useState(true);
+  const [sortOrder, setSortOrder] = useState("0");
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -82,6 +84,7 @@ export function DeskCuration() {
         label,
         featured,
         active,
+        sortOrder: Number(sortOrder) || 0,
       }),
     });
     const data = (await response.json()) as { error?: string };
@@ -125,11 +128,11 @@ export function DeskCuration() {
 
   return (
     <section>
-      <h2 className="mb-3 font-display text-xl font-bold uppercase">The DRV247 Desk</h2>
+      <h2 className="mb-3 font-display text-xl font-bold uppercase">DRV247 Picks</h2>
       <p className="mb-3 max-w-3xl text-sm text-[#1b1d1f]/70">
-        Human picks only. Search a stored teaser, mark it Desk-curated, optionally add a short note,
-        and assign a label. Notes are never generated. Inactive or expired picks leave the homepage
-        module. Password is still desk247.
+        Human editorial layer for the homepage Picks module. Search a stored teaser, mark it
+        curated, optionally add a short note, label, order, and expiry. Notes are never generated.
+        Inactive or expired picks leave the homepage module.
       </p>
       {message ? <p className="mb-3 text-sm text-[#1b1d1f]/80">{message}</p> : null}
 
@@ -205,6 +208,17 @@ export function DeskCuration() {
               <Checkbox checked={active} onCheckedChange={(checked) => setActive(checked === true)} />
               Active
             </label>
+            <div>
+              <Label htmlFor="desk-order">Order</Label>
+              <Input
+                id="desk-order"
+                type="number"
+                min={0}
+                className="w-24"
+                value={sortOrder}
+                onChange={(event) => setSortOrder(event.target.value)}
+              />
+            </div>
           </div>
         </div>
         <div className="flex w-full flex-col gap-2 self-end sm:w-auto">
@@ -217,7 +231,7 @@ export function DeskCuration() {
             disabled={!selected || Boolean(busy)}
             onClick={() => selected && void save(selected.id)}
           >
-            {busy?.startsWith("save") ? "Saving…" : "Mark Desk-curated"}
+            {busy?.startsWith("save") ? "Saving…" : "Save pick"}
           </Button>
         </div>
       </form>

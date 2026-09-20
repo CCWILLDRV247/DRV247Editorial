@@ -20,6 +20,7 @@ import { getEditorial, listEditorial, listDeskHomepage, type EditorialDto } from
 import { classifyPrimary } from "./taxonomy";
 import { curateForYouHome } from "./for-you-home";
 import { contextFromTestProfile } from "./personalize";
+import { pickArticleIds } from "./desk";
 import {
   pickRelevanceExplanation,
   type ExplanationLane,
@@ -180,15 +181,17 @@ function uniqueStories(stories: StoryDto[]) {
 }
 
 async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
-  const [ranked, deskArticles] = await Promise.all([
-    listEditorial({
-      section: "for-you",
-      testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
-      limit: 80,
-    }),
-    listDeskHomepage(3),
-  ]);
-  const plan = curateForYouHome(ranked, testProfile);
+  const deskArticles = await listDeskHomepage(3);
+  const picks = uniqueStories(deskArticles.map((article) => toMagazineStory(article)));
+  const pickIds = pickArticleIds(
+    deskArticles.map((article) => article.desk).filter((desk): desk is NonNullable<typeof desk> => Boolean(desk)),
+  );
+  const ranked = await listEditorial({
+    section: "for-you",
+    testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
+    limit: 80,
+  });
+  const plan = curateForYouHome(ranked, testProfile, pickIds);
   const byId = new Map(ranked.map((article) => [article.id, article]));
   const personalized = forYouTestIsActive(testProfile ?? { interests: [] });
   const vehicles =
@@ -210,14 +213,12 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     ...plan.yourInterests,
     stories: toStories(plan.yourInterests.stories, "interests"),
   };
-  const desk = uniqueStories(deskArticles.map((article) => toMagazineStory(article)));
-  const deskIds = new Set(desk.map((story) => story.id));
   const discover = {
     ...plan.discover,
-    stories: toStories(plan.discover.stories, "discover").filter((story) => !deskIds.has(story.id)),
+    stories: toStories(plan.discover.stories, "discover").filter((story) => !pickIds.has(story.id)),
   };
   const featuredIds = new Set(
-    [...forYourCar.stories, ...yourInterests.stories, ...discover.stories, ...desk].map(
+    [...forYourCar.stories, ...yourInterests.stories, ...discover.stories, ...picks].map(
       (story) => story.id,
     ),
   );
@@ -238,7 +239,7 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     forYourCar,
     yourInterests,
     discover,
-    desk,
+    picks,
     carousels,
     stories: [...forYourCar.stories, ...yourInterests.stories, ...discover.stories],
   };

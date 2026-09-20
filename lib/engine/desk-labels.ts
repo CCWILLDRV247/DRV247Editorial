@@ -1,4 +1,7 @@
-export const DESK_CURATOR = "DRV247 Desk";
+export const DESK_CURATOR = "DRV247 Picks";
+
+export const PICKS_SECTION_HEADING = "DRV247 Picks";
+export const PICKS_SECTION_DEK = "The stuff we're looking at this week.";
 
 /** Small controlled vocabulary. Voice, not taxonomy sprawl. */
 export const DESK_LABELS = [
@@ -24,6 +27,7 @@ export type DeskPublic = {
   featured: boolean;
   category: string | null;
   active: boolean;
+  sortOrder: number;
 };
 
 const LABEL_BY_SLUG = new Map(DESK_LABELS.map((label) => [label.slug, label]));
@@ -62,6 +66,7 @@ export function toDeskPublic(pick: {
   category?: string | null;
   label: string;
   active: boolean;
+  sortOrder?: number | null;
 }): DeskPublic {
   const slug = isDeskLabelSlug(pick.label) ? pick.label : "from-the-desk";
   return {
@@ -76,6 +81,7 @@ export function toDeskPublic(pick: {
     featured: Boolean(pick.featured),
     category: pick.category?.trim() || null,
     active: Boolean(pick.active),
+    sortOrder: pick.sortOrder ?? 0,
   };
 }
 
@@ -91,11 +97,20 @@ export function liveDeskByArticle<T extends Parameters<typeof toDeskPublic>[0]>(
   return map;
 }
 
-export function selectHomepagePicks<T extends { featured: boolean; selectedAt: number }>(
-  picks: T[],
-  limit = 3,
-): T[] {
+export function selectHomepagePicks<
+  T extends { featured: boolean; selectedAt: number; sortOrder?: number | null },
+>(picks: T[], limit = 3): T[] {
   return [...picks]
-    .sort((a, b) => Number(b.featured) - Number(a.featured) || b.selectedAt - a.selectedAt)
+    .sort(
+      (a, b) =>
+        (a.sortOrder ?? 0) - (b.sortOrder ?? 0) ||
+        Number(b.featured) - Number(a.featured) ||
+        b.selectedAt - a.selectedAt,
+    )
     .slice(0, Math.max(0, limit));
+}
+
+/** Homepage pick IDs — reserve in For You lanes so Picks own the story once. */
+export function pickArticleIds(picks: Pick<DeskPublic, "articleId">[]): Set<number> {
+  return new Set(picks.map((pick) => pick.articleId));
 }

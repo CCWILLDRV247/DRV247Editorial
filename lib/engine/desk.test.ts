@@ -2,9 +2,12 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   DESK_LABELS,
+  PICKS_SECTION_DEK,
+  PICKS_SECTION_HEADING,
   deskNote,
   isDeskPickLive,
   liveDeskByArticle,
+  pickArticleIds,
   selectHomepagePicks,
 } from "./desk-labels";
 import { DEFAULT_RANK_WEIGHTS, explainArticle, scoreArticle, type RankInput } from "./rank";
@@ -93,12 +96,39 @@ describe("DRV247 Desk", () => {
     assert.equal(isDeskPickLive({ active: true, expiresAt: now }, now), false);
   });
 
+  it("uses editorial Picks copy constants", () => {
+    assert.equal(PICKS_SECTION_HEADING, "DRV247 Picks");
+    assert.match(PICKS_SECTION_DEK, /looking at this week/i);
+  });
+
+  it("sorts homepage picks by order, then featured, then recency", () => {
+    const picks = [
+      { id: "a", featured: true, selectedAt: 30, sortOrder: 2 },
+      { id: "b", featured: false, selectedAt: 10, sortOrder: 0 },
+      { id: "c", featured: true, selectedAt: 40, sortOrder: 1 },
+      { id: "d", featured: false, selectedAt: 50, sortOrder: 0 },
+    ];
+    const selected = selectHomepagePicks(picks, 3);
+    assert.deepEqual(
+      selected.map((pick) => pick.id),
+      ["d", "b", "c"],
+    );
+  });
+
+  it("collects pick article ids for homepage dedupe", () => {
+    const ids = pickArticleIds([
+      { articleId: 10 } as never,
+      { articleId: 22 } as never,
+    ]);
+    assert.deepEqual([...ids], [10, 22]);
+  });
+
   it("puts the featured story first and caps the homepage at three", () => {
     const picks = [
-      { id: "a", featured: false, selectedAt: 30 },
-      { id: "b", featured: true, selectedAt: 10 },
-      { id: "c", featured: false, selectedAt: 20 },
-      { id: "d", featured: false, selectedAt: 40 },
+      { id: "a", featured: false, selectedAt: 30, sortOrder: 0 },
+      { id: "b", featured: true, selectedAt: 10, sortOrder: 0 },
+      { id: "c", featured: false, selectedAt: 20, sortOrder: 0 },
+      { id: "d", featured: false, selectedAt: 40, sortOrder: 0 },
     ];
     const selected = selectHomepagePicks(picks, 3);
     assert.equal(selected.length, 3);
