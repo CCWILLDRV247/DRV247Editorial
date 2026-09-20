@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { StoryCard } from "@/components/story-card";
 import { StoryImage } from "@/components/story-image";
 import { formatStoryDate } from "@/lib/format";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
@@ -55,9 +54,26 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
         </p>
       </div>
       <div className={`mt-4 min-w-0 ${PAGE_GUTTER}`}>
-        <div className="rounded-[12px] border border-[#1b1d1f]/10 bg-[#fafafa] p-3 md:p-4">
-          <StoryCard story={featured} />
-        </div>
+        <Link href={`/story/${featured.id}`} className="block overflow-hidden rounded-[12px] border border-[#1b1d1f]/10 bg-[#fafafa]">
+          <div className="relative h-[280px] w-full overflow-hidden bg-[#1b1d1f] md:h-[320px]">
+            <StoryImage
+              src={featured.imageUrl}
+              sources={featured.imageSources}
+              category={featured.category.name}
+              alt=""
+              eager
+            />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
+            <div className="absolute inset-x-5 bottom-5 flex flex-col gap-2 text-white">
+              <span className="inline-flex w-fit rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
+                {featured.desk?.labelName ?? featured.category.name}
+              </span>
+              <p className="line-clamp-3 font-display text-[clamp(1.5rem,5vw,2.25rem)] font-black uppercase leading-[0.88] tracking-[-0.02em]">
+                {featured.title}
+              </p>
+            </div>
+          </div>
+        </Link>
         {note ? (
           <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
             {note}
