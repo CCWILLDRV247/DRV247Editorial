@@ -34,4 +34,25 @@ export const CORPORATE_EXACT_PATHS = [
   "/legal",
   "/cookies",
   "/cookie-policy",
+  "/media-kit",
+] as const;
+
+/**
+ * Sponsored landings. A path segment, not a title ban — “Shell V-Power” coverage
+ * under `/news/…` stays.
+ */
+export const SPONSORED_PATH_SEGMENTS = ["advertisement-feature", "advertorial"] as const;
+
+/**
+ * Marketplace funnels whose last segment is the page itself.
+ * `/car-news/used-cars/a-buying-story` stays — the leaf is the story slug.
+ */
+export const MARKETPLACE_LEAF_SEGMENTS = [
+  "sell-my-car",
+  "buy-a-car",
+  "car-leasing",
+  "car-valuation",
+  "new-car-deals",
+  "used-cars",
+  "leasing",
 ] as const;

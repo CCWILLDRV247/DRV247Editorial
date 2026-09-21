@@ -26,18 +26,30 @@ export const UNUSABLE_PATH_SEGMENTS = ["undefined", "null"] as const;
  * `/sell-car` is Dyler’s sell-your-car promo, not a teaser.
  * `/events` is Dyler’s classic-car-shows calendar index, not a teaser.
  * `/events/slug` stays (Street Machine, Hot Rod, Castlemaine).
+ * `/search` is site search chrome (Bonnet “Search”).
+ * `/cars` is Dyler’s inventory search. `/cars/slug` stays.
+ * `/cars/dealers` and `/cars/categories` are listing indexes, not teasers.
+ * `/calendar` and `/clubs-listings` are Classic & Sports Car directories.
+ * `/vans` is a marketplace inventory root (Carwow). `/vans/leasing` is caught as a marketplace leaf.
  */
 export const NON_ARTICLE_EXACT_PATHS = [
   "/",
   "/news",
   "/blog",
+  "/cars",
   "/cars/makes",
+  "/cars/dealers",
+  "/cars/categories",
   "/classic-cars-a-to-z",
   "/parts-services",
   "/pages/articles",
   "/pages/about-us",
   "/sell-car",
   "/events",
+  "/search",
+  "/calendar",
+  "/clubs-listings",
+  "/vans",
 ] as const;
 
 /**

@@ -39,6 +39,7 @@ export function isUnusableArticleUrl(url: string): boolean {
       if (exact === "/" && parsed.searchParams.get("p")) return false;
       return true;
     }
+    if (exact.endsWith(".rss")) return true;
     return pathSegments(raw).some((segment) => UNUSABLE_SEGMENTS.has(segment));
   } catch {
     return true;
@@ -58,6 +59,24 @@ export function isNonEditorialHost(url: string): boolean {
   return Boolean(host && SHOP_HOSTS.has(host));
 }
 
+/** Magazine shop storefronts (`shop.kelsey.co.uk`), not a single-title ban. */
+export function isShopHost(url: string): boolean {
+  const host = hostnameOf(url);
+  return Boolean(host && (host.startsWith("shop.") || host === "shop"));
+}
+
+/** Section index `/category/news` — `/category/news/a-story` stays. */
+export function isCategoryIndexUrl(url: string): boolean {
+  const segments = pathSegments(url);
+  return segments[0] === "category" && segments.length === 2;
+}
+
+/** Photo-index leaf (`/f1/galleries`). `/gallery/a-story` stays. */
+export function isGalleryIndexUrl(url: string): boolean {
+  const segments = pathSegments(url);
+  return segments[segments.length - 1] === "galleries";
+}
+
 export function isOffSiteUrl(url: string, sourceUrl: string): boolean {
   const articleHost = hostnameOf(url);
   const sourceHost = hostnameOf(sourceUrl);
@@ -68,6 +87,8 @@ export function isOffSiteUrl(url: string, sourceUrl: string): boolean {
 export function isNonEditorialUrl(url: string, sourceUrl?: string): boolean {
   if (isUnusableArticleUrl(url)) return true;
   if (isNonEditorialPathUrl(url)) return true;
+  if (isCategoryIndexUrl(url) || isGalleryIndexUrl(url)) return true;
+  if (isShopHost(url)) return true;
   if (isNonEditorialHost(url)) return true;
   if (sourceUrl && isOffSiteUrl(url, sourceUrl)) return true;
   return false;

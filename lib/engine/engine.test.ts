@@ -621,9 +621,23 @@ describe("non-editorial url skip", () => {
       ),
       true,
     );
+    assert.equal(isUnusableArticleUrl("https://bonnetmagazine.com/search"), true);
+    assert.equal(isUnusableArticleUrl("https://dyler.com/cars"), true);
+    assert.equal(isUnusableArticleUrl("https://dyler.com/life.rss"), true);
     assert.equal(
       isNonEditorialUrl("https://dyler.com/cars/1965-porsche-911", "https://dyler.com"),
       false,
+    );
+    assert.equal(
+      isNonEditorialUrl(
+        "https://www.classicandsportscar.com/gallery/30-years-lotus-elise",
+        "https://www.classicandsportscar.com",
+      ),
+      false,
+    );
+    assert.equal(
+      isNonEditorialUrl("https://shop.kelsey.co.uk/temp-meg-50", "https://shop.kelsey.co.uk"),
+      true,
     );
     assert.equal(
       isNonEditorialUrl(
@@ -735,6 +749,182 @@ describe("editorial eligibility gate", () => {
         sourceUrl: "https://www.streetmachine.com.au",
       }).editorialEligible,
       true,
+    );
+  });
+
+  it("drops giveaway promos, search chrome, house notes, and reader prompts without banning car stories", async () => {
+    const { evaluateEditorialEligibility } = await import("./editorial-eligibility");
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://fuelcurve.com/red-hot-american-muscle-turning-up-the-heat-with-the-2027-grand-prize-giveaway-1966-chevelle",
+        canonicalUrl:
+          "https://fuelcurve.com/red-hot-american-muscle-turning-up-the-heat-with-the-2027-grand-prize-giveaway-1966-chevelle",
+        title: "Red Hot American Muscle – Turning Up the Heat With the 2027 Grand Prize Giveaway 1966 Chevelle",
+        excerpt: "Goodguys is bringing the heat with their 2027 Grand Prize Giveaway 1966 Chevelle!",
+        sourceId: "auto_061",
+        sourceUrl: "https://fuelcurve.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "competition" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://bonnetmagazine.com/search",
+        canonicalUrl: "https://bonnetmagazine.com/search",
+        title: "Search",
+        excerpt: "Discover exclusive automotive articles.",
+        sourceId: "auto_001",
+        sourceUrl: "https://bonnetmagazine.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "category_page" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://dyler.com/cars",
+        canonicalUrl: "https://dyler.com/cars",
+        title: "Search for a Classic and Modern Car | Dyler - Dyler",
+        excerpt: "Buy a classic car on Dyler. Use our search.",
+        sourceId: "auto_017",
+        sourceUrl: "https://dyler.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "category_page" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.the-intercooler.com/library/latest/we-have-news",
+        canonicalUrl: "https://www.the-intercooler.com/library/latest/we-have-news",
+        title: "We have news",
+        excerpt:
+          "Five years ago Ti reinvented the automotive publishing model. It’s time for the next stage of our evolution.",
+        sourceId: "auto_004",
+        sourceUrl: "https://www.the-intercooler.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "subscription" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://driventowrite.com/2026/09/18/show-us-yer-sixpack",
+        canonicalUrl: "https://driventowrite.com/2026/09/18/show-us-yer-sixpack",
+        title: "Show Us Yer SIXPACK",
+        excerpt: "Trust the Americans to show us how to build muscle.",
+        sourceId: "auto_014",
+        sourceUrl: "https://driventowrite.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "low_editorial_value" },
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://www.autoexpress.co.uk/dodge/370449/new-dodge-charger-sixpack-2026-pictures",
+        canonicalUrl: "https://www.autoexpress.co.uk/dodge/370449/new-dodge-charger-sixpack-2026-pictures",
+        title: "New Dodge Charger Sixpack and Daytona 2026 - pictures",
+        excerpt: "Pictures of the new Dodge Charger Sixpack and Daytona.",
+        sourceId: "auto_027",
+        sourceUrl: "https://www.autoexpress.co.uk",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://fuelcurve.com/good-times-cool-parts-and-loads-of-prizes-at-the-goodguys-28th-griots-garage-colorado-nationals",
+        canonicalUrl:
+          "https://fuelcurve.com/good-times-cool-parts-and-loads-of-prizes-at-the-goodguys-28th-griots-garage-colorado-nationals",
+        title: "Good Times, Cool Parts, and Loads of Prizes at the Goodguys 28th Griot’s Garage Colorado Nationals",
+        excerpt: "Pack up the classic and head to Loveland for the Colorado Nationals.",
+        sourceId: "auto_061",
+        sourceUrl: "https://fuelcurve.com",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://www.autocar.co.uk/car-news/used-cars/buying-used-car-be-wary-dealers-pre-sale-inspection",
+        canonicalUrl:
+          "https://www.autocar.co.uk/car-news/used-cars/buying-used-car-be-wary-dealers-pre-sale-inspection",
+        title: "Buying a used car? Be wary of the dealer's pre-sale inspection",
+        excerpt: "What a dealer inspection actually covers.",
+        sourceId: "auto_026",
+        sourceUrl: "https://www.autocar.co.uk",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.carwow.co.uk/sell-my-car",
+        canonicalUrl: "https://www.carwow.co.uk/sell-my-car",
+        title: "Sell My Car - Quick, Easy & 100% Free",
+        excerpt: "Sell your car.",
+        sourceId: "auto_045",
+        sourceUrl: "https://www.carwow.co.uk",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "commerce" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://shop.kelsey.co.uk/temp-meg-50",
+        canonicalUrl: "https://shop.kelsey.co.uk/temp-meg-50",
+        title: "#50 - 12 Minute Workouts",
+        excerpt: "#50 - 12 Minute Workouts | Kelsey Media Shop",
+        sourceId: "auto_050",
+        sourceUrl: "https://shop.kelsey.co.uk/911-and-porsche-world-magazine",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "commerce" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.topgear.com/advertisement-feature/ovo-driving-greener",
+        canonicalUrl: "https://www.topgear.com/advertisement-feature/ovo-driving-greener",
+        title: "Driving greener with OVO",
+        excerpt: "Driving greener with OVO",
+        sourceId: "auto_028",
+        sourceUrl: "https://www.topgear.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "corporate" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.evo.co.uk/reviews",
+        canonicalUrl: "https://www.evo.co.uk/reviews",
+        title: "Reviews | Evo",
+        excerpt: "Reviews | Evo",
+        sourceId: "auto_024",
+        sourceUrl: "https://www.evo.co.uk",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "category_page" },
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://theroadrat.com/post/the-ferrari-f40",
+        canonicalUrl: "https://theroadrat.com/post/the-ferrari-f40",
+        title: "The Road Rat Magazine | The Ferrari F40",
+        excerpt: "The Road Rat Magazine | The Ferrari F40",
+        sourceId: "auto_019",
+        sourceUrl: "https://theroadrat.com",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://waft.be/6dd92ac5fe14-htm.htm",
+        canonicalUrl: "https://waft.be/6dd92ac5fe14-htm.htm",
+        title: "Hacked by CoupDeGrace",
+        excerpt: "Hacked by CoupDeGrace",
+        sourceId: "auto_009",
+        sourceUrl: "https://www.waft.be",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "low_editorial_value" },
     );
   });
 });

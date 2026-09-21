@@ -5,14 +5,19 @@ import {
   COMPETITION_PATH_SEGMENTS,
   COMPETITION_PROMO_PREFIXES,
   CORPORATE_EXACT_PATHS,
+  MARKETPLACE_LEAF_SEGMENTS,
+  SPONSORED_PATH_SEGMENTS,
 } from "../../config/editorial-eligibility";
 import { isMerchArticle, isMerchUrl } from "./merch";
 import {
+  isCategoryIndexUrl,
+  isGalleryIndexUrl,
   isNonEditorialArticle,
   isNonEditorialHost,
   isNonEditorialPathUrl,
   isNonEditorialUrl,
   isOffSiteUrl,
+  isShopHost,
   isUnusableArticleUrl,
 } from "./non-editorial";
 
@@ -46,6 +51,8 @@ const COMMERCE_SEGMENTS = new Set<string>(COMMERCE_PATH_SEGMENTS);
 const COMPETITION_SEGMENTS = new Set<string>(COMPETITION_PATH_SEGMENTS);
 const ABOUT_PATHS = new Set<string>(ABOUT_EXACT_PATHS);
 const CORPORATE_PATHS = new Set<string>(CORPORATE_EXACT_PATHS);
+const SPONSORED_SEGMENTS = new Set<string>(SPONSORED_PATH_SEGMENTS);
+const MARKETPLACE_LEAVES = new Set<string>(MARKETPLACE_LEAF_SEGMENTS);
 
 function urls(input: Pick<EditorialEligibilityInput, "url" | "canonicalUrl">) {
   return [input.canonicalUrl, input.url].filter(Boolean);
@@ -89,9 +96,25 @@ function matchesCommercePath(url: string) {
   return pathSegments(url).some((segment) => COMMERCE_SEGMENTS.has(segment));
 }
 
+function segmentIsGiveawayPromo(segment: string) {
+  return /(?:^|-)giveaways?(?:-|$)/.test(segment) || /(?:^|-)prize-draws?(?:-|$)/.test(segment);
+}
+
 function matchesCompetitionPromoPath(url: string) {
   if (matchesCompetitionPromoPrefix(url)) return true;
-  return pathSegments(url).some((segment) => COMPETITION_SEGMENTS.has(segment));
+  return pathSegments(url).some(
+    (segment) => COMPETITION_SEGMENTS.has(segment) || segmentIsGiveawayPromo(segment),
+  );
+}
+
+function matchesSponsoredPath(url: string) {
+  return pathSegments(url).some((segment) => SPONSORED_SEGMENTS.has(segment));
+}
+
+function isMarketplaceLeaf(url: string) {
+  const segments = pathSegments(url);
+  const leaf = segments[segments.length - 1];
+  return Boolean(leaf && MARKETPLACE_LEAVES.has(leaf));
 }
 
 function isSubscribePath(url: string) {
@@ -115,13 +138,51 @@ function isTicketPromoCopy(title: string, excerpt: string) {
   return /\bcoupon code\b|\b\d+% off\b|\$\d+ off\b|\bdiscount code\b/.test(haystack);
 }
 
+function isGiveawayPromoCopy(title: string, excerpt: string) {
+  const haystack = `${title} ${excerpt}`.toLowerCase();
+  return /\bgrand prize giveaway\b|\bprize giveaway\b/.test(haystack);
+}
+
+/** The publication talking about itself — not a car story that mentions a magazine. */
+function isPublisherHouseNote(title: string, excerpt: string) {
+  return /\bpublishing model\b/i.test(`${title} ${excerpt}`);
+}
+
+/** Reader-submission prompts (“Show us yer/your …”), not a marque or model ban. */
+function isReaderPromptTitle(title: string) {
+  return /^\s*show us (yer|your)\b/i.test(title);
+}
+
+function isDefacementTitle(title: string) {
+  return /^\s*hacked by\b/i.test(title);
+}
+
+/**
+ * One-segment hubs whose RSS excerpt is only the title (`Reviews | Evo`, `Our cars`).
+ * Dated features and `/post/slug` stories stay, even when the excerpt repeats the title.
+ */
+function isBareSectionHub(canonicalUrl: string, title: string, excerpt: string) {
+  if (pathSegments(canonicalUrl).length !== 1) return false;
+  const heading = title.trim();
+  const standfirst = excerpt.trim();
+  return Boolean(heading && standfirst && heading === standfirst);
+}
+
 function nonEditorialReason(url: string, sourceUrl?: string): EditorialExclusionReason {
-  if (isMerchUrl(url)) return "commerce";
+  if (isMerchUrl(url) || isShopHost(url) || isMarketplaceLeaf(url)) return "commerce";
+  if (matchesSponsoredPath(url)) return "corporate";
   if (isSubscribePath(url) || isNonEditorialHost(url)) return "subscription";
   if (matchesExactPath(url, ABOUT_PATHS)) return "about_page";
   if (matchesExactPath(url, CORPORATE_PATHS)) return "corporate";
   if (sourceUrl && isOffSiteUrl(url, sourceUrl)) return "corporate";
-  if (isUnusableArticleUrl(url) || isNonEditorialPathUrl(url)) return "category_page";
+  if (
+    isUnusableArticleUrl(url) ||
+    isNonEditorialPathUrl(url) ||
+    isCategoryIndexUrl(url) ||
+    isGalleryIndexUrl(url)
+  ) {
+    return "category_page";
+  }
   return "category_page";
 }
 
@@ -133,7 +194,7 @@ function eligible(): EditorialEligibilityResult {
   return { editorialEligible: true, editorialExclusionReason: null };
 }
 
-/** Consumer-feed gate — URL/path first, narrow title heuristics for commerce/ticket promos only. */
+/** Consumer-feed gate — URL/path first, narrow copy heuristics for promos and house notes. */
 export function evaluateEditorialEligibility(
   input: EditorialEligibilityInput,
 ): EditorialEligibilityResult {
@@ -142,12 +203,21 @@ export function evaluateEditorialEligibility(
   for (const url of urls(input)) {
     if (matchesExactPath(url, ABOUT_PATHS)) return ineligible("about_page");
     if (matchesExactPath(url, CORPORATE_PATHS)) return ineligible("corporate");
+    if (matchesSponsoredPath(url)) return ineligible("corporate");
+    if (isShopHost(url) || isMarketplaceLeaf(url)) return ineligible("commerce");
     if (matchesCommercePath(url)) return ineligible("commerce");
     if (matchesCompetitionPromoPath(url)) return ineligible("competition");
   }
 
   if (isCommercePromoCopy(input.title, input.excerpt)) return ineligible("commerce");
   if (isTicketPromoCopy(input.title, input.excerpt)) return ineligible("ticket_sales");
+  if (isGiveawayPromoCopy(input.title, input.excerpt)) return ineligible("competition");
+  if (isPublisherHouseNote(input.title, input.excerpt)) return ineligible("subscription");
+  if (isReaderPromptTitle(input.title)) return ineligible("low_editorial_value");
+  if (isDefacementTitle(input.title)) return ineligible("low_editorial_value");
+  if (isBareSectionHub(input.canonicalUrl || input.url, input.title, input.excerpt)) {
+    return ineligible("category_page");
+  }
 
   if (isMerchArticle(input)) return ineligible("commerce");
 
