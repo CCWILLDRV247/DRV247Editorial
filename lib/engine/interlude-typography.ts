@@ -19,13 +19,13 @@ export const INTERLUDE_VARIANT_TYPOGRAPHY: Record<
   InterludeVariantTypography
 > = {
   statement: {
-    section: "border-y border-[#1b1d1f]/10 py-14 md:py-[4.5rem]",
+    section: "py-14 md:py-[4.5rem]",
     label:
       "mb-5 font-display text-[13px] font-bold uppercase tracking-[0.16em] text-[#1b1d1f]/50 md:mb-6",
     type: "max-w-[13ch] text-[clamp(3.3rem,19.2vw,9rem)] leading-[0.66] md:max-w-[16ch] md:text-[clamp(4.8rem,13.2vw,10.2rem)] md:leading-[0.64]",
   },
   pause: {
-    section: "border-t border-[#1b1d1f]/8 py-12 md:py-16",
+    section: "py-12 md:py-16",
     label:
       "mb-4 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-[#1b1d1f]/40",
     type: "max-w-[15ch] text-[clamp(3rem,16.8vw,7.8rem)] leading-[0.68] md:max-w-[18ch]",
