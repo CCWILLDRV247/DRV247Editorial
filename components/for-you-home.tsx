@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
+import { CarouselStoryCard, CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
 import { DeskModule } from "@/components/desk-module";
 import { Interstitial, SectionIntro } from "@/components/site-chrome";
-import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
+import { StoryCard, StoryHero } from "@/components/story-card";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import { HOMEPAGE_LEAD_CARD_MAX } from "@/lib/engine/homepage-hierarchy";
 import type { StoryDto } from "@/lib/stories";
@@ -54,11 +54,9 @@ function InterestLane({
         </p>
       ) : null}
       {stories.length > 0 ? (
-        <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-1 snap-x snap-mandatory [scrollbar-width:thin]">
+        <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-4">
           {stories.map((story) => (
-            <div key={story.id} className="snap-start">
-              <PickCard story={story} />
-            </div>
+            <CarouselStoryCard key={story.id} story={story} />
           ))}
         </div>
       ) : null}
