@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cn } from "cn";
+import { Drv247Wordmark } from "@/components/drv247-wordmark";
 import { MoreNav } from "@/components/more-nav";
 import { MOBILE_NAV_SLUGS, PRIMARY_NAV } from "@/config/magazine-nav";
 
@@ -40,9 +41,10 @@ export function SiteHeader({
         ) : (
           <Link
             href={withQuery("/", testQuery)}
-            className="font-display text-xl font-black uppercase tracking-[-0.04em] text-[#1b1d1f]"
+            aria-label="DRV247 home"
+            className="inline-flex shrink-0 items-center"
           >
-            DRV247
+            <Drv247Wordmark className="h-6 w-auto md:h-7" />
           </Link>
         )}
         <p className="min-w-0 flex-1 truncate text-center font-display text-2xl font-semibold text-[#1b1d1f]">
