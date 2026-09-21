@@ -27,7 +27,7 @@ export default async function StoryPage({
   return (
     <MagazineQueryProvider testQuery={testQuery}>
       <div className="min-h-full bg-white">
-        <SiteHeader title={story.category.name} backHref={`/category/${story.category.slug}`} testQuery={testQuery} />
+        <SiteHeader title={story.category.name} backHref="/" testQuery={testQuery} />
       <article className="mx-auto max-w-3xl pb-20">
         <div className="relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl">
           <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority />

@@ -1107,9 +1107,16 @@ describe("for you test profile", () => {
     assert.equal(withTestQuery("/category/cars", undefined), "/category/cars");
   });
 
-  it("keeps profile=A on magazine hrefs and only backs to this origin", async () => {
+  it("keeps profile=A on magazine hrefs and pops in-app history without referrer", async () => {
     const { forYouTestSearchString, parseForYouTestProfile } = await import("./for-you-test");
-    const { magazineHref, shouldUseHistoryBack } = await import("./magazine-history");
+    const {
+      magazineHref,
+      magazineLocation,
+      popMagazineVisit,
+      previousMagazineHref,
+      recordMagazineVisit,
+      shouldPopMagazineHistory,
+    } = await import("./magazine-history");
     const query = forYouTestSearchString(parseForYouTestProfile({ profile: "A" }));
     assert.match(query, /profile=A/);
     assert.equal(magazineHref("/category/cars", query), `/category/cars?${query}`);
@@ -1118,12 +1125,17 @@ describe("for you test profile", () => {
     assert.equal(magazineHref("/story/12", query), `/story/12?${query}`);
     assert.equal(magazineHref("/", query), `/?${query}`);
     assert.equal(magazineHref("/category/cars?profile=A", query), "/category/cars?profile=A");
-    assert.equal(
-      shouldUseHistoryBack("http://192.168.0.75:43149/?profile=A", "http://192.168.0.75:43149"),
-      true,
-    );
-    assert.equal(shouldUseHistoryBack("https://www.google.com/", "http://192.168.0.75:43149"), false);
-    assert.equal(shouldUseHistoryBack("", "http://192.168.0.75:43149"), false);
+
+    const home = magazineLocation("/", `?${query}`);
+    const story = magazineLocation("/story/12", `?${query}`);
+    const afterHome = recordMagazineVisit([], home);
+    const afterStory = recordMagazineVisit(afterHome, story);
+    assert.equal(previousMagazineHref(afterStory, story), home);
+    assert.equal(shouldPopMagazineHistory(previousMagazineHref(afterStory, story)), true);
+    assert.equal(previousMagazineHref(recordMagazineVisit([], story), story), undefined);
+    assert.equal(shouldPopMagazineHistory(undefined), false);
+    assert.deepEqual(popMagazineVisit(afterStory, story), afterHome);
+    assert.equal(recordMagazineVisit(afterStory, story), afterStory);
   });
 
   it("does not invent a vehicle match when the story has no entities", async () => {
