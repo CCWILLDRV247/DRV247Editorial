@@ -45,7 +45,7 @@ function InterestLane({
 
   return (
     <section className={`min-w-0 ${PAGE_GUTTER}`}>
-      <p className="font-display text-[1.35rem] font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f] md:text-xl">
+      <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
         {heading}
       </p>
       {dek ? (
