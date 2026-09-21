@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cn } from "cn";
 import { formatStoryDate } from "@/lib/format";
 import type { StoryDto } from "@/lib/stories";
 import { StoryImage } from "./story-image";
@@ -63,17 +64,24 @@ export function StoryHero({
   story,
   titleLeading = "tight",
   square = false,
+  composition = false,
 }: {
   story: StoryDto;
   titleLeading?: "tight" | "loose";
   square?: boolean;
+  composition?: boolean;
 }) {
   return (
     <Link
       href={`/story/${story.id}`}
       className={
         square
-          ? "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-none bg-[#1b1d1f] text-white"
+          ? cn(
+              "relative block w-full min-w-0 overflow-hidden rounded-none bg-[#1b1d1f] text-white",
+              composition
+                ? "h-[min(72svh,520px)] md:h-[553px]"
+                : "h-[553px]",
+            )
           : "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
       }
     >
@@ -81,14 +89,14 @@ export function StoryHero({
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority />
       </div>
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
-      <div className="absolute inset-x-7 bottom-10 flex flex-col gap-3">
+      <div className="absolute inset-x-5 bottom-6 flex flex-col gap-3 md:inset-x-7 md:bottom-10 md:gap-3">
         <FeatureTag>{story.desk?.labelName ?? story.category.name}</FeatureTag>
         <RelevanceLine text={story.relevanceExplanation} tone="dark" />
         <h1
           className={
             titleLeading === "loose"
-              ? "font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.66] tracking-[-0.02em]"
-              : "font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]"
+              ? "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.68] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.66]"
+              : "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.64] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.62]"
           }
         >
           {story.title}

@@ -5,9 +5,10 @@ import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { SectionIntro } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
-import type { SelectedHomepageInterlude } from "@/lib/engine/interlude-selection";
+import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import { HOMEPAGE_LEAD_CARD_MAX } from "@/lib/engine/homepage-hierarchy";
+import type { SelectedHomepageInterlude } from "@/lib/engine/interlude-selection";
 import type { StoryDto } from "@/lib/stories";
 
 type ForYouLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
@@ -19,7 +20,7 @@ function storyCardGrid(cards: StoryDto[]) {
   if (cards.length === 0) return null;
   return (
     <div className={PAGE_GUTTER}>
-      <div className="grid w-full min-w-0 gap-2 md:grid-cols-2">
+      <div className="grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4">
         {cards.map((story) => (
           <StoryCard key={story.id} story={story} />
         ))}
@@ -43,21 +44,21 @@ function InterestLane({
 
   return (
     <section className={`min-w-0 ${PAGE_GUTTER}`}>
-      <p className="font-display text-xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
+      <p className="font-display text-[1.35rem] font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f] md:text-xl">
         {heading}
       </p>
       {dek ? (
-        <p className="mt-1.5 font-display text-xs font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55">
+        <p className="mt-2 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/50 md:mt-1.5 md:text-xs md:text-[#1b1d1f]/55">
           {dek}
         </p>
       ) : null}
       {empty && stories.length === 0 ? (
-        <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/75">
+        <p className="mt-4 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/75 md:mt-3">
           {empty}
         </p>
       ) : null}
       {stories.length > 0 ? (
-        <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-4">
+        <div className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2">
           {stories.map((story) => (
             <CarouselStoryCard key={story.id} story={story} />
           ))}
@@ -69,14 +70,14 @@ function InterestLane({
 
 function ViewAllStories() {
   return (
-    <section className={`border-t border-[#1b1d1f]/10 pt-8 ${PAGE_GUTTER}`}>
+    <section className={`border-t border-[#1b1d1f]/10 pt-10 md:pt-12 ${PAGE_GUTTER}`}>
       <Link
         href="/category/cars"
         className="inline-flex min-h-11 items-center font-display text-lg font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f] underline-offset-4 hover:underline"
       >
         View all stories
       </Link>
-      <p className="mt-2 max-w-md text-base leading-[22px] text-[#1b1d1f]/65">
+      <p className="mt-3 max-w-md text-base leading-[22px] text-[#1b1d1f]/65 md:mt-2">
         Browse the full desk across Cars, Culture, Driving, and Events.
       </p>
     </section>
@@ -84,7 +85,17 @@ function ViewAllStories() {
 }
 
 function interludeMap(interludes: SelectedHomepageInterlude[]) {
-  return new Map(interludes.map((item) => [item.slot, item.interlude]));
+  return new Map(interludes.map((item) => [item.slot, item]));
+}
+
+function HomepageInterlude({
+  interlude,
+  slot,
+}: {
+  interlude: NonNullable<ReturnType<typeof interludeMap.get>>;
+  slot: SelectedHomepageInterlude["slot"];
+}) {
+  return <EditorialInterludeBlock interlude={interlude} slot={slot} size="home" />;
 }
 
 export function ForYouHome({
@@ -118,10 +129,12 @@ export function ForYouHome({
   const midCarouselIndex = Math.floor((carousels.length - 1) / 2);
 
   return (
-    <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-10 pb-16 md:max-w-6xl md:gap-12">
-      <section className="flex min-w-0 flex-col gap-8 md:gap-10">
-        {hero ? <StoryHero story={hero} titleLeading="loose" square /> : null}
-        <div className="flex min-w-0 flex-col gap-5 md:gap-6">
+    <div
+      className={`mx-auto flex w-full min-w-0 max-w-3xl flex-col pb-20 md:max-w-6xl md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}
+    >
+      <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
+        {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
+        <div className="flex min-w-0 flex-col gap-6 md:gap-7">
           <SectionIntro
             kicker={copy.kicker}
             dek={copy.dek}
@@ -140,9 +153,7 @@ export function ForYouHome({
 
       <DeskModule stories={picks} />
 
-      {afterPicks ? (
-        <EditorialInterludeBlock interlude={afterPicks} size="home" tuck={picks.length === 0} />
-      ) : null}
+      {afterPicks ? <HomepageInterlude interlude={afterPicks} slot="after-picks" /> : null}
 
       {yourInterests.stories.length > 0 ? (
         <InterestLane
@@ -154,25 +165,21 @@ export function ForYouHome({
       ) : null}
 
       {beforeCategories ? (
-        <EditorialInterludeBlock
-          interlude={beforeCategories}
-          size="home"
-          tuck={picks.length === 0}
-        />
+        <HomepageInterlude interlude={beforeCategories} slot="before-categories" />
       ) : null}
 
-      <div className="flex min-w-0 flex-col gap-8 md:gap-10">
+      <div className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.railGap}`}>
         {carousels.map((lane, index) => (
           <Fragment key={lane.slug}>
-            <CategoryCarousel {...lane} />
+            <CategoryCarousel {...lane} lead={index === 0} />
             {midCategories && index === midCarouselIndex ? (
-              <EditorialInterludeBlock interlude={midCategories} size="home" />
+              <HomepageInterlude interlude={midCategories} slot="mid-categories" />
             ) : null}
           </Fragment>
         ))}
       </div>
 
-      {beforeViewAll ? <EditorialInterludeBlock interlude={beforeViewAll} size="home" /> : null}
+      {beforeViewAll ? <HomepageInterlude interlude={beforeViewAll} slot="before-view-all" /> : null}
 
       <ViewAllStories />
     </div>
