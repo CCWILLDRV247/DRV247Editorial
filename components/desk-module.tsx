@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { StoryImage } from "@/components/story-image";
-import { formatStoryDate } from "@/lib/format";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
 import type { StoryDto } from "@/lib/stories";
 
@@ -29,8 +28,8 @@ function DeskPickCard({ story }: { story: StoryDto }) {
         <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
           {story.title}
         </p>
-        <p className="mt-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
-          {formatStoryDate(story.publishedAt)}
+        <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+          {story.source.name}
         </p>
       </Link>
     </div>
@@ -70,6 +69,9 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
               </span>
               <p className="line-clamp-3 font-display text-[clamp(1.5rem,5vw,2.25rem)] font-black uppercase leading-[0.88] tracking-[-0.02em]">
                 {featured.title}
+              </p>
+              <p className="font-display text-[12px] font-bold uppercase leading-none text-white/80">
+                {featured.source.name}
               </p>
             </div>
           </div>

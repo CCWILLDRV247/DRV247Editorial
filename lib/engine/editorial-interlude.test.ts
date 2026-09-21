@@ -29,8 +29,8 @@ describe("editorial interlude", () => {
 
   it("keeps the truth line as the legacy default id for before-categories", () => {
     assert.equal(HOMEPAGE_INTERLUDE_SLOTS["before-categories"], "truth-shall-set-you-free");
-    const interlude = interludeForHomepageSlot("before-categories");
-    assert.equal(interlude?.text, "THE TRUTH SHALL SET YOU FREE");
+    assert.equal(interludeForHomepageSlot("before-categories"), undefined);
+    assert.equal(getEditorialInterlude("truth-shall-set-you-free")?.active, false);
   });
 
   it("looks up interludes by id and maps legacy copy text", () => {
@@ -44,6 +44,7 @@ describe("editorial interlude", () => {
   it("lists active interludes by priority", () => {
     const active = listActiveEditorialInterludes();
     assert.ok(active.every((item) => item.active));
-    assert.equal(active[0]?.id, "truth-shall-set-you-free");
+    assert.equal(active[0]?.id, "some-cars-under-your-skin");
+    assert.ok(!active.some((item) => item.id === "truth-shall-set-you-free"));
   });
 });
