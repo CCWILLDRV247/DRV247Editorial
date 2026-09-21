@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cn } from "cn";
 import type { StoryDto } from "@/lib/stories";
 import { StoryImage } from "./story-image";
 
@@ -28,13 +29,13 @@ export function CarouselStoryCard({ story }: { story: StoryDto }) {
   );
 }
 
-export function CategoryCarousel({ slug, name, stories }: CategoryLane) {
+export function CategoryCarousel({ slug, name, stories, lead = false }: CategoryLane & { lead?: boolean }) {
   if (stories.length === 0) {
     return null;
   }
 
   return (
-    <section className="min-w-0 pl-4 pr-0 md:px-0">
+    <section className={cn("min-w-0 pl-4 pr-0 md:px-0", lead && "pt-1 md:pt-2")}>
       <div className="flex min-w-0 items-baseline justify-between gap-3 pr-4 md:pr-0">
         <Link
           href={`/category/${slug}`}
@@ -49,7 +50,7 @@ export function CategoryCarousel({ slug, name, stories }: CategoryLane) {
           View all
         </Link>
       </div>
-      <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-4">
+      <div className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2">
         {stories.map((story) => (
           <CarouselStoryCard key={`${slug}-${story.id}`} story={story} />
         ))}

@@ -44,18 +44,18 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
   const note = featured.desk?.note ?? null;
 
   return (
-    <section className="relative z-10 min-w-0 border-t border-[#1b1d1f]/10 pt-8">
+    <section className="relative z-10 min-w-0 border-t border-[#1b1d1f]/10 pt-10 md:pt-12">
       <div className={PAGE_GUTTER}>
-        <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
+        <p className="font-display text-[1.65rem] font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f] md:text-2xl">
           {PICKS_SECTION_HEADING}
         </p>
-        <p className="mt-2 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
+        <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/70 md:mt-2 md:text-[18px] md:leading-[22px] md:tracking-[-0.36px]">
           {PICKS_SECTION_DEK}
         </p>
       </div>
-      <div className={`mt-4 min-w-0 ${PAGE_GUTTER}`}>
+      <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`}>
         <Link href={`/story/${featured.id}`} className="block overflow-hidden rounded-[12px] border border-[#1b1d1f]/10 bg-[#fafafa]">
-          <div className="relative h-[280px] w-full overflow-hidden bg-[#1b1d1f] md:h-[320px]">
+          <div className="relative h-[min(52vw,340px)] w-full overflow-hidden bg-[#1b1d1f] md:h-[380px]">
             <StoryImage
               src={featured.imageUrl}
               sources={featured.imageSources}
@@ -82,7 +82,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
       </div>
       {rest.length > 0 ? (
         <div
-          className={`mt-4 flex min-w-0 gap-2 overflow-x-auto pb-2 md:px-0 ${PAGE_GUTTER}`}
+          className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 md:mt-8 md:gap-2 md:px-0 ${PAGE_GUTTER}`}
         >
           {rest.map((story) => (
             <div key={story.id}>
