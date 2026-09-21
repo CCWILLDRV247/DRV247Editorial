@@ -7,25 +7,39 @@ import type { StoryDto } from "@/lib/stories";
 const PAGE_GUTTER =
   "pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]";
 
-function DeskPickCard({ story }: { story: StoryDto }) {
+const PICK_IMAGE_HEIGHT = "h-[219px]";
+
+function PickImageFrame({
+  story,
+  eager = false,
+}: {
+  story: StoryDto;
+  eager?: boolean;
+}) {
   const tag = story.desk?.labelName ?? story.category.name;
+  return (
+    <div className={`relative ${PICK_IMAGE_HEIGHT} overflow-hidden rounded-[12px] bg-[#cfcfcf]`}>
+      <StoryImage
+        src={story.imageUrl}
+        sources={story.imageSources}
+        category={story.category.name}
+        alt=""
+        eager={eager}
+      />
+      <div className="absolute bottom-4 left-5">
+        <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
+          {tag}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function DeskPickCard({ story }: { story: StoryDto }) {
   return (
     <div className="w-[218px] shrink-0">
       <Link href={`/story/${story.id}`} className="block">
-        <div className="relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf]">
-          <StoryImage
-            src={story.imageUrl}
-            sources={story.imageSources}
-            category={story.category.name}
-            alt=""
-            eager
-          />
-          <div className="absolute bottom-4 left-5">
-            <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
-              {tag}
-            </span>
-          </div>
-        </div>
+        <PickImageFrame story={story} eager />
         <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
           {story.title}
         </p>
@@ -54,28 +68,14 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
         </p>
       </div>
       <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`}>
-        <Link href={`/story/${featured.id}`} className="block overflow-hidden rounded-[12px] border border-[#1b1d1f]/10 bg-[#fafafa]">
-          <div className="relative h-[min(52vw,340px)] w-full overflow-hidden bg-[#1b1d1f] md:h-[380px]">
-            <StoryImage
-              src={featured.imageUrl}
-              sources={featured.imageSources}
-              category={featured.category.name}
-              alt=""
-              eager
-            />
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
-            <div className="absolute inset-x-5 bottom-5 flex flex-col gap-2 text-white">
-              <span className="inline-flex w-fit rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
-                {featured.desk?.labelName ?? featured.category.name}
-              </span>
-              <p className="line-clamp-3 font-display text-[clamp(1.5rem,5vw,2.25rem)] font-black uppercase leading-[0.88] tracking-[-0.02em]">
-                {featured.title}
-              </p>
-              <p className="font-display text-[12px] font-bold uppercase leading-none text-white/80">
-                {featured.source.name}
-              </p>
-            </div>
-          </div>
+        <Link href={`/story/${featured.id}`} className="block">
+          <PickImageFrame story={featured} eager />
+          <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
+            {featured.title}
+          </p>
+          <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+            {featured.source.name}
+          </p>
         </Link>
         {note ? (
           <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
