@@ -65,6 +65,8 @@ export async function GET(request: Request) {
               passedQualityGate: article.passedQualityGate,
               qualityBand: article.qualityBand,
               qualityReason: article.qualityReason,
+              editorialEligible: article.editorialEligible,
+              editorialExclusionReason: article.editorialExclusionReason,
               debug: [
                 formatRelevanceEngineDebug({
                   title: row.title,

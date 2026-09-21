@@ -32,6 +32,7 @@ import {
 } from "./images";
 import { isUsableArticleImage } from "../text";
 import { isMerchArticle, isMerchUrl } from "./merch";
+import { evaluateEditorialEligibility, isEditorialIneligibleArticle } from "./editorial-eligibility";
 import { isNonEditorialArticle, isNonEditorialUrl } from "./non-editorial";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
@@ -67,6 +68,7 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
   await purgeNonEnglishArticles();
   await purgeMerchArticles();
   await purgeNonEditorialArticles();
+  await purgeEditorialIneligibleArticles();
   const sources = (await db.select().from(mediaSources)).filter((source) => {
     if (!source.enabled) return false;
     if (DISABLED_SOURCE_SET.has(source.id)) return false;
@@ -127,10 +129,16 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
 
     items = items.filter(
       (item) =>
-        !isMerchUrl(item.canonicalUrl) &&
-        !isMerchUrl(item.url) &&
-        !isNonEditorialUrl(item.canonicalUrl, source.url) &&
-        !isNonEditorialUrl(item.url, source.url),
+        !isEditorialIneligibleArticle(
+          {
+            url: item.url,
+            canonicalUrl: item.canonicalUrl,
+            title: item.title,
+            excerpt: item.excerpt,
+            sourceId: source.id,
+          },
+          source.url,
+        ),
     );
     items = items.slice(0, source.maxArticles);
     const { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial } =
@@ -366,12 +374,17 @@ async function persistItems(
   );
 
   for (const item of items) {
-    if (isMerchUrl(item.canonicalUrl) || isMerchUrl(item.url)) {
-      skippedMerch += 1;
-      continue;
-    }
-    if (isNonEditorialUrl(item.canonicalUrl, source.url) || isNonEditorialUrl(item.url, source.url)) {
-      skippedNonEditorial += 1;
+    const gate = evaluateEditorialEligibility({
+      url: item.url,
+      canonicalUrl: item.canonicalUrl,
+      title: item.title,
+      excerpt: item.excerpt,
+      sourceId: source.id,
+      sourceUrl: source.url,
+    });
+    if (!gate.editorialEligible) {
+      if (gate.editorialExclusionReason === "commerce") skippedMerch += 1;
+      else skippedNonEditorial += 1;
       continue;
     }
     if (!isEnglish(item.title, item.excerpt)) {
@@ -545,6 +558,53 @@ export async function purgeNonEditorialArticles(): Promise<{
       title: row.title,
       url: row.url,
       canonicalUrl: row.canonicalUrl,
+    });
+  }
+  return { removed: removed.length, ids: removed.map((row) => row.id), rows: removed };
+}
+
+export async function purgeEditorialIneligibleArticles(): Promise<{
+  removed: number;
+  ids: number[];
+  rows: {
+    id: number;
+    publication: string;
+    title: string;
+    url: string;
+    canonicalUrl: string;
+    reason: string | null;
+  }[];
+}> {
+  const db = await getDb();
+  const sources = await db.select().from(mediaSources);
+  const sourceUrl = new Map(sources.map((source) => [source.id, source.url]));
+  const rows = await db.select().from(articles);
+  const removed: {
+    id: number;
+    publication: string;
+    title: string;
+    url: string;
+    canonicalUrl: string;
+    reason: string | null;
+  }[] = [];
+  for (const row of rows) {
+    const gate = evaluateEditorialEligibility({
+      url: row.url,
+      canonicalUrl: row.canonicalUrl,
+      title: row.title,
+      excerpt: row.excerpt,
+      sourceId: row.sourceId,
+      sourceUrl: sourceUrl.get(row.sourceId),
+    });
+    if (gate.editorialEligible) continue;
+    await deleteArticleById(row.id);
+    removed.push({
+      id: row.id,
+      publication: row.publication,
+      title: row.title,
+      url: row.url,
+      canonicalUrl: row.canonicalUrl,
+      reason: gate.editorialExclusionReason,
     });
   }
   return { removed: removed.length, ids: removed.map((row) => row.id), rows: removed };

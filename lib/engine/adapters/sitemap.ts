@@ -1,5 +1,4 @@
-import { isMerchUrl } from "../merch";
-import { isNonEditorialUrl } from "../non-editorial";
+import { isEditorialIneligibleUrl } from "../editorial-eligibility";
 
 export function parseSitemapXml(xml: string): string[] {
   const locs = [...xml.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/gi)].map((match) =>
@@ -24,8 +23,7 @@ export function looksLikeArticleUrl(url: string, siteOrigin: string): boolean {
       return false;
     }
     if (/(login|account|privacy|cookie|contact|newsletter)/.test(path)) return false;
-    if (isMerchUrl(url)) return false;
-    if (isNonEditorialUrl(url, siteOrigin)) return false;
+    if (isEditorialIneligibleUrl(url, siteOrigin)) return false;
     const depth = path.split("/").filter(Boolean).length;
     return depth >= 1;
   } catch {
