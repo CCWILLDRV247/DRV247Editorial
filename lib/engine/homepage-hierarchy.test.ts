@@ -24,8 +24,6 @@ describe("homepage hierarchy", () => {
   });
 
   it("builds four category carousels from ranked stories", async () => {
-    const { getMagazineHomeFresh } = await import("./magazine");
-    // Smoke the shape via module exports — full integration needs DB; test carousel builder logic inline
     const { MAGAZINE_NAV } = await import("./magazine");
     const slugs = HOMEPAGE_CATEGORY_SLUGS.filter((slug) =>
       MAGAZINE_NAV.some((item) => item.slug === slug),
