@@ -62,7 +62,7 @@ export function SiteHeader({
         </Link>
       </div>
       <nav className="mx-auto hidden max-w-6xl items-center gap-6 overflow-x-auto px-6 pb-3 md:flex">
-        {PRIMARY_NAV.map((item) => (
+        {mobileNav.map((item) => (
           <Link
             key={item.slug}
             href={withQuery(item.href, testQuery)}
@@ -71,6 +71,15 @@ export function SiteHeader({
             {item.name}
           </Link>
         ))}
+        {moreNav.length > 0 ? (
+          <MoreNav
+            items={moreNav.map((item) => ({
+              slug: item.slug,
+              name: item.name,
+              href: withQuery(item.href, testQuery),
+            }))}
+          />
+        ) : null}
       </nav>
       <nav className="flex items-center gap-4 px-4 pb-3 md:hidden">
         <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
@@ -133,7 +142,7 @@ export function SectionIntro({
   const kickerWords = kicker.split(/\s+/).filter(Boolean);
 
   return (
-    <div className="px-7 text-[#1b1d1f] md:px-0">
+    <div className="pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))] text-[#1b1d1f] md:px-0">
       {stackKickerOnMobile ? (
         <>
           <p className={`${kickerClass} text-[80px] md:hidden`}>

@@ -47,7 +47,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     type: "STATEMENT",
     tone: "confident",
     priority: 100,
-    active: true,
+    active: false,
     placement: ["home-before-categories"],
   },
   {
@@ -118,7 +118,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     type: "STATEMENT",
     tone: "assured",
     priority: 54,
-    active: true,
+    active: false,
     tags: ["ownership"],
   },
   {
@@ -145,7 +145,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     type: "STATEMENT",
     tone: "curious",
     priority: 51,
-    active: true,
+    active: false,
     categories: ["culture", "driving"],
   },
   {
@@ -154,7 +154,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     type: "STATEMENT",
     tone: "open",
     priority: 50,
-    active: true,
+    active: false,
     tags: ["ownership"],
   },
 

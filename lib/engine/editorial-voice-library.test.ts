@@ -20,17 +20,22 @@ describe("editorial voice library", () => {
     for (const id of EDITORIAL_VOICE_SEED_IDS) {
       const item = EDITORIAL_VOICE_LIBRARY.find((entry) => entry.id === id);
       assert.ok(item, `missing seed ${id}`);
-      assert.equal(item?.active, true);
+      if (id === "truth-shall-set-you-free") {
+        assert.equal(item?.active, false);
+      } else {
+        assert.equal(item?.active, true);
+      }
     }
   });
 
   it("breaks down by editorial type", () => {
     const breakdown = editorialInterludeTypeBreakdown();
+    const activeCount = EDITORIAL_VOICE_LIBRARY.filter((item) => item.active).length;
     assert.equal(
       Object.values(breakdown).reduce((sum, count) => sum + count, 0),
-      EDITORIAL_VOICE_LIBRARY.length,
+      activeCount,
     );
-    assert.equal(breakdown.STATEMENT, 6);
+    assert.equal(breakdown.STATEMENT, 2);
     assert.equal(breakdown.OBSERVATION, 10);
     assert.equal(breakdown.PROVOCATION, 7);
     assert.equal(breakdown.TRANSITION, 5);

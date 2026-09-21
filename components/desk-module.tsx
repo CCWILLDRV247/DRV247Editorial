@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { StoryImage } from "@/components/story-image";
-import { formatStoryDate } from "@/lib/format";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
+import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 
 const PAGE_GUTTER =
@@ -29,8 +29,8 @@ function DeskPickCard({ story }: { story: StoryDto }) {
         <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
           {story.title}
         </p>
-        <p className="mt-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
-          {formatStoryDate(story.publishedAt)}
+        <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+          {story.source.name}
         </p>
       </Link>
     </div>
@@ -46,7 +46,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
   return (
     <section className="relative z-10 min-w-0 border-t border-[#1b1d1f]/10 pt-10 md:pt-12">
       <div className={PAGE_GUTTER}>
-        <p className="font-display text-[1.65rem] font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f] md:text-2xl">
+        <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
           {PICKS_SECTION_HEADING}
         </p>
         <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/70 md:mt-2 md:text-[18px] md:leading-[22px] md:tracking-[-0.36px]">
@@ -70,6 +70,9 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
               </span>
               <p className="line-clamp-3 font-display text-[clamp(1.5rem,5vw,2.25rem)] font-black uppercase leading-[0.88] tracking-[-0.02em]">
                 {featured.title}
+              </p>
+              <p className="font-display text-[12px] font-bold uppercase leading-none text-white/80">
+                {featured.source.name}
               </p>
             </div>
           </div>

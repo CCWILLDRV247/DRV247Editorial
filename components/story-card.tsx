@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { cn } from "cn";
-import { formatStoryDate } from "@/lib/format";
 import type { StoryDto } from "@/lib/stories";
 import { StoryImage } from "./story-image";
 
@@ -52,7 +51,7 @@ export function StoryCard({ story }: { story: StoryDto }) {
             {story.title}
           </h2>
           <p className="font-display text-[25px] font-bold uppercase leading-[0.64]">
-            {formatStoryDate(story.publishedAt)}
+            {story.source.name}
           </p>
         </div>
       </div>
@@ -123,6 +122,9 @@ export function PickCard({ story }: { story: StoryDto }) {
       </div>
       <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-[#1b1d1f]">
         {story.title}
+      </p>
+      <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+        {story.source.name}
       </p>
       <RelevanceLine text={story.relevanceExplanation} tone="light" />
     </Link>
