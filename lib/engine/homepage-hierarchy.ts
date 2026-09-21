@@ -5,7 +5,7 @@ export const HOMEPAGE_FOR_YOU_DISCOVER_MAX = 4;
 export const HOMEPAGE_LEAD_CARD_MAX = 1;
 export const HOMEPAGE_CATEGORY_STORY_MAX = 5;
 
-/** Editorial primaries on the homepage (nav unchanged — Motorsport stays in header/More). */
+/** Editorial primaries on the homepage carousels — Motorsport is taxonomy/signal only, not a homepage lane. */
 export const HOMEPAGE_CATEGORY_SLUGS = ["cars", "culture", "driving", "events"] as const;
 
 export type HomepageCategorySlug = (typeof HOMEPAGE_CATEGORY_SLUGS)[number];

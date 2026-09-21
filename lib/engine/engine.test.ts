@@ -860,6 +860,19 @@ describe("primary taxonomy", () => {
     assert.equal(LEGACY_NAV_TO_PRIMARY.concourse, "events");
     assert.equal(LEGACY_NAV_TO_PRIMARY.culture, "culture");
   });
+
+  it("keeps Motorsport off the primary bar but on taxonomy routes", async () => {
+    const { PRIMARY_NAV, MOBILE_NAV_SLUGS, MAGAZINE_NAV, contentPrimaryBySlug } = await import(
+      "../../config/magazine-nav"
+    );
+    assert.deepEqual(
+      PRIMARY_NAV.map((item) => item.slug),
+      ["for-you", "cars", "culture", "driving", "events"],
+    );
+    assert.deepEqual([...MOBILE_NAV_SLUGS], PRIMARY_NAV.map((item) => item.slug));
+    assert.ok(MAGAZINE_NAV.some((item) => item.slug === "motorsport"));
+    assert.ok(contentPrimaryBySlug("motorsport"));
+  });
 });
 
 describe("for you test profile", () => {
