@@ -29,6 +29,8 @@ const TARGETS = [
     sourceId: "auto_021",
     sourceUrl: "https://www.practicalclassics.co.uk",
   },
+  {
+    name: "dyler-sell-car",
     host: "dyler.com",
     path: "/sell-car",
     example: "https://dyler.com/sell-car",
