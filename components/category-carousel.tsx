@@ -8,6 +8,26 @@ export type CategoryLane = {
   stories: StoryDto[];
 };
 
+export function CarouselStoryCard({ story }: { story: StoryDto }) {
+  return (
+    <Link
+      href={`/story/${story.id}`}
+      className="w-[200px] shrink-0 snap-start md:w-[220px]"
+    >
+      <div className="relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px]">
+        <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" eager />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
+        <p className="absolute bottom-4 left-4 right-4 font-display text-[11px] font-bold uppercase leading-none tracking-[-0.02em] text-white">
+          {story.source.name}
+        </p>
+      </div>
+      <p className="mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px]">
+        {story.title}
+      </p>
+    </Link>
+  );
+}
+
 export function CategoryCarousel({ slug, name, stories }: CategoryLane) {
   if (stories.length === 0) {
     return null;
@@ -31,22 +51,7 @@ export function CategoryCarousel({ slug, name, stories }: CategoryLane) {
       </div>
       <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-4">
         {stories.map((story) => (
-          <Link
-            key={`${slug}-${story.id}`}
-            href={`/story/${story.id}`}
-            className="w-[200px] shrink-0 snap-start md:w-[220px]"
-          >
-            <div className="relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px]">
-              <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" eager />
-              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
-              <p className="absolute bottom-4 left-4 right-4 font-display text-[11px] font-bold uppercase leading-none tracking-[-0.02em] text-white">
-                {story.source.name}
-              </p>
-            </div>
-            <p className="mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px]">
-              {story.title}
-            </p>
-          </Link>
+          <CarouselStoryCard key={`${slug}-${story.id}`} story={story} />
         ))}
       </div>
     </section>
