@@ -61,16 +61,18 @@ export function SiteHeader({
           Desk
         </Link>
       </div>
-      <nav className="mx-auto hidden max-w-6xl items-center gap-6 overflow-x-auto px-6 pb-3 md:flex">
-        {mobileNav.map((item) => (
-          <Link
-            key={item.slug}
-            href={withQuery(item.href, testQuery)}
-            className="font-display text-lg font-bold uppercase tracking-[-0.02em] text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
-          >
-            {item.name}
-          </Link>
-        ))}
+      <nav className="mx-auto hidden max-w-6xl items-center gap-4 px-6 pb-3 md:flex">
+        <div className="flex min-w-0 flex-1 items-center gap-6 overflow-x-auto">
+          {mobileNav.map((item) => (
+            <Link
+              key={item.slug}
+              href={withQuery(item.href, testQuery)}
+              className="shrink-0 font-display text-lg font-bold uppercase tracking-[-0.02em] text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
         {moreNav.length > 0 ? (
           <MoreNav
             items={moreNav.map((item) => ({

@@ -13,9 +13,16 @@ export const CONTENT_PRIMARY_SLUGS = ["cars", "culture", "driving", "motorsport"
 export type ContentPrimary = (typeof CONTENT_PRIMARY_SLUGS)[number];
 export type PrimaryNavSlug = (typeof PRIMARY_NAV)[number]["slug"];
 
-export const MOBILE_NAV_SLUGS = ["for-you", "cars", "culture", "driving", "events"] as const;
+export const MOBILE_NAV_SLUGS = [
+  "for-you",
+  "cars",
+  "culture",
+  "driving",
+  "motorsport",
+  "events",
+] as const;
 
-/** Motorsport sits in More on mobile when its story count is below this. */
+/** @deprecated Motorsport is always in the primary bar; More hides when empty. */
 export const MOBILE_MOTORSPORT_MORE_BELOW = 6;
 
 /** Old magazine lanes → new primaries. Culture keeps its slug. */
