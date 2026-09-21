@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "cn";
+import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 import { StoryImage } from "./story-image";
 
@@ -39,7 +40,7 @@ export function CategoryCarousel({ slug, name, stories, lead = false }: Category
       <div className="flex min-w-0 items-baseline justify-between gap-3 pr-4 md:pr-0">
         <Link
           href={`/category/${slug}`}
-          className="font-display text-xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f] md:text-2xl"
+          className={HOMEPAGE_COMPOSITION.sectionTitle}
         >
           {name}
         </Link>

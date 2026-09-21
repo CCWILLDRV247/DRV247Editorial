@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { StoryImage } from "@/components/story-image";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
+import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 
 const PAGE_GUTTER =
@@ -45,7 +46,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
   return (
     <section className="relative z-10 min-w-0 border-t border-[#1b1d1f]/10 pt-10 md:pt-12">
       <div className={PAGE_GUTTER}>
-        <p className="font-display text-[1.65rem] font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f] md:text-2xl">
+        <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
           {PICKS_SECTION_HEADING}
         </p>
         <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/70 md:mt-2 md:text-[18px] md:leading-[22px] md:tracking-[-0.36px]">
