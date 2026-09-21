@@ -37,6 +37,14 @@ const TARGETS = [
     sourceId: "auto_017",
     sourceUrl: "https://dyler.com",
   },
+  {
+    name: "dyler-events",
+    host: "dyler.com",
+    path: "/events",
+    example: "https://dyler.com/events",
+    sourceId: "auto_017",
+    sourceUrl: "https://dyler.com",
+  },
 ] as const;
 
 function matchesTarget(

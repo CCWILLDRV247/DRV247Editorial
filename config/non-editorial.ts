@@ -24,6 +24,8 @@ export const UNUSABLE_PATH_SEGMENTS = ["undefined", "null"] as const;
  * `/pages/articles` is a Shopify magazine listing (Bonnet), not a story.
  * `/pages/about-us` is Bonnet’s About page (article #204), not a teaser.
  * `/sell-car` is Dyler’s sell-your-car promo, not a teaser.
+ * `/events` is Dyler’s classic-car-shows calendar index, not a teaser.
+ * `/events/slug` stays (Street Machine, Hot Rod, Castlemaine).
  */
 export const NON_ARTICLE_EXACT_PATHS = [
   "/",
@@ -35,6 +37,7 @@ export const NON_ARTICLE_EXACT_PATHS = [
   "/pages/articles",
   "/pages/about-us",
   "/sell-car",
+  "/events",
 ] as const;
 
 /**
