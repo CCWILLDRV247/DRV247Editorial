@@ -61,6 +61,7 @@ import {
   selectHomepagePicks,
   type DeskPublic,
 } from "./desk";
+import { isNonEditorialArticle } from "./non-editorial";
 
 export type EditorialDto = {
   id: number;
@@ -395,6 +396,9 @@ export async function listEditorial(options?: {
   const extrasMap = extrasFromGraph(graph, rows.map((row) => row.id));
   const primaryMap = primariesFromGraph(graph);
   const sourceMap = new Map(graph.sources.map((source) => [source.id, source]));
+  rows = rows.filter(
+    (row) => !isNonEditorialArticle(row, sourceMap.get(row.sourceId)?.url),
+  );
   const testProfile = options?.testProfile;
   const useTestProfile = Boolean(testProfile && forYouTestIsActive(testProfile));
   const curated = options?.section === "for-you" || (!options?.userId && !options?.vehicleId);
@@ -573,19 +577,20 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
     await db.select(ARTICLE_FEED_COLUMNS).from(articles).where(eq(articles.id, id)).limit(1)
   )[0];
   if (!article) return null;
-  const [extrasMap, primaryMap, source, related, deskRows] = await Promise.all([
+  const [sourceRows, extrasMap, primaryMap, related, deskRows] = await Promise.all([
+    db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1),
     extrasByArticleIds([article.id]),
     loadArticlePrimaries([article.id]),
-    db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1),
     relatedForArticle(article.id),
     loadDeskPickRows(),
   ]);
+  if (isNonEditorialArticle(article, sourceRows[0]?.url)) return null;
   const extras = extrasMap.get(article.id)!;
   const desk = liveDeskByArticle(deskRows).get(article.id) ?? null;
   const rankScore = scoreArticle({
     ...extras,
     excerpt: article.excerpt,
-    relevance: source[0]?.relevance ?? "",
+    relevance: sourceRows[0]?.relevance ?? "",
     vehicles: [],
     userInterests: [],
     deskPick: Boolean(desk),

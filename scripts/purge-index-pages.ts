@@ -14,6 +14,14 @@ const TARGETS = [
     sourceUrl: "https://bonnetmagazine.com",
   },
   {
+    name: "bonnet-about-us",
+    host: "bonnetmagazine.com",
+    path: "/pages/about-us",
+    example: "https://bonnetmagazine.com/pages/about-us",
+    sourceId: "auto_001",
+    sourceUrl: "https://bonnetmagazine.com",
+  },
+  {
     name: "dyler-sell-car",
     host: "dyler.com",
     path: "/sell-car",

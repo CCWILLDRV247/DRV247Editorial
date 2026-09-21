@@ -574,6 +574,22 @@ describe("non-editorial url skip", () => {
       isNonEditorialUrl("https://bonnetmagazine.com/pages/articles", "https://bonnetmagazine.com"),
       true,
     );
+    assert.equal(isUnusableArticleUrl("https://bonnetmagazine.com/pages/about-us"), true);
+    assert.equal(isUnusableArticleUrl("https://bonnetmagazine.com/pages/about-us/"), true);
+    assert.equal(
+      isNonEditorialUrl("https://bonnetmagazine.com/pages/about-us", "https://bonnetmagazine.com"),
+      true,
+    );
+    assert.equal(
+      isNonEditorialArticle(
+        {
+          url: "https://bonnetmagazine.com/pages/about-us",
+          canonicalUrl: "https://bonnetmagazine.com/pages/about-us",
+        },
+        "https://bonnetmagazine.com",
+      ),
+      true,
+    );
     assert.equal(
       isNonEditorialUrl(
         "https://bonnetmagazine.com/blogs/journal/a-feature",
