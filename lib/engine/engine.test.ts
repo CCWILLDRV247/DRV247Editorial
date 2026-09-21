@@ -607,6 +607,85 @@ describe("non-editorial url skip", () => {
   });
 });
 
+describe("editorial eligibility gate", () => {
+  it("excludes about pages, bookazine commerce, giveaways, and ticket promos without banning editorial competition coverage", async () => {
+    const { evaluateEditorialEligibility } = await import("./editorial-eligibility");
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://bonnetmagazine.com/pages/about-us",
+        canonicalUrl: "https://bonnetmagazine.com/pages/about-us",
+        title: "About Us",
+        excerpt: "Bonnet Magazine",
+        sourceId: "auto_001",
+        sourceUrl: "https://bonnetmagazine.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "about_page" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.practicalclassics.co.uk/magazine/offers/bookazines",
+        canonicalUrl: "https://www.practicalclassics.co.uk/magazine/offers/bookazines",
+        title: "Limited-Edition Bookazines – ON SALE NOW!",
+        excerpt: "Grab your copy today.",
+        sourceId: "auto_021",
+        sourceUrl: "https://www.practicalclassics.co.uk",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "commerce" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.practicalclassics.co.uk/competitions/latest-competitions/win-a-twin-busch-scissor-lift-worth-2199",
+        canonicalUrl:
+          "https://www.practicalclassics.co.uk/competitions/latest-competitions/win-a-twin-busch-scissor-lift-worth-2199",
+        title: "Win a Twin Busch Scissor Lift, worth £2,199!",
+        excerpt: "Enter now.",
+        sourceId: "auto_021",
+        sourceUrl: "https://www.practicalclassics.co.uk",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "competition" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://japanesenostalgiccar.com/get-5-off-jccs-tickets-with-this-coupon-code",
+        canonicalUrl: "https://japanesenostalgiccar.com/get-5-off-jccs-tickets-with-this-coupon-code",
+        title: "Get $5 off JCCS tickets with this coupon code",
+        excerpt: "Use this code at checkout.",
+        sourceId: "auto_012",
+        sourceUrl: "https://japanesenostalgiccar.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "ticket_sales" },
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://www.autosport.com/news/byd-competition-car-breaks-cover",
+        canonicalUrl: "https://www.autosport.com/news/byd-competition-car-breaks-cover",
+        title: "BYD competition car breaks cover in Romania",
+        excerpt: "The new prototype was spotted testing.",
+        sourceId: "auto_018",
+        sourceUrl: "https://www.autosport.com",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://www.pistonheads.com/news/ph-plus/porsche-911-turbo-s-review",
+        canonicalUrl: "https://www.pistonheads.com/news/ph-plus/porsche-911-turbo-s-review",
+        title: "Porsche 911 Turbo S Is Now Available — Here's What We Know",
+        excerpt: "We drove the latest Turbo S on track.",
+        sourceId: "auto_020",
+        sourceUrl: "https://www.pistonheads.com",
+      }).editorialEligible,
+      true,
+    );
+  });
+});
+
 describe("english-only ingest", () => {
   it("keeps English teasers and mixed titles with English copy", () => {
     assert.equal(

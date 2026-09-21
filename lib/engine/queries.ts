@@ -61,7 +61,8 @@ import {
   selectHomepagePicks,
   type DeskPublic,
 } from "./desk";
-import { isNonEditorialArticle } from "./non-editorial";
+import { evaluateEditorialEligibility } from "./editorial-eligibility";
+import type { EditorialExclusionReason } from "./editorial-eligibility";
 
 export type EditorialDto = {
   id: number;
@@ -106,6 +107,8 @@ export type EditorialDto = {
   qualityReason: string;
   showInPrimaryFeed: boolean;
   qualityAutomotiveScore: number;
+  editorialEligible: boolean;
+  editorialExclusionReason: EditorialExclusionReason | null;
 };
 
 type FeedArticle = Pick<
@@ -249,6 +252,8 @@ function toDto(
     qualityReason?: string;
     showInPrimaryFeed?: boolean;
     qualityAutomotiveScore?: number;
+    editorialEligible?: boolean;
+    editorialExclusionReason?: EditorialExclusionReason | null;
   },
 ): EditorialDto {
   const image = parseImagePayload(article.metadata);
@@ -296,6 +301,8 @@ function toDto(
     qualityReason: extras.qualityReason ?? "eligible DRV relevance",
     showInPrimaryFeed: extras.showInPrimaryFeed ?? true,
     qualityAutomotiveScore: extras.qualityAutomotiveScore ?? 0,
+    editorialEligible: extras.editorialEligible ?? true,
+    editorialExclusionReason: extras.editorialExclusionReason ?? null,
   };
 }
 
@@ -396,8 +403,16 @@ export async function listEditorial(options?: {
   const extrasMap = extrasFromGraph(graph, rows.map((row) => row.id));
   const primaryMap = primariesFromGraph(graph);
   const sourceMap = new Map(graph.sources.map((source) => [source.id, source]));
-  rows = rows.filter(
-    (row) => !isNonEditorialArticle(row, sourceMap.get(row.sourceId)?.url),
+  rows = rows.filter((row) =>
+    evaluateEditorialEligibility({
+      url: row.url,
+      canonicalUrl: row.canonicalUrl,
+      title: row.title,
+      excerpt: row.excerpt,
+      sourceId: row.sourceId,
+      sourceUrl: sourceMap.get(row.sourceId)?.url,
+      deskPick: Boolean(deskMap.get(row.id)),
+    }).editorialEligible,
   );
   const testProfile = options?.testProfile;
   const useTestProfile = Boolean(testProfile && forYouTestIsActive(testProfile));
@@ -535,6 +550,8 @@ export async function listEditorial(options?: {
       qualityReason: quality.reason,
       showInPrimaryFeed: quality.showInPrimaryFeed,
       qualityAutomotiveScore: quality.automotiveScore,
+      editorialEligible: true,
+      editorialExclusionReason: null,
     });
   });
 
@@ -584,9 +601,18 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
     relatedForArticle(article.id),
     loadDeskPickRows(),
   ]);
-  if (isNonEditorialArticle(article, sourceRows[0]?.url)) return null;
-  const extras = extrasMap.get(article.id)!;
   const desk = liveDeskByArticle(deskRows).get(article.id) ?? null;
+  const eligibility = evaluateEditorialEligibility({
+    url: article.url,
+    canonicalUrl: article.canonicalUrl,
+    title: article.title,
+    excerpt: article.excerpt,
+    sourceId: article.sourceId,
+    sourceUrl: sourceRows[0]?.url,
+    deskPick: Boolean(desk),
+  });
+  if (!eligibility.editorialEligible) return null;
+  const extras = extrasMap.get(article.id)!;
   const rankScore = scoreArticle({
     ...extras,
     excerpt: article.excerpt,
@@ -613,6 +639,8 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
     classification: snap,
     related,
     desk,
+    editorialEligible: eligibility.editorialEligible,
+    editorialExclusionReason: eligibility.editorialExclusionReason,
   });
 }
 
