@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { Drv247Wordmark } from "@/components/drv247-wordmark";
+import { MagazineBack, MagazineLink } from "@/components/magazine-link";
 import { MoreNav } from "@/components/more-nav";
 import { MOBILE_NAV_SLUGS, PRIMARY_NAV } from "@/config/magazine-nav";
 import {
@@ -17,11 +18,6 @@ const moreNav = PRIMARY_NAV.filter(
   (item) => !(MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
 );
 
-function withQuery(href: string, query?: string) {
-  if (!query) return href;
-  return `${href}${href.includes("?") ? "&" : "?"}${query}`;
-}
-
 export function SiteHeader({
   title,
   backHref,
@@ -35,21 +31,22 @@ export function SiteHeader({
     <header className="sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 md:h-16 md:px-6">
         {backHref ? (
-          <Link
-            href={withQuery(backHref, testQuery)}
-            aria-label="Back"
+          <MagazineBack
+            href={backHref}
+            query={testQuery}
             className="flex size-8 items-center justify-center text-[#1b1d1f]"
           >
             <ChevronLeft className="size-5" strokeWidth={2.25} />
-          </Link>
+          </MagazineBack>
         ) : (
-          <Link
-            href={withQuery("/", testQuery)}
+          <MagazineLink
+            href="/"
+            query={testQuery}
             aria-label="DRV247 home"
             className="inline-flex shrink-0 items-center"
           >
             <Drv247Wordmark className="h-6 w-auto md:h-7" />
-          </Link>
+          </MagazineLink>
         )}
         <p className="min-w-0 flex-1 truncate text-center font-display text-2xl font-semibold text-[#1b1d1f]">
           {title}
@@ -64,13 +61,14 @@ export function SiteHeader({
       <nav className="mx-auto hidden max-w-6xl items-center gap-4 px-6 pb-3 md:flex">
         <div className="flex min-w-0 flex-1 items-center gap-6 overflow-x-auto">
           {mobileNav.map((item) => (
-            <Link
+            <MagazineLink
               key={item.slug}
-              href={withQuery(item.href, testQuery)}
+              href={item.href}
+              query={testQuery}
               className="shrink-0 font-display text-lg font-bold uppercase tracking-[-0.02em] text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
             >
               {item.name}
-            </Link>
+            </MagazineLink>
           ))}
         </div>
         {moreNav.length > 0 ? (
@@ -78,7 +76,8 @@ export function SiteHeader({
             items={moreNav.map((item) => ({
               slug: item.slug,
               name: item.name,
-              href: withQuery(item.href, testQuery),
+              href: item.href,
+              query: testQuery,
             }))}
           />
         ) : null}
@@ -86,13 +85,14 @@ export function SiteHeader({
       <nav className="flex items-center gap-4 px-4 pb-3 md:hidden">
         <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
           {mobileNav.map((item) => (
-            <Link
+            <MagazineLink
               key={item.slug}
-              href={withQuery(item.href, testQuery)}
+              href={item.href}
+              query={testQuery}
               className="shrink-0 font-display text-base font-bold uppercase text-[#1b1d1f]/70"
             >
               {item.name}
-            </Link>
+            </MagazineLink>
           ))}
         </div>
         {moreNav.length > 0 ? (
@@ -100,7 +100,8 @@ export function SiteHeader({
             items={moreNav.map((item) => ({
               slug: item.slug,
               name: item.name,
-              href: withQuery(item.href, testQuery),
+              href: item.href,
+              query: testQuery,
             }))}
           />
         ) : null}

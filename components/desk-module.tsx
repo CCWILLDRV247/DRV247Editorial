@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { MagazineLink } from "@/components/magazine-link";
 import { StoryImage } from "@/components/story-image";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
 import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
@@ -38,7 +38,7 @@ function PickImageFrame({
 function DeskPickCard({ story }: { story: StoryDto }) {
   return (
     <div className="w-[218px] shrink-0">
-      <Link href={`/story/${story.id}`} className="block">
+      <MagazineLink href={`/story/${story.id}`} className="block">
         <PickImageFrame story={story} eager />
         <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
           {story.title}
@@ -46,7 +46,7 @@ function DeskPickCard({ story }: { story: StoryDto }) {
         <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
           {story.source.name}
         </p>
-      </Link>
+      </MagazineLink>
     </div>
   );
 }
@@ -68,7 +68,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
         </p>
       </div>
       <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`}>
-        <Link href={`/story/${featured.id}`} className="block">
+        <MagazineLink href={`/story/${featured.id}`} className="block">
           <PickImageFrame story={featured} eager />
           <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
             {featured.title}
@@ -76,7 +76,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
           <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
             {featured.source.name}
           </p>
-        </Link>
+        </MagazineLink>
         {note ? (
           <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
             {note}
