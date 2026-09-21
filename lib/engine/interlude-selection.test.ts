@@ -11,6 +11,7 @@ import {
 } from "./interlude-selection";
 import type { InterludeContextSource } from "./interlude-selection";
 import { DEFAULT_INTERLUDE_SELECTION_WEIGHTS } from "./interlude-selection";
+import { mergeInterludeRecent } from "./interlude-recent";
 
 function article(partial: Partial<InterludeContextSource> & Pick<InterludeContextSource, "primaryCategory">) {
   return {
@@ -323,5 +324,102 @@ describe("interlude selection", () => {
     const linesA = profileA.map((item) => item.interlude.text);
     const linesC = profileC.map((item) => item.interlude.text);
     assert.notDeepEqual(linesA, linesC);
+  });
+
+  it("penalises interludes in recent cross-profile history", () => {
+    const context = buildInterludeContext([], FOR_YOU_DEMO_PROFILES.A);
+    const line = getEditorialInterlude("restomod-compliment-or-crime")!;
+    const fresh = scoreInterludeCandidate(line, context, {
+      weights: DEFAULT_INTERLUDE_SELECTION_WEIGHTS,
+      usedIds: new Set(),
+      previous: [],
+      recentIds: [],
+      seed: 11,
+    });
+    const recent = scoreInterludeCandidate(line, context, {
+      weights: DEFAULT_INTERLUDE_SELECTION_WEIGHTS,
+      usedIds: new Set(),
+      previous: [],
+      recentIds: [line.id],
+      seed: 11,
+    });
+    assert.ok(fresh > recent);
+  });
+
+  it("excludes the most recent interlude when a close alternative exists", () => {
+    const context = buildInterludeContext(
+      [article({ primaryCategory: "cars", interests: ["Classic", "Modified"] })],
+      FOR_YOU_DEMO_PROFILES.A,
+    );
+    const sticky = getEditorialInterlude("restomod-compliment-or-crime")!;
+    const pick = pickInterludeForContext(context, {
+      recentIds: [sticky.id],
+      seed: profileInterludeSeed(FOR_YOU_DEMO_PROFILES.A),
+    });
+    assert.ok(pick);
+    assert.notEqual(pick?.interlude.id, sticky.id);
+  });
+
+  it("allows a recent repeat when it is the only suitable candidate", () => {
+    const line = getEditorialInterlude("restomod-compliment-or-crime")!;
+    const pick = pickInterludeForContext(buildInterludeContext([], FOR_YOU_DEMO_PROFILES.B), {
+      candidates: [line],
+      recentIds: [line.id],
+    });
+    assert.equal(pick?.interlude.id, line.id);
+  });
+
+  it("rotates before-categories lines across demo profiles A–D with shared recent history", () => {
+    const neutralArticles: InterludeContextSource[] = [
+      article({ primaryCategory: "cars", interests: ["Classic", "Modified"] }),
+      article({ primaryCategory: "culture", interests: ["Classic", "collecting"] }),
+    ];
+    const carousels = [
+      { slug: "cars", articles: neutralArticles },
+      { slug: "culture", articles: neutralArticles },
+      { slug: "driving", articles: neutralArticles },
+      { slug: "events", articles: neutralArticles },
+    ];
+    let recent: string[] = [];
+    const beforeIds: string[] = [];
+    for (const demo of ["A", "B", "C", "D"] as const) {
+      const profile = FOR_YOU_DEMO_PROFILES[demo];
+      const selected = selectHomepageInterludes({
+        picks: neutralArticles.slice(0, 1),
+        forYourCar: neutralArticles,
+        yourInterests: neutralArticles,
+        carousels,
+        profile,
+        recentIds: recent,
+        seed: profileInterludeSeed(profile),
+      });
+      const before = selected.find((item) => item.slot === "before-categories")?.interlude.id;
+      assert.ok(before);
+      beforeIds.push(before!);
+      recent = mergeInterludeRecent(
+        recent,
+        selected.map((item) => item.interlude.id),
+      );
+    }
+    assert.ok(new Set(beforeIds).size >= 3, `expected rotation, got ${beforeIds.join(", ")}`);
+  });
+
+  it("keeps JDM/modified context ahead of classic patina on profile C", () => {
+    const context = buildInterludeContext(
+      [
+        article({
+          primaryCategory: "cars",
+          interests: ["JDM", "Modified", "Performance"],
+          makes: ["Nissan"],
+          models: ["Skyline"],
+        }),
+      ],
+      FOR_YOU_DEMO_PROFILES.C,
+    );
+    const pick = pickInterludeForContext(context, {
+      seed: profileInterludeSeed(FOR_YOU_DEMO_PROFILES.C),
+    });
+    assert.ok(pick);
+    assert.notEqual(pick?.interlude.id, "some-cars-under-your-skin");
   });
 });

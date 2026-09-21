@@ -6,8 +6,10 @@ import {
   parseForYouTestProfile,
   withProfileInCatalog,
 } from "@/lib/engine/for-you-test";
+import { INTERLUDE_RECENT_COOKIE, parseInterludeRecentIds } from "@/lib/engine/interlude-recent";
 import { getMagazineHome } from "@/lib/engine/magazine";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
+import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,8 +22,9 @@ export default async function HomePage({
   const params = await searchParams;
   const testProfile = parseForYouTestProfile(params);
   const testQuery = forYouTestSearchString(testProfile) || undefined;
+  const recentIds = parseInterludeRecentIds((await cookies()).get(INTERLUDE_RECENT_COOKIE)?.value);
   const [home, catalogRows] = await Promise.all([
-    getMagazineHome(testProfile),
+    getMagazineHome(testProfile, recentIds),
     loadForYouTestCatalog(),
   ]);
   const catalog = withProfileInCatalog(catalogRows, testProfile);
