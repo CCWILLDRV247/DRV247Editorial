@@ -52,17 +52,6 @@ export const HOMEPAGE_INTERLUDE_SLOTS = {
 
 export type HomepageInterludeSlot = keyof typeof HOMEPAGE_INTERLUDE_SLOTS;
 
-export type { HomepageInterludeSlotId, SelectedHomepageInterlude } from "./interlude-selection";
-export {
-  buildInterludeContext,
-  interludeByHomepageSlot,
-  loadInterludeSelectionWeights,
-  pickInterludeForContext,
-  profileInterludeSeed,
-  scoreInterludeCandidate,
-  selectHomepageInterludes,
-} from "./interlude-selection";
-
 const interludeById = new Map(EDITORIAL_INTERLUDES.map((item) => [item.id, item]));
 
 export function getEditorialInterlude(id: string): EditorialInterlude | undefined {
