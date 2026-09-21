@@ -146,8 +146,16 @@ describe("sitemap", () => {
       true,
     );
     assert.equal(looksLikeArticleUrl("https://dyler.com/sell-car", "https://dyler.com"), false);
+    assert.equal(looksLikeArticleUrl("https://dyler.com/events", "https://dyler.com"), false);
     assert.equal(
       looksLikeArticleUrl("https://dyler.com/cars/1965-porsche-911", "https://dyler.com"),
+      true,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.streetmachine.com.au/events/get-in-quick-for-early-bird-tickets-to-the-castlemaine-rod-shop-invitational-3",
+        "https://www.streetmachine.com.au",
+      ),
       true,
     );
   });
@@ -600,8 +608,28 @@ describe("non-editorial url skip", () => {
     assert.equal(isUnusableArticleUrl("https://dyler.com/sell-car"), true);
     assert.equal(isUnusableArticleUrl("https://dyler.com/sell-car/"), true);
     assert.equal(isNonEditorialUrl("https://dyler.com/sell-car", "https://dyler.com"), true);
+    assert.equal(isUnusableArticleUrl("https://dyler.com/events"), true);
+    assert.equal(isUnusableArticleUrl("https://dyler.com/events/"), true);
+    assert.equal(isNonEditorialUrl("https://dyler.com/events", "https://dyler.com"), true);
+    assert.equal(
+      isNonEditorialArticle(
+        {
+          url: "https://dyler.com/events",
+          canonicalUrl: "https://dyler.com/events",
+        },
+        "https://dyler.com",
+      ),
+      true,
+    );
     assert.equal(
       isNonEditorialUrl("https://dyler.com/cars/1965-porsche-911", "https://dyler.com"),
+      false,
+    );
+    assert.equal(
+      isNonEditorialUrl(
+        "https://www.streetmachine.com.au/events/get-in-quick-for-early-bird-tickets-to-the-castlemaine-rod-shop-invitational-3",
+        "https://www.streetmachine.com.au",
+      ),
       false,
     );
   });
@@ -680,6 +708,31 @@ describe("editorial eligibility gate", () => {
         excerpt: "We drove the latest Turbo S on track.",
         sourceId: "auto_020",
         sourceUrl: "https://www.pistonheads.com",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://dyler.com/events",
+        canonicalUrl: "https://dyler.com/events",
+        title: "Classic Car Shows Calendar 2021 - Dyler",
+        excerpt: "List of great classic car shows in the UK, Europe and around the world",
+        sourceId: "auto_017",
+        sourceUrl: "https://dyler.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "category_page" },
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://www.streetmachine.com.au/events/get-in-quick-for-early-bird-tickets-to-the-castlemaine-rod-shop-invitational-3",
+        canonicalUrl:
+          "https://www.streetmachine.com.au/events/get-in-quick-for-early-bird-tickets-to-the-castlemaine-rod-shop-invitational-3",
+        title: "Get in quick for early-bird tickets to the Castlemaine Rod Shop Invitational #3",
+        excerpt: "The invitational returns to Castlemaine.",
+        sourceId: "auto_066",
+        sourceUrl: "https://www.streetmachine.com.au",
       }).editorialEligible,
       true,
     );
