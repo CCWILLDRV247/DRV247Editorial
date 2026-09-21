@@ -1,10 +1,14 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { cn } from "cn";
+import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { Drv247Wordmark } from "@/components/drv247-wordmark";
 import { MoreNav } from "@/components/more-nav";
 import { MOBILE_NAV_SLUGS, PRIMARY_NAV } from "@/config/magazine-nav";
+import {
+  interludeFromText,
+  type EditorialInterlude,
+} from "@/lib/engine/editorial-interlude";
 
 const mobileNav = PRIMARY_NAV.filter((item) =>
   (MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
@@ -167,27 +171,23 @@ export function SectionIntro({
 
 export function Interstitial({
   text,
+  interlude,
   size = "default",
   tuck = true,
 }: {
-  text: string;
+  text?: string;
+  interlude?: EditorialInterlude;
   size?: "default" | "home";
   /** When false, skip negative margins so a block above (e.g. Desk) is not pulled into the type. */
   tuck?: boolean;
 }) {
+  const item = interlude ?? interludeFromText(text ?? "");
   return (
-    <p
-      className={cn(
-        "px-7 font-display font-black uppercase tracking-[-0.02em] text-[#1b1d1f] md:px-0",
-        size === "home"
-          ? cn(
-              tuck ? "-mt-8 -mb-8" : "mt-0 mb-0",
-              "pt-[52px] pb-[52px] text-[135px] leading-[0.64]",
-            )
-          : "text-[clamp(4.5rem,14vw,8.4rem)] leading-[0.62]",
-      )}
-    >
-      {text}
-    </p>
+    <EditorialInterludeBlock
+      interlude={item}
+      size={size}
+      tuck={tuck}
+      showType={false}
+    />
   );
 }

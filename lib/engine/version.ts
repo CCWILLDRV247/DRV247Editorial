@@ -1,5 +1,5 @@
-export const ENGINE_BRANCH = "cursor/header-logo-0c1e";
-export const ENGINE_WAVE = "wave-6-77";
+export const ENGINE_BRANCH = "cursor/editorial-interlude-0c1e";
+export const ENGINE_WAVE = "wave-6-78";
 
 export function engineCommit() {
   return process.env.ENGINE_COMMIT || process.env.VERCEL_GIT_COMMIT_SHA || "local";

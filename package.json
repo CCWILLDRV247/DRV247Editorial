@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 43131",
     "lint": "eslint",
-    "test": "tsx --test lib/engine/engine.test.ts lib/engine/homepage-hierarchy.test.ts lib/engine/images.test.ts lib/engine/classify.test.ts lib/engine/desk.test.ts",
+    "test": "tsx --test lib/engine/engine.test.ts lib/engine/homepage-hierarchy.test.ts lib/engine/editorial-interlude.test.ts lib/engine/images.test.ts lib/engine/classify.test.ts lib/engine/desk.test.ts",
     "ingest:wave1": "tsx scripts/ingest-wave1.ts",
     "ingest:wave2": "tsx scripts/ingest-wave2.ts",
     "ingest:wave3": "tsx scripts/ingest-wave3.ts",

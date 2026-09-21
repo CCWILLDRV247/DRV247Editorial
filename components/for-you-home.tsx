@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { CarouselStoryCard, CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
 import { DeskModule } from "@/components/desk-module";
-import { Interstitial, SectionIntro } from "@/components/site-chrome";
+import { EditorialInterludeBlock } from "@/components/editorial-interlude";
+import { SectionIntro } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
+import { interludeForHomepageSlot } from "@/lib/engine/editorial-interlude";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import { HOMEPAGE_LEAD_CARD_MAX } from "@/lib/engine/homepage-hierarchy";
 import type { StoryDto } from "@/lib/stories";
@@ -101,6 +103,7 @@ export function ForYouHome({
     yourInterests.stories.find((story) => !pickIds.has(story.id)) ??
     null;
   const leadCards = vehicleStories.slice(1, 1 + HOMEPAGE_LEAD_CARD_MAX);
+  const beforeCategories = interludeForHomepageSlot("before-categories");
 
   return (
     <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-10 pb-16 md:max-w-6xl md:gap-12">
@@ -134,7 +137,13 @@ export function ForYouHome({
         />
       ) : null}
 
-      <Interstitial text={copy.interstitial} size="home" tuck={picks.length === 0} />
+      {beforeCategories ? (
+        <EditorialInterludeBlock
+          interlude={beforeCategories}
+          size="home"
+          tuck={picks.length === 0}
+        />
+      ) : null}
 
       <div className="flex min-w-0 flex-col gap-8 md:gap-10">
         {carousels.map((lane) => (
