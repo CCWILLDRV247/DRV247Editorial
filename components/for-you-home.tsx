@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CarouselStoryCard, CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
 import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
+import { InterludeRecentSync } from "@/components/interlude-recent-sync";
 import { SectionIntro } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
 import type { EditorialInterlude } from "@/lib/engine/editorial-interlude";
@@ -130,9 +131,11 @@ export function ForYouHome({
   const midCarouselIndex = Math.floor((carousels.length - 1) / 2);
 
   return (
-    <div
-      className={`mx-auto flex w-full min-w-0 max-w-3xl flex-col pb-20 md:max-w-6xl md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}
-    >
+    <>
+      <InterludeRecentSync interludeIds={interludes.map((item) => item.interlude.id)} />
+      <div
+        className={`mx-auto flex w-full min-w-0 max-w-3xl flex-col pb-20 md:max-w-6xl md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}
+      >
       <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
         {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
         <div className="flex min-w-0 flex-col gap-6 md:gap-7">
@@ -183,6 +186,7 @@ export function ForYouHome({
       {beforeViewAll ? <HomepageInterlude interlude={beforeViewAll} slot="before-view-all" /> : null}
 
       <ViewAllStories />
-    </div>
+      </div>
+    </>
   );
 }

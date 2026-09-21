@@ -3,6 +3,7 @@ import path from "node:path";
 import type { EditorialInterlude } from "./editorial-interlude";
 import { listActiveEditorialInterludes } from "./editorial-interlude";
 import type { ForYouTestProfile } from "./for-you-test";
+import { recentUsePenaltyWeight } from "./interlude-recent";
 import { canonicalInterest, interestsMatch } from "./personalize";
 import type { EditorialDto } from "./queries";
 
@@ -43,6 +44,12 @@ export type InterludeSelectionWeights = {
   userInterestMatch: number;
   /** Back-to-back profile-aligned lines — keeps personalisation subtle. */
   personalisationRepeatPenalty: number;
+  /** Penalty when an interlude id appears in recent cross-profile history. */
+  recentUsePenalty: number;
+  /** Extra penalty for the single most recently shown interlude. */
+  recentMostRecentExtraPenalty: number;
+  /** Allow excluding the most recent pick when the next candidate is within this score gap. */
+  recentExcludeMaxGap: number;
   usagePenalty: number;
   consecutiveTypePenalty: number;
   consecutiveTagPenalty: number;
@@ -62,6 +69,9 @@ export const DEFAULT_INTERLUDE_SELECTION_WEIGHTS: InterludeSelectionWeights = {
   userMarqueMatch: 9,
   userInterestMatch: 11,
   personalisationRepeatPenalty: 16,
+  recentUsePenalty: 34,
+  recentMostRecentExtraPenalty: 18,
+  recentExcludeMaxGap: 18,
   usagePenalty: 45,
   consecutiveTypePenalty: 12,
   consecutiveTagPenalty: 18,
@@ -172,10 +182,11 @@ export function scoreInterludeCandidate(
     weights: InterludeSelectionWeights;
     usedIds: ReadonlySet<string>;
     previous: ReadonlyArray<EditorialInterlude>;
+    recentIds?: readonly string[];
     seed: number;
   },
 ): number {
-  const { weights, usedIds, previous, seed } = opts;
+  const { weights, usedIds, previous, recentIds = [], seed } = opts;
   let score = 0;
 
   if (interlude.categories?.length) {
@@ -232,6 +243,14 @@ export function scoreInterludeCandidate(
 
   if (usedIds.has(interlude.id)) score -= weights.usagePenalty;
 
+  if (recentIds.length) {
+    const index = recentIds.indexOf(interlude.id);
+    if (index >= 0) {
+      score -= weights.recentUsePenalty * recentUsePenaltyWeight(index, recentIds.length);
+      if (index === 0) score -= weights.recentMostRecentExtraPenalty;
+    }
+  }
+
   const prev = previous[previous.length - 1];
   if (prev) {
     if (
@@ -260,6 +279,7 @@ export function pickInterludeForContext(
     weights?: InterludeSelectionWeights;
     usedIds?: Set<string>;
     previous?: EditorialInterlude[];
+    recentIds?: readonly string[];
     seed?: number;
   },
 ): { interlude: EditorialInterlude; score: number } | undefined {
@@ -267,19 +287,43 @@ export function pickInterludeForContext(
   const weights = opts?.weights ?? DEFAULT_INTERLUDE_SELECTION_WEIGHTS;
   const usedIds = opts?.usedIds ?? new Set<string>();
   const previous = opts?.previous ?? [];
+  const recentIds = opts?.recentIds ?? [];
   const seed = opts?.seed ?? 0;
 
-  let best: { interlude: EditorialInterlude; score: number } | undefined;
-  for (const interlude of candidates) {
-    const score = scoreInterludeCandidate(interlude, context, {
-      weights,
-      usedIds,
-      previous,
-      seed: seed ^ interlude.id.length,
-    });
-    if (!best || score > best.score) best = { interlude, score };
+  const scored = candidates
+    .map((interlude) => ({
+      interlude,
+      score: scoreInterludeCandidate(interlude, context, {
+        weights,
+        usedIds,
+        previous,
+        recentIds,
+        seed: seed ^ interlude.id.length,
+      }),
+    }))
+    .sort((left, right) => right.score - left.score);
+
+  if (!scored.length) return undefined;
+
+  const recentSet = new Set(recentIds);
+  let pick = scored[0]!;
+  const mostRecent = recentIds[0];
+
+  if (mostRecent && pick.interlude.id === mostRecent) {
+    const alternative = scored.find((row) => row.interlude.id !== mostRecent);
+    if (alternative && pick.score - alternative.score <= weights.recentExcludeMaxGap) {
+      pick = alternative;
+    }
   }
-  return best;
+
+  if (recentSet.has(pick.interlude.id)) {
+    const fresh = scored.find((row) => !recentSet.has(row.interlude.id));
+    if (fresh && pick.score - fresh.score <= weights.recentExcludeMaxGap) {
+      pick = fresh;
+    }
+  }
+
+  return pick;
 }
 
 export function profileInterludeSeed(profile?: ForYouTestProfile) {
@@ -309,6 +353,7 @@ type HomepageInterludePlanInput = {
   profile?: ForYouTestProfile;
   weights?: InterludeSelectionWeights;
   seed?: number;
+  recentIds?: readonly string[];
 };
 
 function plannedHomepageSlots(input: HomepageInterludePlanInput): HomepageInterludeSlotId[] {
@@ -350,6 +395,7 @@ export function selectHomepageInterludes(
 ): SelectedHomepageInterlude[] {
   const weights = input.weights ?? DEFAULT_INTERLUDE_SELECTION_WEIGHTS;
   const seed = input.seed ?? profileInterludeSeed(input.profile);
+  const recentIds = input.recentIds ?? [];
   const candidates = listActiveEditorialInterludes();
   const slots = plannedHomepageSlots({ ...input, weights });
   const usedIds = new Set<string>();
@@ -363,6 +409,7 @@ export function selectHomepageInterludes(
       weights,
       usedIds,
       previous,
+      recentIds,
       seed: seed ^ slot.length,
     });
     if (!pick) continue;
@@ -377,7 +424,7 @@ export function selectHomepageInterludes(
         [...input.picks, ...input.forYourCar, ...input.yourInterests],
         input.profile,
       ),
-      { candidates, weights, seed },
+      { candidates, weights, seed, recentIds },
     );
     if (fallback) {
       selected.push({

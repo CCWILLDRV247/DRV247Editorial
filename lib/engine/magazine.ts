@@ -186,7 +186,7 @@ function uniqueStories(stories: StoryDto[]) {
   });
 }
 
-async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
+async function getMagazineHomeFresh(testProfile?: ForYouTestProfile, recentIds: readonly string[] = []) {
   const deskArticles = await listDeskHomepage(3);
   const picks = uniqueStories(deskArticles.map((article) => toMagazineStory(article)));
   const pickIds = pickArticleIds(
@@ -259,6 +259,7 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
       .filter((article): article is EditorialDto => Boolean(article)),
     carousels: carouselArticles,
     profile: testProfile,
+    recentIds,
   });
   return {
     copy: plan.copy,
@@ -272,17 +273,20 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
   };
 }
 
-export async function getMagazineHome(testProfile?: ForYouTestProfile) {
+export async function getMagazineHome(
+  testProfile?: ForYouTestProfile,
+  recentIds: readonly string[] = [],
+) {
   if (testProfile && forYouTestIsActive(testProfile)) {
     noStore();
-    return getMagazineHomeFresh(testProfile);
+    return getMagazineHomeFresh(testProfile, recentIds);
   }
   const key = "default";
   return unstable_cache(
     async (cacheKey: string) => {
       const profile =
         cacheKey === "default" ? undefined : parseForYouTestProfile(new URLSearchParams(cacheKey));
-      return getMagazineHomeFresh(profile);
+      return getMagazineHomeFresh(profile, recentIds);
     },
     ["magazine-home"],
     { revalidate: 60, tags: ["editorial"] },
