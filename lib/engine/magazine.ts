@@ -26,6 +26,7 @@ import {
   HOMEPAGE_CATEGORY_SLUGS,
   HOMEPAGE_CATEGORY_STORY_MAX,
 } from "./homepage-hierarchy";
+import { selectHomepageInterludes } from "./interlude-selection";
 import {
   pickRelevanceExplanation,
   type ExplanationLane,
@@ -239,6 +240,26 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     if (stories.length === 0) return [];
     return [{ slug: nav.slug, name: nav.name, stories }];
   });
+  const carouselArticles = HOMEPAGE_CATEGORY_SLUGS.flatMap((slug) => {
+    const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
+    if (!nav) return [];
+    const articles = ranked
+      .filter((article) => articleMatchesNav(article, nav.slug))
+      .slice(0, HOMEPAGE_CATEGORY_STORY_MAX);
+    if (articles.length === 0) return [];
+    return [{ slug: nav.slug, articles }];
+  });
+  const interludes = selectHomepageInterludes({
+    picks: deskArticles,
+    forYourCar: plan.forYourCar.stories
+      .map((item) => byId.get(item.id))
+      .filter((article): article is EditorialDto => Boolean(article)),
+    yourInterests: plan.yourInterests.stories
+      .map((item) => byId.get(item.id))
+      .filter((article): article is EditorialDto => Boolean(article)),
+    carousels: carouselArticles,
+    profile: testProfile,
+  });
   return {
     copy: plan.copy,
     forYourCar,
@@ -246,6 +267,7 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
     discover,
     picks,
     carousels,
+    interludes,
     stories: [...forYourCar.stories, ...yourInterests.stories, ...discover.stories],
   };
 }

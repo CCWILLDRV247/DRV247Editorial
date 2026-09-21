@@ -37,6 +37,7 @@ export default async function HomePage({
           discover={home.discover}
           picks={home.picks}
           carousels={home.carousels}
+          interludes={home.interludes}
         />
       </main>
     </div>
