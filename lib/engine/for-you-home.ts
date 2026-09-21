@@ -10,6 +10,11 @@ import type { EditorialDto } from "./queries";
 import type { ForYouTestProfile } from "./for-you-test";
 import { forYouTestIsActive } from "./for-you-test";
 import type { VehicleTier } from "./rank";
+import {
+  HOMEPAGE_FOR_YOU_DISCOVER_MAX,
+  HOMEPAGE_FOR_YOU_INTERESTS_MAX,
+  HOMEPAGE_FOR_YOU_VEHICLE_MAX,
+} from "./homepage-hierarchy";
 
 const DIRECT_TIERS = new Set<VehicleTier>(["variant", "vehicle", "model", "generation"]);
 
@@ -228,14 +233,14 @@ export function curateForYouHome(
   let forYourCarStories: ForYouCandidate[] = [];
   let forYourCarEmpty: string | undefined;
   if (vehicleKnown) {
-    const primary = takeDiverse([...direct, ...marque], 6, used, usedSubjects);
-    const filler = takeDiverse([...culture, ...interestHits], 3, used, usedSubjects, {
+    const primary = takeDiverse([...direct, ...marque], HOMEPAGE_FOR_YOU_VEHICLE_MAX, used, usedSubjects);
+    const filler = takeDiverse([...culture, ...interestHits], 2, used, usedSubjects, {
       avoidMake: profile?.make,
     });
     const mixed: ForYouCandidate[] = [];
     let p = 0;
     let f = 0;
-    while (mixed.length < 6 && (p < primary.length || f < filler.length)) {
+    while (mixed.length < HOMEPAGE_FOR_YOU_VEHICLE_MAX && (p < primary.length || f < filler.length)) {
       const make = p < primary.length ? makeOf(primary[p]!) : "";
       if (consecutiveMakeRun(mixed, make) && f < filler.length) {
         mixed.push(filler[f]!);
@@ -250,7 +255,7 @@ export function curateForYouHome(
         f += 1;
       }
     }
-    forYourCarStories = mixed.slice(0, 6);
+    forYourCarStories = mixed.slice(0, HOMEPAGE_FOR_YOU_VEHICLE_MAX);
     if (forYourCarStories.length === 0) {
       forYourCarEmpty = spec
         ? `Nothing on the desk for your ${spec} yet — the wider mix is below.`
@@ -263,7 +268,9 @@ export function curateForYouHome(
   }
 
   const yourInterestsStories = interestsKnown
-    ? takeDiverse(interestHits, 6, used, usedSubjects, { avoidMake: profile?.make })
+    ? takeDiverse(interestHits, HOMEPAGE_FOR_YOU_INTERESTS_MAX, used, usedSubjects, {
+        avoidMake: profile?.make,
+      })
     : [];
   const discoverStories = takeDiverse(
     discoverPool.filter((article) => {
@@ -271,7 +278,7 @@ export function curateForYouHome(
       if (article.showInPrimaryFeed === false) return true;
       return makeOf(article) !== (profile?.make ?? "").toLowerCase() || article.vehicleTier === "none";
     }),
-    6,
+    HOMEPAGE_FOR_YOU_DISCOVER_MAX,
     used,
     usedSubjects,
     { avoidMake: profile?.make },

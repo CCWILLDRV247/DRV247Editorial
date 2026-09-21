@@ -22,6 +22,10 @@ import { curateForYouHome } from "./for-you-home";
 import { contextFromTestProfile } from "./personalize";
 import { pickArticleIds } from "./desk";
 import {
+  HOMEPAGE_CATEGORY_SLUGS,
+  HOMEPAGE_CATEGORY_STORY_MAX,
+} from "./homepage-hierarchy";
+import {
   pickRelevanceExplanation,
   type ExplanationLane,
 } from "./relevance-explanation";
@@ -222,18 +226,22 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
       (story) => story.id,
     ),
   );
-  const carousels = MAGAZINE_NAV.map((nav) => {
+  const carousels = HOMEPAGE_CATEGORY_SLUGS.map((slug) => {
+    const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
+    if (!nav) return null;
     const lane = ranked
       .filter((article) => articleMatchesNav(article, nav.slug))
-      .slice(0, 16)
+      .slice(0, 12)
       .map((article) => toMagazineStory(article, { lane: "carousel", showExplanation: false }));
     const fresh = lane.filter((story) => !featuredIds.has(story.id));
     return {
       slug: nav.slug,
       name: nav.name,
-      stories: uniqueStories([...fresh, ...lane]).slice(0, 8),
+      stories: uniqueStories([...fresh, ...lane]).slice(0, HOMEPAGE_CATEGORY_STORY_MAX),
     };
-  }).filter((lane) => lane.stories.length > 0);
+  }).filter((lane): lane is { slug: string; name: string; stories: StoryDto[] } =>
+    Boolean(lane && lane.stories.length > 0),
+  );
   return {
     copy: plan.copy,
     forYourCar,
