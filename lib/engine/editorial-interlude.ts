@@ -26,72 +26,24 @@ export type EditorialInterlude = {
   placement?: EditorialInterludePlacement[];
 };
 
-/** Curated seed set — first entry is the existing homepage truth line. */
-export const EDITORIAL_INTERLUDES: EditorialInterlude[] = [
-  {
-    id: "truth-shall-set-you-free",
-    text: "THE TRUTH SHALL SET YOU FREE",
-    type: "STATEMENT",
-    tone: "confident",
-    priority: 100,
-    active: true,
-    placement: ["home-before-categories"],
-  },
-  {
-    id: "some-cars-under-your-skin",
-    text: "SOME CARS JUST GET UNDER YOUR SKIN.",
-    type: "OBSERVATION",
-    tone: "warm",
-    priority: 80,
-    active: true,
-    tags: ["culture", "classic"],
-  },
-  {
-    id: "how-much-power-too-much",
-    text: "HOW MUCH POWER IS TOO MUCH?",
-    type: "PROVOCATION",
-    tone: "provocative",
-    priority: 75,
-    active: true,
-    tags: ["performance", "motorsport"],
-  },
-  {
-    id: "best-builds-never-finished",
-    text: "THE BEST BUILDS ARE NEVER FINISHED.",
-    type: "OBSERVATION",
-    tone: "knowing",
-    priority: 70,
-    active: true,
-    tags: ["modified", "garage"],
-  },
-  {
-    id: "garage-to-grid",
-    text: "FROM THE GARAGE TO THE GRID.",
-    type: "TRANSITION",
-    tone: "kinetic",
-    priority: 65,
-    active: true,
-    categories: ["driving", "motorsport"],
-  },
-  {
-    id: "more-louder-faster",
-    text: "MORE. LOUDER. FASTER.",
-    type: "SHORT_PUNCH",
-    tone: "bold",
-    priority: 60,
-    active: true,
-    tags: ["performance"],
-  },
-  {
-    id: "built-to-be-remembered",
-    text: "SOME CARS ARE BUILT TO BE DRIVEN. OTHERS ARE BUILT TO BE REMEMBERED.",
-    type: "EDITORIAL_THOUGHT",
-    tone: "reflective",
-    priority: 55,
-    active: true,
-    categories: ["culture", "cars"],
-  },
-];
+export {
+  EDITORIAL_INTERLUDE_CATEGORIES,
+  EDITORIAL_INTERLUDE_TAGS,
+  EDITORIAL_VOICE_LIBRARY,
+  EDITORIAL_VOICE_SEED_IDS,
+  editorialInterludeTypeBreakdown,
+  interludesForCategory,
+  interludesForTag,
+} from "./editorial-voice-library";
+export type {
+  EditorialInterludeCategory,
+  EditorialInterludeTag,
+} from "./editorial-voice-library";
+
+import { EDITORIAL_VOICE_LIBRARY } from "./editorial-voice-library";
+
+/** Full curated voice library — seed lines remain first. */
+export const EDITORIAL_INTERLUDES = EDITORIAL_VOICE_LIBRARY;
 
 /** Static homepage slots — no dynamic selection in this pass. */
 export const HOMEPAGE_INTERLUDE_SLOTS = {

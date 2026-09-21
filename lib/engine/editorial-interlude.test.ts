@@ -8,6 +8,10 @@ import {
   interludeFromText,
   listActiveEditorialInterludes,
 } from "./editorial-interlude";
+import {
+  EDITORIAL_VOICE_SEED_IDS,
+  editorialInterludeTypeBreakdown,
+} from "./editorial-voice-library";
 
 describe("editorial interlude", () => {
   it("keeps THE TRUTH SHALL SET YOU FREE as the first seed entry", () => {
@@ -16,19 +20,10 @@ describe("editorial interlude", () => {
     assert.equal(EDITORIAL_INTERLUDES[0]?.type, "STATEMENT");
   });
 
-  it("ships the curated example set from the brief", () => {
-    assert.equal(EDITORIAL_INTERLUDES.length, 7);
+  it("preserves the seven Task 1 seed lines at the head of the library", () => {
     assert.deepEqual(
-      EDITORIAL_INTERLUDES.map((item) => item.text),
-      [
-        "THE TRUTH SHALL SET YOU FREE",
-        "SOME CARS JUST GET UNDER YOUR SKIN.",
-        "HOW MUCH POWER IS TOO MUCH?",
-        "THE BEST BUILDS ARE NEVER FINISHED.",
-        "FROM THE GARAGE TO THE GRID.",
-        "MORE. LOUDER. FASTER.",
-        "SOME CARS ARE BUILT TO BE DRIVEN. OTHERS ARE BUILT TO BE REMEMBERED.",
-      ],
+      EDITORIAL_INTERLUDES.slice(0, 7).map((item) => item.id),
+      [...EDITORIAL_VOICE_SEED_IDS],
     );
   });
 
