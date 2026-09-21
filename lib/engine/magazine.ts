@@ -1,3 +1,4 @@
+import type { CategoryLane } from "@/components/category-carousel";
 import type { StoryDto } from "@/lib/stories";
 import { unstable_cache, unstable_noStore as noStore } from "next/cache";
 import {
@@ -226,22 +227,18 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
       (story) => story.id,
     ),
   );
-  const carousels = HOMEPAGE_CATEGORY_SLUGS.map((slug) => {
+  const carousels: CategoryLane[] = HOMEPAGE_CATEGORY_SLUGS.flatMap((slug) => {
     const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
-    if (!nav) return null;
+    if (!nav) return [];
     const lane = ranked
       .filter((article) => articleMatchesNav(article, nav.slug))
       .slice(0, 12)
       .map((article) => toMagazineStory(article, { lane: "carousel", showExplanation: false }));
     const fresh = lane.filter((story) => !featuredIds.has(story.id));
-    return {
-      slug: nav.slug,
-      name: nav.name,
-      stories: uniqueStories([...fresh, ...lane]).slice(0, HOMEPAGE_CATEGORY_STORY_MAX),
-    };
-  }).filter((lane): lane is { slug: string; name: string; stories: StoryDto[] } =>
-    Boolean(lane && lane.stories.length > 0),
-  );
+    const stories = uniqueStories([...fresh, ...lane]).slice(0, HOMEPAGE_CATEGORY_STORY_MAX);
+    if (stories.length === 0) return [];
+    return [{ slug: nav.slug, name: nav.name, stories }];
+  });
   return {
     copy: plan.copy,
     forYourCar,

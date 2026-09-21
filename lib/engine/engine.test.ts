@@ -1480,6 +1480,9 @@ describe("For You centre", () => {
       categories?: string[];
       why?: string[];
       vehicleTier?: "variant" | "vehicle" | "model" | "generation" | "make" | "category" | "none";
+      rankScore?: number;
+      showInPrimaryFeed?: boolean;
+      qualityBand?: "featured" | "eligible" | "deprioritised" | "excluded";
     } = {},
   ) {
     return {
@@ -1493,7 +1496,9 @@ describe("For You centre", () => {
       why: opts.why ?? [],
       vehicleTier: opts.vehicleTier ?? "none",
       duplicateGroupId: null,
-      rankScore: 100 - id,
+      rankScore: opts.rankScore ?? 100 - id,
+      showInPrimaryFeed: opts.showInPrimaryFeed ?? true,
+      qualityBand: opts.qualityBand ?? "eligible",
       imageUrl: `https://img.example/${id}.jpg`,
     };
   }
