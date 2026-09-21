@@ -45,12 +45,23 @@ import { EDITORIAL_VOICE_LIBRARY } from "./editorial-voice-library";
 /** Full curated voice library — seed lines remain first. */
 export const EDITORIAL_INTERLUDES = EDITORIAL_VOICE_LIBRARY;
 
-/** Static homepage slots — no dynamic selection in this pass. */
+/** Legacy default ids — dynamic selection may override on the homepage. */
 export const HOMEPAGE_INTERLUDE_SLOTS = {
   "before-categories": "truth-shall-set-you-free",
 } as const satisfies Record<string, string>;
 
 export type HomepageInterludeSlot = keyof typeof HOMEPAGE_INTERLUDE_SLOTS;
+
+export type { HomepageInterludeSlotId, SelectedHomepageInterlude } from "./interlude-selection";
+export {
+  buildInterludeContext,
+  interludeByHomepageSlot,
+  loadInterludeSelectionWeights,
+  pickInterludeForContext,
+  profileInterludeSeed,
+  scoreInterludeCandidate,
+  selectHomepageInterludes,
+} from "./interlude-selection";
 
 const interludeById = new Map(EDITORIAL_INTERLUDES.map((item) => [item.id, item]));
 

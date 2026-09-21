@@ -27,7 +27,7 @@ describe("editorial interlude", () => {
     );
   });
 
-  it("resolves homepage before-categories slot to the truth interlude", () => {
+  it("keeps the truth line as the legacy default id for before-categories", () => {
     assert.equal(HOMEPAGE_INTERLUDE_SLOTS["before-categories"], "truth-shall-set-you-free");
     const interlude = interludeForHomepageSlot("before-categories");
     assert.equal(interlude?.text, "THE TRUTH SHALL SET YOU FREE");

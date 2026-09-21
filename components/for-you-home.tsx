@@ -1,10 +1,11 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { CarouselStoryCard, CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
 import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { SectionIntro } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
-import { interludeForHomepageSlot } from "@/lib/engine/editorial-interlude";
+import type { SelectedHomepageInterlude } from "@/lib/engine/interlude-selection";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import { HOMEPAGE_LEAD_CARD_MAX } from "@/lib/engine/homepage-hierarchy";
 import type { StoryDto } from "@/lib/stories";
@@ -82,12 +83,17 @@ function ViewAllStories() {
   );
 }
 
+function interludeMap(interludes: SelectedHomepageInterlude[]) {
+  return new Map(interludes.map((item) => [item.slot, item.interlude]));
+}
+
 export function ForYouHome({
   copy,
   forYourCar,
   yourInterests,
   picks,
   carousels,
+  interludes,
 }: {
   copy: ForYouCopy;
   forYourCar: ForYouLaneDisplay;
@@ -95,6 +101,7 @@ export function ForYouHome({
   discover: ForYouLaneDisplay;
   picks: StoryDto[];
   carousels: CategoryLane[];
+  interludes: SelectedHomepageInterlude[];
 }) {
   const pickIds = new Set(picks.map((story) => story.id));
   const vehicleStories = forYourCar.stories.filter((story) => !pickIds.has(story.id));
@@ -103,7 +110,12 @@ export function ForYouHome({
     yourInterests.stories.find((story) => !pickIds.has(story.id)) ??
     null;
   const leadCards = vehicleStories.slice(1, 1 + HOMEPAGE_LEAD_CARD_MAX);
-  const beforeCategories = interludeForHomepageSlot("before-categories");
+  const bySlot = interludeMap(interludes);
+  const afterPicks = bySlot.get("after-picks");
+  const beforeCategories = bySlot.get("before-categories");
+  const midCategories = bySlot.get("mid-categories");
+  const beforeViewAll = bySlot.get("before-view-all");
+  const midCarouselIndex = Math.floor((carousels.length - 1) / 2);
 
   return (
     <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-10 pb-16 md:max-w-6xl md:gap-12">
@@ -128,6 +140,10 @@ export function ForYouHome({
 
       <DeskModule stories={picks} />
 
+      {afterPicks ? (
+        <EditorialInterludeBlock interlude={afterPicks} size="home" tuck={picks.length === 0} />
+      ) : null}
+
       {yourInterests.stories.length > 0 ? (
         <InterestLane
           heading={yourInterests.heading}
@@ -146,10 +162,17 @@ export function ForYouHome({
       ) : null}
 
       <div className="flex min-w-0 flex-col gap-8 md:gap-10">
-        {carousels.map((lane) => (
-          <CategoryCarousel key={lane.slug} {...lane} />
+        {carousels.map((lane, index) => (
+          <Fragment key={lane.slug}>
+            <CategoryCarousel {...lane} />
+            {midCategories && index === midCarouselIndex ? (
+              <EditorialInterludeBlock interlude={midCategories} size="home" />
+            ) : null}
+          </Fragment>
         ))}
       </div>
+
+      {beforeViewAll ? <EditorialInterludeBlock interlude={beforeViewAll} size="home" /> : null}
 
       <ViewAllStories />
     </div>
