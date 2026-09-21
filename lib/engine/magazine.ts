@@ -4,7 +4,7 @@ import { unstable_cache, unstable_noStore as noStore } from "next/cache";
 import {
   LEGACY_NAV_TO_PRIMARY,
   MAGAZINE_NAV,
-  MOBILE_MOTORSPORT_MORE_BELOW,
+  MOBILE_NAV_SLUGS,
   PRIMARY_NAV,
   contentPrimaryBySlug,
   type ContentPrimary,
@@ -291,12 +291,12 @@ export async function getMagazineHome(testProfile?: ForYouTestProfile) {
 
 export async function getMagazineNav() {
   const counts = await countArticlesByPrimary();
-  const motorsportCount = counts.motorsport ?? 0;
-  const motorsportInMore = motorsportCount < MOBILE_MOTORSPORT_MORE_BELOW;
   const desktop = PRIMARY_NAV;
-  const mobile = motorsportInMore
-    ? PRIMARY_NAV.filter((item) => item.slug !== "motorsport")
-    : PRIMARY_NAV;
-  const more = motorsportInMore ? PRIMARY_NAV.filter((item) => item.slug === "motorsport") : [];
-  return { desktop, mobile, more, counts, motorsportInMore };
+  const mobile = PRIMARY_NAV.filter((item) =>
+    (MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
+  );
+  const more = PRIMARY_NAV.filter(
+    (item) => !(MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
+  );
+  return { desktop, mobile, more, counts, motorsportInMore: false };
 }
