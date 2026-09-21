@@ -5,6 +5,7 @@ import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { SectionIntro } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
+import type { EditorialInterlude } from "@/lib/engine/editorial-interlude";
 import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import { HOMEPAGE_LEAD_CARD_MAX } from "@/lib/engine/homepage-hierarchy";
@@ -85,14 +86,14 @@ function ViewAllStories() {
 }
 
 function interludeMap(interludes: SelectedHomepageInterlude[]) {
-  return new Map(interludes.map((item) => [item.slot, item]));
+  return new Map(interludes.map((item) => [item.slot, item.interlude]));
 }
 
 function HomepageInterlude({
   interlude,
   slot,
 }: {
-  interlude: NonNullable<ReturnType<typeof interludeMap.get>>;
+  interlude: EditorialInterlude;
   slot: SelectedHomepageInterlude["slot"];
 }) {
   return <EditorialInterludeBlock interlude={interlude} slot={slot} size="home" />;
