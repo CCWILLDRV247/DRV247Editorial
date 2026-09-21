@@ -44,7 +44,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
   const note = featured.desk?.note ?? null;
 
   return (
-    <section className="relative z-10 min-w-0 pt-10 md:pt-12">
+    <section className={`relative z-10 min-w-0 ${HOMEPAGE_COMPOSITION.picksAboveHeading}`}>
       <div className={PAGE_GUTTER}>
         <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
           {PICKS_SECTION_HEADING}
