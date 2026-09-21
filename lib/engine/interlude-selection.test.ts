@@ -224,4 +224,104 @@ describe("interlude selection", () => {
     });
     assert.notEqual(pick?.interlude.id, "truth-shall-set-you-free");
   });
+
+  it("keeps article context ahead of profile-only interest nudges", () => {
+    const ferrariDesk = buildInterludeContext(
+      [
+        article({
+          primaryCategory: "culture",
+          categories: ["culture"],
+          interests: ["Classic", "collecting"],
+          makes: ["Ferrari"],
+        }),
+      ],
+      FOR_YOU_DEMO_PROFILES.C,
+    );
+    const classicCollecting = getEditorialInterlude("concours-quietest-argument")!;
+    const jdmModified = getEditorialInterlude("best-builds-never-finished")!;
+    const contextualScore = scoreInterludeCandidate(classicCollecting, ferrariDesk, {
+      weights: DEFAULT_INTERLUDE_SELECTION_WEIGHTS,
+      usedIds: new Set(),
+      previous: [],
+      seed: 5,
+    });
+    const profileOnlyScore = scoreInterludeCandidate(jdmModified, ferrariDesk, {
+      weights: DEFAULT_INTERLUDE_SELECTION_WEIGHTS,
+      usedIds: new Set(),
+      previous: [],
+      seed: 5,
+    });
+    assert.ok(contextualScore > profileOnlyScore);
+  });
+
+  it("nudges toward profile marque lines when the desk is otherwise neutral", () => {
+    const neutral = buildInterludeContext([], FOR_YOU_DEMO_PROFILES.B);
+    const porscheLine = getEditorialInterlude("flat-six-has-opinions")!;
+    const broadLine = getEditorialInterlude("truth-shall-set-you-free")!;
+    const porscheScore = scoreInterludeCandidate(porscheLine, neutral, {
+      weights: DEFAULT_INTERLUDE_SELECTION_WEIGHTS,
+      usedIds: new Set(),
+      previous: [],
+      seed: 6,
+    });
+    const broadScore = scoreInterludeCandidate(broadLine, neutral, {
+      weights: DEFAULT_INTERLUDE_SELECTION_WEIGHTS,
+      usedIds: new Set(),
+      previous: [],
+      seed: 6,
+    });
+    assert.ok(porscheScore > broadScore);
+  });
+
+  it("penalises consecutive profile-aligned interludes", () => {
+    const context = buildInterludeContext([], FOR_YOU_DEMO_PROFILES.B);
+    const first = getEditorialInterlude("flat-six-has-opinions")!;
+    const second = getEditorialInterlude("miles-or-stories")!;
+    const isolated = scoreInterludeCandidate(second, context, {
+      weights: DEFAULT_INTERLUDE_SELECTION_WEIGHTS,
+      usedIds: new Set(),
+      previous: [],
+      seed: 7,
+    });
+    const consecutive = scoreInterludeCandidate(second, context, {
+      weights: DEFAULT_INTERLUDE_SELECTION_WEIGHTS,
+      usedIds: new Set([first.id]),
+      previous: [first],
+      seed: 7,
+    });
+    assert.ok(isolated > consecutive);
+  });
+
+  it("profiles A and C can diverge on neutral desks via personalisation weights", () => {
+    const neutralArticles: InterludeContextSource[] = [
+      article({ primaryCategory: "culture", interests: ["Classic"] }),
+    ];
+    const profileA = selectHomepageInterludes({
+      picks: neutralArticles,
+      forYourCar: neutralArticles,
+      yourInterests: neutralArticles,
+      carousels: [
+        { slug: "cars", articles: neutralArticles },
+        { slug: "culture", articles: neutralArticles },
+        { slug: "driving", articles: neutralArticles },
+      ],
+      profile: FOR_YOU_DEMO_PROFILES.A,
+      seed: profileInterludeSeed(FOR_YOU_DEMO_PROFILES.A),
+    });
+    const profileC = selectHomepageInterludes({
+      picks: neutralArticles,
+      forYourCar: neutralArticles,
+      yourInterests: neutralArticles,
+      carousels: [
+        { slug: "cars", articles: neutralArticles },
+        { slug: "culture", articles: neutralArticles },
+        { slug: "driving", articles: neutralArticles },
+      ],
+      profile: FOR_YOU_DEMO_PROFILES.C,
+      seed: profileInterludeSeed(FOR_YOU_DEMO_PROFILES.C),
+    });
+    const linesA = profileA.map((item) => item.interlude.text);
+    const linesC = profileC.map((item) => item.interlude.text);
+    assert.notDeepEqual(linesA, linesC);
+  });
 });

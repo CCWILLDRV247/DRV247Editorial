@@ -37,7 +37,12 @@ export type InterludeSelectionWeights = {
   tagMatch: number;
   marqueMatch: number;
   themeMatch: number;
+  /** Profile garage marque — lower than {@link marqueMatch}. */
+  userMarqueMatch: number;
+  /** Profile interests — lower than {@link tagMatch}. */
   userInterestMatch: number;
+  /** Back-to-back profile-aligned lines — keeps personalisation subtle. */
+  personalisationRepeatPenalty: number;
   usagePenalty: number;
   consecutiveTypePenalty: number;
   consecutiveTagPenalty: number;
@@ -54,7 +59,9 @@ export const DEFAULT_INTERLUDE_SELECTION_WEIGHTS: InterludeSelectionWeights = {
   tagMatch: 22,
   marqueMatch: 28,
   themeMatch: 14,
-  userInterestMatch: 16,
+  userMarqueMatch: 9,
+  userInterestMatch: 11,
+  personalisationRepeatPenalty: 16,
   usagePenalty: 45,
   consecutiveTypePenalty: 12,
   consecutiveTagPenalty: 18,
@@ -123,6 +130,32 @@ function rankWeight(index: number) {
   return 1 / (index + 1);
 }
 
+function interludeMatchesUserMarque(interlude: EditorialInterlude, userMake?: string) {
+  if (!userMake || !interlude.marques?.length) return false;
+  return interlude.marques.some((marque) => norm(marque) === userMake);
+}
+
+function interludeMatchesUserInterests(interlude: EditorialInterlude, userInterests: string[]) {
+  if (!userInterests.length || !interlude.tags?.length) return false;
+  return interlude.tags.some((tag) =>
+    userInterests.some((interest) => interestsMatch(tag, interest)),
+  );
+}
+
+function interludePersonalisationAffinity(
+  interlude: EditorialInterlude,
+  context: InterludeContext,
+) {
+  let affinity = 0;
+  if (interludeMatchesUserMarque(interlude, context.userMake)) affinity += 1;
+  const matchedInterests =
+    interlude.tags?.filter((tag) =>
+      context.userInterests.some((interest) => interestsMatch(tag, interest)),
+    ).length ?? 0;
+  affinity += Math.min(matchedInterests, 2);
+  return affinity;
+}
+
 function seededUnit(seed: number, id: string) {
   let hash = seed ^ id.length;
   for (let index = 0; index < id.length; index += 1) {
@@ -168,7 +201,7 @@ export function scoreInterludeCandidate(
       if (index >= 0) {
         score += weights.marqueMatch * rankWeight(index);
       } else if (context.userMake === token) {
-        score += weights.marqueMatch * 0.45;
+        score += weights.userMarqueMatch;
       } else {
         score -= weights.wrongMarquePenalty;
       }
@@ -184,10 +217,16 @@ export function scoreInterludeCandidate(
   }
 
   if (interlude.tags?.length && context.userInterests.length) {
+    let bestRank = -1;
     for (const tag of interlude.tags) {
-      if (context.userInterests.some((interest) => interestsMatch(tag, interest))) {
-        score += weights.userInterestMatch;
+      for (let index = 0; index < context.userInterests.length; index += 1) {
+        if (interestsMatch(tag, context.userInterests[index]!)) {
+          bestRank = bestRank < 0 ? index : Math.min(bestRank, index);
+        }
       }
+    }
+    if (bestRank >= 0) {
+      score += weights.userInterestMatch * rankWeight(bestRank);
     }
   }
 
@@ -195,6 +234,12 @@ export function scoreInterludeCandidate(
 
   const prev = previous[previous.length - 1];
   if (prev) {
+    if (
+      interludePersonalisationAffinity(prev, context) > 0 &&
+      interludePersonalisationAffinity(interlude, context) > 0
+    ) {
+      score -= weights.personalisationRepeatPenalty;
+    }
     if (prev.type === interlude.type) score -= weights.consecutiveTypePenalty;
     const prevTags = new Set((prev.tags ?? []).map((tag) => norm(canonicalInterest(tag))));
     const overlap =
