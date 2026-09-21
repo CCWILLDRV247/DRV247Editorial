@@ -1107,6 +1107,25 @@ describe("for you test profile", () => {
     assert.equal(withTestQuery("/category/cars", undefined), "/category/cars");
   });
 
+  it("keeps profile=A on magazine hrefs and only backs to this origin", async () => {
+    const { forYouTestSearchString, parseForYouTestProfile } = await import("./for-you-test");
+    const { magazineHref, shouldUseHistoryBack } = await import("./magazine-history");
+    const query = forYouTestSearchString(parseForYouTestProfile({ profile: "A" }));
+    assert.match(query, /profile=A/);
+    assert.equal(magazineHref("/category/cars", query), `/category/cars?${query}`);
+    assert.equal(magazineHref("/category/culture", query), `/category/culture?${query}`);
+    assert.equal(magazineHref("/category/events", query), `/category/events?${query}`);
+    assert.equal(magazineHref("/story/12", query), `/story/12?${query}`);
+    assert.equal(magazineHref("/", query), `/?${query}`);
+    assert.equal(magazineHref("/category/cars?profile=A", query), "/category/cars?profile=A");
+    assert.equal(
+      shouldUseHistoryBack("http://192.168.0.75:43149/?profile=A", "http://192.168.0.75:43149"),
+      true,
+    );
+    assert.equal(shouldUseHistoryBack("https://www.google.com/", "http://192.168.0.75:43149"), false);
+    assert.equal(shouldUseHistoryBack("", "http://192.168.0.75:43149"), false);
+  });
+
   it("does not invent a vehicle match when the story has no entities", async () => {
     const { scoreArticle } = await import("./rank");
     const unmatched = scoreArticle({

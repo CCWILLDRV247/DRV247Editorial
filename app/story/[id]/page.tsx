@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MagazineLink, MagazineQueryProvider } from "@/components/magazine-link";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryImage } from "@/components/story-image";
 import { forYouTestSearchString, parseForYouTestProfile, withTestQuery } from "@/lib/engine/for-you-test";
@@ -25,8 +25,9 @@ export default async function StoryPage({
   const categoryHref = withTestQuery(`/category/${story.category.slug}`, testQuery);
 
   return (
-    <div className="min-h-full bg-white">
-      <SiteHeader title={story.category.name} backHref={`/category/${story.category.slug}`} testQuery={testQuery} />
+    <MagazineQueryProvider testQuery={testQuery}>
+      <div className="min-h-full bg-white">
+        <SiteHeader title={story.category.name} backHref={`/category/${story.category.slug}`} testQuery={testQuery} />
       <article className="mx-auto max-w-3xl pb-20">
         <div className="relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl">
           <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority />
@@ -77,15 +78,16 @@ export default async function StoryPage({
             DRV247 is an aggregator. We store a headline, a short feed excerpt, a short extract from
             the original, and the outbound link — never the full third-party article.
           </p>
-          <Link
+          <MagazineLink
             href={categoryHref}
             className="mt-6 flex h-11 w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white font-display text-lg font-extrabold uppercase text-[#1b1d1f]"
           >
             Back to {story.category.name}
-          </Link>
+          </MagazineLink>
         </div>
       </article>
     </div>
+    </MagazineQueryProvider>
   );
 }
 

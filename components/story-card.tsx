@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { cn } from "cn";
+import { MagazineLink } from "@/components/magazine-link";
 import type { StoryDto } from "@/lib/stories";
 import { StoryImage } from "./story-image";
 
@@ -35,7 +35,7 @@ export function FeatureTag({ children }: { children: string }) {
 export function StoryCard({ story }: { story: StoryDto }) {
   const tag = story.desk?.labelName ?? story.category.name;
   return (
-    <Link
+    <MagazineLink
       href={`/story/${story.id}`}
       className="relative block h-[500px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
     >
@@ -55,7 +55,7 @@ export function StoryCard({ story }: { story: StoryDto }) {
           </p>
         </div>
       </div>
-    </Link>
+    </MagazineLink>
   );
 }
 
@@ -71,7 +71,7 @@ export function StoryHero({
   composition?: boolean;
 }) {
   return (
-    <Link
+    <MagazineLink
       href={`/story/${story.id}`}
       className={
         square
@@ -104,14 +104,14 @@ export function StoryHero({
           {story.source.name}
         </p>
       </div>
-    </Link>
+    </MagazineLink>
   );
 }
 
 export function PickCard({ story }: { story: StoryDto }) {
   const tag = story.desk?.labelName ?? story.category.name;
   return (
-    <Link href={`/story/${story.id}`} className="w-[218px] shrink-0">
+    <MagazineLink href={`/story/${story.id}`} className="w-[218px] shrink-0">
       <div className="relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf]">
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" eager />
         <div className="absolute bottom-4 left-5">
@@ -127,6 +127,6 @@ export function PickCard({ story }: { story: StoryDto }) {
         {story.source.name}
       </p>
       <RelevanceLine text={story.relevanceExplanation} tone="light" />
-    </Link>
+    </MagazineLink>
   );
 }

@@ -1,5 +1,6 @@
 import { ForYouHome } from "@/components/for-you-home";
 import { ForYouTestFilter } from "@/components/for-you-test-filter";
+import { MagazineQueryProvider } from "@/components/magazine-link";
 import { SiteHeader } from "@/components/site-chrome";
 import {
   forYouTestSearchString,
@@ -29,20 +30,22 @@ export default async function HomePage({
   ]);
   const catalog = withProfileInCatalog(catalogRows, testProfile);
   return (
-    <div className="min-h-full overflow-x-clip bg-white">
-      <SiteHeader title={home.copy.headerTitle} testQuery={testQuery} />
-      <ForYouTestFilter initial={testProfile} catalog={catalog} pathname="/" />
-      <main className="relative z-0 pt-2">
-        <ForYouHome
-          copy={home.copy}
-          forYourCar={home.forYourCar}
-          yourInterests={home.yourInterests}
-          discover={home.discover}
-          picks={home.picks}
-          carousels={home.carousels}
-          interludes={home.interludes}
-        />
-      </main>
-    </div>
+    <MagazineQueryProvider testQuery={testQuery}>
+      <div className="min-h-full overflow-x-clip bg-white">
+        <SiteHeader title={home.copy.headerTitle} testQuery={testQuery} />
+        <ForYouTestFilter initial={testProfile} catalog={catalog} pathname="/" />
+        <main className="relative z-0 pt-2">
+          <ForYouHome
+            copy={home.copy}
+            forYourCar={home.forYourCar}
+            yourInterests={home.yourInterests}
+            discover={home.discover}
+            picks={home.picks}
+            carousels={home.carousels}
+            interludes={home.interludes}
+          />
+        </main>
+      </div>
+    </MagazineQueryProvider>
   );
 }

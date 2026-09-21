@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { cn } from "cn";
+import { MagazineLink } from "@/components/magazine-link";
 import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 import { StoryImage } from "./story-image";
@@ -12,7 +12,7 @@ export type CategoryLane = {
 
 export function CarouselStoryCard({ story }: { story: StoryDto }) {
   return (
-    <Link
+    <MagazineLink
       href={`/story/${story.id}`}
       className="w-[200px] shrink-0 snap-start md:w-[220px]"
     >
@@ -26,7 +26,7 @@ export function CarouselStoryCard({ story }: { story: StoryDto }) {
       <p className="mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px]">
         {story.title}
       </p>
-    </Link>
+    </MagazineLink>
   );
 }
 
@@ -38,18 +38,18 @@ export function CategoryCarousel({ slug, name, stories, lead = false }: Category
   return (
     <section className={cn("min-w-0 pl-4 pr-0 md:px-0", lead && "pt-1 md:pt-2")}>
       <div className="flex min-w-0 items-baseline justify-between gap-3 pr-4 md:pr-0">
-        <Link
+        <MagazineLink
           href={`/category/${slug}`}
           className={HOMEPAGE_COMPOSITION.sectionTitle}
         >
           {name}
-        </Link>
-        <Link
+        </MagazineLink>
+        <MagazineLink
           href={`/category/${slug}`}
           className="shrink-0 font-display text-xs font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55 underline-offset-2 hover:underline"
         >
           View all
-        </Link>
+        </MagazineLink>
       </div>
       <div className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2">
         {stories.map((story) => (

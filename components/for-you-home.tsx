@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import Link from "next/link";
 import { CarouselStoryCard, CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
+import { MagazineLink } from "@/components/magazine-link";
 import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { InterludeRecentSync } from "@/components/interlude-recent-sync";
@@ -73,12 +73,12 @@ function InterestLane({
 function ViewAllStories() {
   return (
     <section className={`border-t border-[#1b1d1f]/10 pt-10 md:pt-12 ${PAGE_GUTTER}`}>
-      <Link
+      <MagazineLink
         href="/category/cars"
         className="inline-flex min-h-11 items-center font-display text-lg font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f] underline-offset-4 hover:underline"
       >
         View all stories
-      </Link>
+      </MagazineLink>
       <p className="mt-3 max-w-md text-base leading-[22px] text-[#1b1d1f]/65 md:mt-2">
         Browse the full desk across Cars, Culture, Driving, and Events.
       </p>
