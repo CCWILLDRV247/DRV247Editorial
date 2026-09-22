@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { IntelligenceDesk } from "./intelligence-desk";
+import { VehicleEntry } from "./vehicle-entry";
 
 export const metadata: Metadata = {
-  title: "Vehicle Intelligence",
-  description: "BUILD and MAINTAIN proof desk for the seeded garage.",
+  title: "What do you want to do with your car?",
+  description:
+    "Change it, or look after it. BUILD discovers. MAINTAIN replaces. Vehicle Intelligence for your garage.",
 };
 
 export const runtime = "nodejs";
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default function IntelligencePage() {
   return (
     <main className="min-h-full bg-white text-ink">
-      <IntelligenceDesk />
+      <VehicleEntry />
     </main>
   );
 }

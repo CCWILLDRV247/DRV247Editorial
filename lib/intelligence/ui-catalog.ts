@@ -1,6 +1,6 @@
 import taxonomies from "../../config/intelligence/taxonomies.json";
 
-export const PROOF_VEHICLES = [
+export const GARAGE_VEHICLES = [
   {
     id: "veh-964",
     make: "Porsche",
@@ -43,7 +43,7 @@ export const MAINTENANCE_COMPONENTS = [
   ...taxonomies.maintenanceComponents,
 ];
 
-export const PROOF_BUILD_DEFAULTS = {
+export const BUILD_DEFAULTS = {
   type: "fast-street",
   objectives: ["more-character", "more-power"],
   usage: "weekend-road",
@@ -51,7 +51,7 @@ export const PROOF_BUILD_DEFAULTS = {
   budget: "5-10k",
 };
 
-export const PROOF_MAINTAIN_DEFAULTS = {
+export const MAINTAIN_DEFAULTS = {
   type: "replace",
   component: "brakes",
   grade: "oem",

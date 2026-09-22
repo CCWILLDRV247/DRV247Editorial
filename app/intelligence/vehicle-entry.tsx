@@ -4,15 +4,15 @@ import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  BUILD_DEFAULTS,
   BUILD_TYPES,
   BUDGET_BANDS,
+  GARAGE_VEHICLES,
+  MAINTAIN_DEFAULTS,
   MAINTENANCE_COMPONENTS,
   MAINTENANCE_TYPES,
   OBJECTIVES,
   OBJECTIVE_CATEGORIES,
-  PROOF_BUILD_DEFAULTS,
-  PROOF_MAINTAIN_DEFAULTS,
-  PROOF_VEHICLES,
   REPLACEMENT_GRADES,
   STYLES,
   USAGE_TYPES,
@@ -66,7 +66,7 @@ function formatPrice(price: number | null, currency: string | null): string | nu
   }).format(price);
 }
 
-function vehicleTitle(vehicle: (typeof PROOF_VEHICLES)[number]) {
+function vehicleTitle(vehicle: (typeof GARAGE_VEHICLES)[number]) {
   return vehicle.label;
 }
 
@@ -76,22 +76,22 @@ function fitmentTone(confidence: ApiCard["fitmentConfidence"]): "known" | "cauti
   return "hidden";
 }
 
-export function IntelligenceDesk() {
-  const [vehicleId, setVehicleId] = useState<(typeof PROOF_VEHICLES)[number]["id"]>("veh-355");
-  const [intent, setIntent] = useState<Intent>("build");
-  const [buildType, setBuildType] = useState(PROOF_BUILD_DEFAULTS.type);
-  const [objectives, setObjectives] = useState<string[]>(PROOF_BUILD_DEFAULTS.objectives);
-  const [usage, setUsage] = useState(PROOF_BUILD_DEFAULTS.usage);
-  const [style, setStyle] = useState(PROOF_BUILD_DEFAULTS.style);
-  const [budget, setBudget] = useState(PROOF_BUILD_DEFAULTS.budget);
-  const [maintainType, setMaintainType] = useState(PROOF_MAINTAIN_DEFAULTS.type);
-  const [component, setComponent] = useState(PROOF_MAINTAIN_DEFAULTS.component);
-  const [grade, setGrade] = useState(PROOF_MAINTAIN_DEFAULTS.grade);
+export function VehicleEntry() {
+  const [vehicleId, setVehicleId] = useState<(typeof GARAGE_VEHICLES)[number]["id"]>("veh-355");
+  const [intent, setIntent] = useState<Intent | null>(null);
+  const [buildType, setBuildType] = useState(BUILD_DEFAULTS.type);
+  const [objectives, setObjectives] = useState<string[]>(BUILD_DEFAULTS.objectives);
+  const [usage, setUsage] = useState(BUILD_DEFAULTS.usage);
+  const [style, setStyle] = useState(BUILD_DEFAULTS.style);
+  const [budget, setBudget] = useState(BUILD_DEFAULTS.budget);
+  const [maintainType, setMaintainType] = useState(MAINTAIN_DEFAULTS.type);
+  const [component, setComponent] = useState(MAINTAIN_DEFAULTS.component);
+  const [grade, setGrade] = useState(MAINTAIN_DEFAULTS.grade);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
 
-  const vehicle = PROOF_VEHICLES.find((row) => row.id === vehicleId) ?? PROOF_VEHICLES[1];
+  const vehicle = GARAGE_VEHICLES.find((row) => row.id === vehicleId) ?? GARAGE_VEHICLES[1];
 
   const selectedObjectiveNames = useMemo(
     () =>
@@ -113,8 +113,12 @@ export function IntelligenceDesk() {
     setError(null);
   }
 
-  async function runProof(event: FormEvent) {
+  async function askEngine(event: FormEvent) {
     event.preventDefault();
+    if (!intent) {
+      setError("Choose Build or Maintain first.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -160,30 +164,40 @@ export function IntelligenceDesk() {
     }
   }
 
+  const pathSummary =
+    intent === "build"
+      ? `${vehicleTitle(vehicle)} · ${BUILD_TYPES.find((row) => row.slug === buildType)?.name ?? buildType}`
+      : intent === "maintain"
+        ? `${vehicleTitle(vehicle)} · ${
+            MAINTENANCE_TYPES.find((row) => row.slug === maintainType)?.name ?? maintainType
+          } ${MAINTENANCE_COMPONENTS.find((row) => row.slug === component)?.name ?? component} · ${
+            REPLACEMENT_GRADES.find((row) => row.slug === grade)?.name ?? grade
+          }`
+        : vehicleTitle(vehicle);
+
   return (
     <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
       <header className="border-b border-border pb-8">
         <p className="font-display text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">
           DRV247 · Vehicle Intelligence
         </p>
-        <h1 className="mt-3 font-display text-5xl font-black uppercase leading-[0.72] tracking-[-0.03em] sm:text-6xl">
-          Proof desk
+        <h1 className="mt-3 max-w-4xl font-display text-5xl font-black uppercase leading-[0.82] tracking-[-0.03em] sm:text-6xl">
+          What do you want to do with your car?
         </h1>
         <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
           We understand your car and what you want to do with it, then help you find the relevant
-          things to make it happen. BUILD discovers. MAINTAIN replaces. This is a first proof
-          surface, not the final product.
+          things to make it happen. Build and Maintain are different jobs — they never share a form.
         </p>
       </header>
 
-      <form onSubmit={runProof} className="mt-8 space-y-8">
+      <form onSubmit={askEngine} className="mt-8 space-y-10">
         <section aria-labelledby="car-heading">
           <h2 id="car-heading" className="font-display text-2xl font-extrabold uppercase tracking-tight">
-            1. Your car
+            Your car
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">Seeded garage only. No second fleet.</p>
+          <p className="mt-1 text-sm text-muted-foreground">The seeded garage. One car at a time.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            {PROOF_VEHICLES.map((row) => {
+            {GARAGE_VEHICLES.map((row) => {
               const selected = row.id === vehicleId;
               return (
                 <button
@@ -216,33 +230,40 @@ export function IntelligenceDesk() {
 
         <section aria-labelledby="intent-heading">
           <h2 id="intent-heading" className="font-display text-2xl font-extrabold uppercase tracking-tight">
-            2. What do you want to do?
+            Choose a path
           </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Two intents. Never one funnel.
+          </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => chooseIntent("build")}
               aria-pressed={intent === "build"}
-              className={`rounded-xl border px-5 py-5 text-left transition ${
+              className={`rounded-xl border px-5 py-6 text-left transition ${
                 intent === "build" ? "border-ink bg-ink text-white" : "border-border hover:border-ink/40"
               }`}
             >
-              <p className="font-display text-3xl font-black uppercase leading-none">Build</p>
-              <p className={`mt-3 text-sm leading-6 ${intent === "build" ? "text-white/80" : "text-muted-foreground"}`}>
-                Change it. Improve it. Make it yours. Discovery — not a replacement catalogue.
+              <p className="font-display text-4xl font-black uppercase leading-none">Build</p>
+              <p className={`mt-4 text-sm leading-6 ${intent === "build" ? "text-white/85" : "text-muted-foreground"}`}>
+                Change it. Improve it. Make it yours.
               </p>
             </button>
             <button
               type="button"
               onClick={() => chooseIntent("maintain")}
               aria-pressed={intent === "maintain"}
-              className={`rounded-xl border px-5 py-5 text-left transition ${
+              className={`rounded-xl border px-5 py-6 text-left transition ${
                 intent === "maintain" ? "border-ink bg-ink text-white" : "border-border hover:border-ink/40"
               }`}
             >
-              <p className="font-display text-3xl font-black uppercase leading-none">Maintain</p>
-              <p className={`mt-3 text-sm leading-6 ${intent === "maintain" ? "text-white/80" : "text-muted-foreground"}`}>
-                Keep it running. Replace it. Look after it. Compatibility first — taste does not win.
+              <p className="font-display text-4xl font-black uppercase leading-none">Maintain</p>
+              <p
+                className={`mt-4 text-sm leading-6 ${
+                  intent === "maintain" ? "text-white/85" : "text-muted-foreground"
+                }`}
+              >
+                Keep it running. Replace it. Look after it.
               </p>
             </button>
           </div>
@@ -252,10 +273,11 @@ export function IntelligenceDesk() {
           <section aria-labelledby="build-heading" className="space-y-5">
             <div>
               <h2 id="build-heading" className="font-display text-2xl font-extrabold uppercase tracking-tight">
-                3. Build brief
+                Your build
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Type, objectives, budget, and usage. Style is an aesthetic constraint, not a fitment claim.
+                Discovery for {vehicleTitle(vehicle)}. Type, objectives, budget, and usage. Style is
+                an aesthetic constraint — it is not a fitment claim.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -347,15 +369,17 @@ export function IntelligenceDesk() {
               </div>
             </fieldset>
           </section>
-        ) : (
+        ) : null}
+
+        {intent === "maintain" ? (
           <section aria-labelledby="maintain-heading" className="space-y-5">
             <div>
               <h2 id="maintain-heading" className="font-display text-2xl font-extrabold uppercase tracking-tight">
-                3. Maintenance job
+                The job
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                A job, not a build. Grade is a quality constraint. Interests and style are not
-                inputs, and grade must not admit the wrong part.
+                A replacement for {vehicleTitle(vehicle)} — not a taste brief. Grade cannot admit the
+                wrong part.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -390,9 +414,7 @@ export function IntelligenceDesk() {
             </div>
             <fieldset>
               <legend className="text-sm font-medium">Replacement grade</legend>
-              <p className="mt-1 text-sm text-muted-foreground">
-                OEM, OEM+, or upgrade. Fitment still wins.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">OEM, OEM+, or Upgrade. Fitment still wins.</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 {REPLACEMENT_GRADES.map((row) => {
                   const selected = row.slug === grade;
@@ -427,21 +449,22 @@ export function IntelligenceDesk() {
               </div>
             </fieldset>
           </section>
-        )}
+        ) : null}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" size="lg" disabled={loading} className="h-11 px-5">
-            {loading ? "Asking the engine…" : "See recommendations"}
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            {vehicleTitle(vehicle)}
-            {intent === "build"
-              ? ` · ${BUILD_TYPES.find((row) => row.slug === buildType)?.name ?? buildType}`
-              : ` · ${MAINTENANCE_TYPES.find((row) => row.slug === maintainType)?.name ?? maintainType} ${
-                  MAINTENANCE_COMPONENTS.find((row) => row.slug === component)?.name ?? component
-                } · ${REPLACEMENT_GRADES.find((row) => row.slug === grade)?.name ?? grade}`}
-          </p>
-        </div>
+        {intent ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" size="lg" disabled={loading} className="h-11 px-5">
+              {loading
+                ? "Finding the relevant set…"
+                : intent === "build"
+                  ? "See recommendations"
+                  : "Find replacements"}
+            </Button>
+            <p className="text-sm text-muted-foreground">{pathSummary}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Pick Build or Maintain to continue.</p>
+        )}
       </form>
 
       {error ? (
@@ -450,7 +473,7 @@ export function IntelligenceDesk() {
         </p>
       ) : null}
 
-      {result ? (
+      {result && intent ? (
         <Results
           result={result}
           intent={intent}
@@ -586,11 +609,7 @@ function RecommendationCard({ card }: { card: ApiCard }) {
             </p>
           </div>
           {card.fitmentLabel && tone !== "hidden" ? (
-            <p
-              className={`text-sm ${
-                tone === "caution" ? "text-amber-800" : "text-foreground"
-              }`}
-            >
+            <p className={`text-sm ${tone === "caution" ? "text-amber-800" : "text-foreground"}`}>
               {card.fitmentLabel}
             </p>
           ) : null}
