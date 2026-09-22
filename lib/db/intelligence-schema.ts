@@ -65,6 +65,15 @@ export const safetyClasses = sqliteTable("safety_classes", {
   withholdBelowFitment: text("withhold_below_fitment").notNull(),
 });
 
+export const replacementGrades = sqliteTable("replacement_grades", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+});
+
 export const maintenanceTypes = sqliteTable("maintenance_types", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   slug: text("slug").notNull().unique(),
@@ -132,6 +141,7 @@ export const maintenanceRequests = sqliteTable(
       .references(() => demoVehicles.id),
     typeId: integer("type_id").references(() => maintenanceTypes.id),
     componentId: integer("component_id").references(() => maintenanceComponents.id),
+    replacementGradeId: integer("replacement_grade_id").references(() => replacementGrades.id),
     symptom: text("symptom"),
     urgency: text("urgency"),
     mileage: integer("mileage"),

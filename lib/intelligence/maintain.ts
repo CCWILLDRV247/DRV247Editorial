@@ -6,9 +6,11 @@ import type {
   ProductCandidate,
   Reason,
   RecommendTrace,
+  ReplacementGrade,
   ResultCard,
   SpecialistRow,
 } from "./types";
+import { REPLACEMENT_GRADES } from "./types";
 import { applySafetyGate, type ComponentSafety, type SafetyClassRow } from "./safety";
 import { fitmentReasons, isStrongReason, publicReasons } from "./reasons";
 import { usableFitment } from "./fitment";
@@ -25,9 +27,59 @@ export type MaintainContext = {
   vehicle: GarageVehicle;
   type: string;
   component: string;
+  grade?: ReplacementGrade | string;
   notes?: string;
   specification?: string | null;
 };
+
+function attr(product: ProductCandidate, key: string): string | undefined {
+  return product.attributes[key];
+}
+
+export function normaliseReplacementGrade(value?: string | null): ReplacementGrade {
+  if (value && (REPLACEMENT_GRADES as readonly string[]).includes(value)) {
+    return value as ReplacementGrade;
+  }
+  return "oem";
+}
+
+export function productReplacementGrade(product: ProductCandidate): ReplacementGrade {
+  const explicit = attr(product, "replacement_grade");
+  if (explicit && (REPLACEMENT_GRADES as readonly string[]).includes(explicit)) {
+    return explicit as ReplacementGrade;
+  }
+  const appearance = attr(product, "appearance");
+  const oemPlus = attr(product, "oem_plus");
+  const competition = attr(product, "competition");
+  const trackUse = attr(product, "track_use");
+  if (
+    competition === "yes" ||
+    appearance === "show" ||
+    appearance === "aftermarket" ||
+    trackUse === "yes" ||
+    oemPlus === "no"
+  ) {
+    return "upgrade";
+  }
+  if (oemPlus === "yes" || appearance === "oem-plus") return "oem-plus";
+  return "oem";
+}
+
+function gradePermitted(job: ReplacementGrade, product: ReplacementGrade): boolean {
+  if (job === "oem") return product === "oem";
+  if (job === "oem-plus") return product === "oem" || product === "oem-plus";
+  return true;
+}
+
+function gradeReason(productGrade: ReplacementGrade): Reason {
+  if (productGrade === "oem") {
+    return { code: "oem_replacement", label: "OEM-spec replacement", sortOrder: 28 };
+  }
+  if (productGrade === "oem-plus") {
+    return { code: "oem_plus_replacement", label: "OEM+ replacement", sortOrder: 28 };
+  }
+  return { code: "upgrade_replacement", label: "Upgrade replacement", sortOrder: 28 };
+}
 
 export function loadMaintainConfig(cwd = process.cwd()): MaintainConfig {
   const raw = fs.readFileSync(path.join(cwd, "config/intelligence/maintain-ranking.json"), "utf8");
@@ -86,6 +138,7 @@ export function runMaintainPipeline(input: {
 }): { results: ResultCard[]; trace: RecommendTrace } {
   const trace: RecommendTrace = { suppressed: [], withheld: [], dropped: [] };
   const slugs = matchingComponentSlugs(input.context.component, input.config);
+  const jobGrade = normaliseReplacementGrade(input.context.grade);
   const specialistsOnly =
     input.context.type === "find-specialist" ||
     (input.context.type === "diagnose" && input.context.component === "other");
@@ -129,13 +182,25 @@ export function runMaintainPipeline(input: {
         trace.dropped.push({ productId: product.id, name: product.productName, reason: "Specification conflict" });
         continue;
       }
+      const productGrade = productReplacementGrade(product);
+      if (!gradePermitted(jobGrade, productGrade)) {
+        trace.dropped.push({
+          productId: product.id,
+          name: product.productName,
+          reason: "Replacement grade mismatch",
+          code: "grade_mismatch",
+        });
+        continue;
+      }
 
       const weights = input.config.weights;
       let score = weights.correct_component;
       const reasons: Reason[] = [
         ...fitmentReasons(match, input.context.vehicle),
         { code: "correct_component", label: "Correct replacement component", sortOrder: 25 },
+        gradeReason(productGrade),
       ];
+      if (productGrade === jobGrade) score += weights.grade_match ?? 0;
       if (match.effectiveConfidence === "exact") score += weights.fitment_exact;
       else if (match.effectiveConfidence === "generation") score += weights.fitment_generation;
       if (specMatches(input.context.specification, input.context.notes, product.attributes.spec)) {

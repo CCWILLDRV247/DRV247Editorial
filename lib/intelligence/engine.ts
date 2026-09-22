@@ -9,6 +9,7 @@ import {
   maintenanceComponents,
   maintenanceRequests,
   maintenanceTypes,
+  replacementGrades,
   manufacturers,
   objectives,
   productAttributes,
@@ -26,7 +27,8 @@ import {
   vehicleModifications,
 } from "@/lib/db/intelligence-schema";
 import { loadBuildConfig, runBuildPipeline, type BuildContext } from "./build";
-import { loadMaintainConfig, runMaintainPipeline } from "./maintain";
+import { loadMaintainConfig, normaliseReplacementGrade, runMaintainPipeline } from "./maintain";
+import { REPLACEMENT_GRADES } from "./types";
 import { bestFitment } from "./fitment";
 import type {
   FitmentConfidence,
@@ -303,12 +305,22 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
 
   if (!input.maintain) throw new Error("MAINTAIN requires type and component");
   const maintainConfig = loadMaintainConfig();
+  const gradeSlug = normaliseReplacementGrade(input.maintain.grade);
+  if (input.maintain.grade && !(REPLACEMENT_GRADES as readonly string[]).includes(input.maintain.grade)) {
+    throw new Error(`Unknown replacement grade ${input.maintain.grade}`);
+  }
   const [typeRow] = await db
     .select()
     .from(maintenanceTypes)
     .where(eq(maintenanceTypes.slug, input.maintain.type))
     .limit(1);
   if (!typeRow) throw new Error(`Unknown maintenance type ${input.maintain.type}`);
+  const [gradeRow] = await db
+    .select()
+    .from(replacementGrades)
+    .where(eq(replacementGrades.slug, gradeSlug))
+    .limit(1);
+  if (!gradeRow) throw new Error(`Unknown replacement grade ${gradeSlug}`);
   const [componentRow] = await db
     .select()
     .from(maintenanceComponents)
@@ -331,6 +343,7 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
       vehicle,
       type: typeRow.slug,
       component: componentRow?.slug ?? input.maintain.component,
+      grade: gradeSlug,
       notes: input.maintain.notes,
       specification: vehicle.specification,
     },
@@ -340,7 +353,7 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
   });
 
   if (input.persist !== false) {
-    const requestId = `mnt_proof_${vehicle.id}_${typeRow.slug}_${input.maintain.component}`;
+    const requestId = `mnt_proof_${vehicle.id}_${typeRow.slug}_${input.maintain.component}_${gradeSlug}`;
     const now = Date.now();
     const existing = await db
       .select()
@@ -353,6 +366,7 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
       vehicleId: vehicle.id,
       typeId: typeRow.id,
       componentId: componentRow?.id ?? null,
+      replacementGradeId: gradeRow.id,
       symptom: input.maintain.symptom ?? null,
       urgency: input.maintain.urgency ?? "soon",
       mileage: input.maintain.mileage ?? null,

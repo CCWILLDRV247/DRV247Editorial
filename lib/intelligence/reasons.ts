@@ -8,6 +8,9 @@ const STRONG_CODES = new Set([
   "supports_objective",
   "correct_component",
   "spec_match",
+  "oem_replacement",
+  "oem_plus_replacement",
+  "upgrade_replacement",
 ]);
 
 export function isStrongReason(code: string): boolean {

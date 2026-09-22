@@ -37,6 +37,7 @@ export const USAGE_TYPES = taxonomies.usageTypes;
 export const BUDGET_BANDS = taxonomies.budgetBands;
 export const STYLES = taxonomies.styles;
 export const MAINTENANCE_TYPES = taxonomies.maintenanceTypes;
+export const REPLACEMENT_GRADES = taxonomies.replacementGrades;
 export const MAINTENANCE_COMPONENTS = [
   { slug: "brakes", name: "Brakes (discs and pads)", category: "brakes", safetyClass: "critical" },
   ...taxonomies.maintenanceComponents,
@@ -53,4 +54,5 @@ export const PROOF_BUILD_DEFAULTS = {
 export const PROOF_MAINTAIN_DEFAULTS = {
   type: "replace",
   component: "brakes",
+  grade: "oem",
 };

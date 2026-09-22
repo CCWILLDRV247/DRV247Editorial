@@ -4,7 +4,7 @@ import { bestFitment, capConfidence, fitmentLabel, matchFitmentRow } from "./fit
 import { applySafetyGate } from "./safety";
 import type { FitmentMatch, GarageVehicle, ProductCandidate, VehicleFitmentRow } from "./types";
 import { runBuildPipeline, type BuildConfig, type BuildContext } from "./build";
-import { runMaintainPipeline, type MaintainConfig } from "./maintain";
+import { productReplacementGrade, runMaintainPipeline, type MaintainConfig } from "./maintain";
 
 const vehicle: GarageVehicle = {
   id: "veh-355",
@@ -272,6 +272,7 @@ describe("MAINTAIN pipeline", () => {
       correct_component: 40,
       spec_match: 20,
       authoritative_source: 15,
+      grade_match: 18,
       in_stock: 10,
       price_lower_among_ok: 5,
     },
@@ -329,5 +330,114 @@ describe("MAINTAIN pipeline", () => {
     assert.ok(results[0]?.reasons.some((reason) => reason.code === "correct_component"));
     assert.ok(trace.dropped.some((event) => event.productId === "prd-show"));
     assert.ok(trace.dropped.some((event) => event.productId === "prd-911"));
+  });
+
+  const oem = product({
+    id: "prd-oem",
+    productName: "Ferrari genuine discs",
+    attributes: { safety_class: "critical", spec: "330mm", replacement_grade: "oem" },
+  });
+  const oemPlus = product({
+    id: "prd-oem-plus",
+    productName: "Brembo OEM+ discs",
+    attributes: { safety_class: "critical", spec: "330mm", oem_plus: "yes", replacement_grade: "oem-plus" },
+  });
+  const upgrade = product({
+    id: "prd-upgrade",
+    productName: "Pagid RS discs",
+    attributes: {
+      safety_class: "critical",
+      spec: "330mm",
+      appearance: "aftermarket",
+      replacement_grade: "upgrade",
+      oem_plus: "no",
+    },
+  });
+  const gen: FitmentMatch = {
+    row: fitment({ confidence: "generation" }),
+    storedConfidence: "generation",
+    effectiveConfidence: "generation",
+    label: "Fits the F355 Ferrari F355",
+  };
+  const fitments = new Map([
+    [oem.id, gen],
+    [oemPlus.id, gen],
+    [upgrade.id, gen],
+  ]);
+  const classes = [{ slug: "critical" as const, withholdBelowFitment: "generation" as const }];
+  const components = [{ slug: "brake-discs" as const, safetyClass: "critical" as const }];
+
+  it("classifies OEM, OEM+, and upgrade from attributes", () => {
+    assert.equal(productReplacementGrade(oem), "oem");
+    assert.equal(productReplacementGrade(oemPlus), "oem-plus");
+    assert.equal(productReplacementGrade(upgrade), "upgrade");
+  });
+
+  it("OEM drops OEM+ and upgrade, keeps factory-spec", () => {
+    const { results, trace } = runMaintainPipeline({
+      products: [oem, oemPlus, upgrade],
+      fitmentsByProduct: fitments,
+      specialists: [],
+      context: { vehicle, type: "replace", component: "brake-discs", grade: "oem", specification: vehicle.specification },
+      config,
+      classes,
+      components,
+    });
+    assert.deepEqual(results.map((card) => card.id), ["prd-oem"]);
+    assert.ok(results[0]?.reasons.some((reason) => reason.code === "oem_replacement"));
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-oem-plus"));
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-upgrade"));
+  });
+
+  it("OEM+ keeps OEM and OEM+, drops aftermarket upgrade", () => {
+    const { results, trace } = runMaintainPipeline({
+      products: [oem, oemPlus, upgrade],
+      fitmentsByProduct: fitments,
+      specialists: [],
+      context: { vehicle, type: "replace", component: "brake-discs", grade: "oem-plus" },
+      config,
+      classes,
+      components,
+    });
+    assert.equal(results[0]?.id, "prd-oem-plus");
+    assert.ok(results.some((card) => card.id === "prd-oem"));
+    assert.ok(!results.some((card) => card.id === "prd-upgrade"));
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-upgrade"));
+    assert.ok(results[0]?.reasons.some((reason) => reason.code === "oem_plus_replacement"));
+  });
+
+  it("upgrade ranks the upgrade part first and still keeps OEM", () => {
+    const { results } = runMaintainPipeline({
+      products: [oem, oemPlus, upgrade],
+      fitmentsByProduct: fitments,
+      specialists: [],
+      context: { vehicle, type: "replace", component: "brake-discs", grade: "upgrade" },
+      config,
+      classes,
+      components,
+    });
+    assert.equal(results[0]?.id, "prd-upgrade");
+    assert.ok(results.some((card) => card.id === "prd-oem"));
+    assert.ok(results[0]?.reasons.some((reason) => reason.code === "upgrade_replacement"));
+  });
+
+  it("grade does not admit a pad for the wrong car", () => {
+    const wrong = product({
+      id: "prd-996",
+      productName: "996 pads",
+      category: "brake-pads",
+      attributes: { safety_class: "critical", replacement_grade: "oem" },
+    });
+    const { results, trace } = runMaintainPipeline({
+      products: [wrong],
+      fitmentsByProduct: new Map([[wrong.id, null]]),
+      specialists: [],
+      context: { vehicle, type: "replace", component: "brake-pads", grade: "oem" },
+      config,
+      classes,
+      components: [{ slug: "brake-pads", safetyClass: "critical" }],
+    });
+    assert.equal(results.length, 0);
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-996"));
   });
 });

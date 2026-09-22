@@ -35,6 +35,7 @@ Forcing the second into a Fast Street build would let OEM+ taste hide the right 
 user + vehicle
 type            replace | service | diagnose | mot-prep | find-specialist
 component       exhaust | brake-discs | brake-pads | ...
+replacement_grade  oem | oem-plus | upgrade   (default oem)
 symptom         optional free text
 urgency         low | soon | urgent
 mileage         optional
@@ -49,6 +50,7 @@ Examples:
 Vehicle:   Ferrari F355 GTB
 Type:      replace
 Component: brake-discs, brake-pads
+Grade:     oem
 Status:    looking_for_parts
 ```
 
@@ -109,6 +111,20 @@ V1 does not implement a diagnostic graph. `symptom` is stored for later and may 
 
 ---
 
+## 4a. Replacement grade
+
+This is a job constraint, not BUILD style.
+
+| Grade | Meaning | Engine |
+| --- | --- | --- |
+| `oem` | Factory-spec, like-for-like | Drop OEM+ and clear aftermarket / show / competition |
+| `oem-plus` | Factory language, quietly better | Prefer OEM+; still keep OEM; drop show / competition / aftermarket |
+| `upgrade` | Performance or track-oriented | Rank upgrade first; still keep OEM if it fits |
+
+Default is `oem`. Fitment still wins. Choosing upgrade must not surface a 996 pad on an F355. Choosing OEM must not hide behind “the user likes Modified content”.
+
+---
+
 ## 5. Scoring contract
 
 Full weights: [03 Recommendation engine](03-recommendation-engine.md).
@@ -118,11 +134,12 @@ Order is fixed:
 1. Correct vehicle fitment
 2. Correct component
 3. Correct specification
-4. Reliability / quality
-5. Availability
-6. Price
+4. Replacement grade
+5. Reliability / quality
+6. Availability
+7. Price
 
-Interests, build type, style, and “Fast Street” energy are not inputs.
+Interests, build type, style, and “Fast Street” energy are not inputs. Replacement grade is.
 
 Fitment floors for MAINTAIN are at least as strict as BUILD, and stricter on `critical` / `caution`: `model` is not enough. See [05](05-fitment-strategy.md).
 
@@ -157,5 +174,6 @@ A specialist result uses `marque_specialist` / `component_category` reasons and 
 - Workshop booking or diary
 - Live MOT / service-history APIs
 - Fault-code diagnosis
-- Letting budget or taste admit the wrong pad or tyre
+- Letting budget, taste, or replacement grade admit the wrong pad or tyre
 - Merging requests into Build objectives
+- Treating OEM+ replacement grade as a Fast Street / OEM+ build type

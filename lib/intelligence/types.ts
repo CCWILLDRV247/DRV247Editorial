@@ -16,6 +16,9 @@ export type RecommendationConfidence = (typeof RECOMMENDATION_CONFIDENCE)[number
 export const SAFETY_CLASS_SLUGS = ["critical", "caution", "lifestyle"] as const;
 export type SafetyClassSlug = (typeof SAFETY_CLASS_SLUGS)[number];
 
+export const REPLACEMENT_GRADES = ["oem", "oem-plus", "upgrade"] as const;
+export type ReplacementGrade = (typeof REPLACEMENT_GRADES)[number];
+
 export type GarageVehicle = {
   id: string;
   userId: string;
@@ -155,6 +158,7 @@ export type BuildInput = {
 export type MaintainInput = {
   type: string;
   component: string;
+  grade?: ReplacementGrade;
   symptom?: string;
   urgency?: string;
   mileage?: number;

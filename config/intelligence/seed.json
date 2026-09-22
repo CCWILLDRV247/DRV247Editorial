@@ -40,6 +40,7 @@
     { "id": "src-dansk", "name": "Dansk", "kind": "manual", "identifier": "manual:dansk", "priority": 86 },
     { "id": "src-bilstein", "name": "Bilstein", "kind": "manual", "identifier": "manual:bilstein", "priority": 88 },
     { "id": "src-pagid", "name": "Pagid", "kind": "manual", "identifier": "manual:pagid", "priority": 90 },
+    { "id": "src-ferrari", "name": "Ferrari", "kind": "manual", "identifier": "manual:ferrari", "priority": 93 },
     { "id": "src-design911", "name": "Design 911", "kind": "csv", "identifier": "config/intelligence/seed-products.csv", "priority": 70 },
     { "id": "src-manual", "name": "DRV247 curated research", "kind": "manual", "identifier": "manual:drv247", "priority": 45 }
   ],
@@ -49,6 +50,7 @@
     { "id": "mfr-novitec", "name": "Novitec", "slug": "novitec", "aliases": [], "url": "https://www.novitecgroup.com" },
     { "id": "mfr-kw", "name": "KW", "slug": "kw", "aliases": ["KW Automotive", "KW Variant"], "url": "https://www.kwsuspensions.com" },
     { "id": "mfr-brembo", "name": "Brembo", "slug": "brembo", "aliases": [], "url": "https://www.brembo.com" },
+    { "id": "mfr-ferrari", "name": "Ferrari", "slug": "ferrari", "aliases": ["Ferrari S.p.A."], "url": "https://www.ferrari.com" },
     { "id": "mfr-bmc", "name": "BMC", "slug": "bmc", "aliases": ["BMC Air Filters"], "url": "https://www.bmcairfilters.com" },
     { "id": "mfr-dansk", "name": "Dansk", "slug": "dansk", "aliases": ["JP Group Dansk"], "url": "https://www.jpgroup.dk" },
     { "id": "mfr-bilstein", "name": "Bilstein", "slug": "bilstein", "aliases": ["BILSTEIN"], "url": "https://www.bilstein.com" },
@@ -294,6 +296,8 @@
         { "attribute": "spec", "value": "330mm" },
         { "attribute": "safety_class", "value": "critical" },
         { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "replacement_grade", "value": "oem-plus" },
         { "attribute": "road_use", "value": "yes" },
         { "attribute": "warranty", "value": "yes" }
       ],
@@ -328,6 +332,9 @@
       "attributes": [
         { "attribute": "spec", "value": "330mm" },
         { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "replacement_grade", "value": "oem-plus" },
         { "attribute": "road_use", "value": "yes" },
         { "attribute": "warranty", "value": "yes" }
       ],
@@ -337,6 +344,148 @@
           "model": "F355",
           "generation": "F355",
           "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-ferrari-355-discs",
+      "source_id": "src-ferrari",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-ferrari",
+      "product_name": "Ferrari genuine 330mm front discs",
+      "description": "Factory-spec 330mm front discs for the F355 GTB.",
+      "category": "brake-discs",
+      "subcategory": "front",
+      "price": 1240,
+      "currency": "GBP",
+      "url": "https://www.foskers.com",
+      "availability": "in_stock",
+      "sku": "F355-OEM-DISC-330",
+      "part_number": "F355-OEM-DISC-330",
+      "attributes": [
+        { "attribute": "spec", "value": "330mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "year_from": 1994,
+          "year_to": 1999,
+          "engine": "3.5 V8",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-ferrari-355-pads",
+      "source_id": "src-ferrari",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-ferrari",
+      "product_name": "Ferrari genuine front brake pads",
+      "description": "Factory-spec pad compound for F355 330mm discs.",
+      "category": "brake-pads",
+      "subcategory": "front",
+      "price": 265,
+      "currency": "GBP",
+      "url": "https://www.foskers.com",
+      "availability": "in_stock",
+      "sku": "F355-OEM-PAD",
+      "part_number": "F355-OEM-PAD",
+      "attributes": [
+        { "attribute": "spec", "value": "330mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-pagid-355-pads",
+      "source_id": "src-pagid",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-pagid",
+      "product_name": "Pagid RS14 F355 brake pads",
+      "description": "Track-oriented 330mm pad compound for the F355 generation.",
+      "category": "brake-pads",
+      "subcategory": "front",
+      "price": 340,
+      "currency": "GBP",
+      "url": "https://www.pagid.com",
+      "availability": "in_stock",
+      "sku": "PAGID-RS14-F355",
+      "part_number": "RS14-F355",
+      "attributes": [
+        { "attribute": "spec", "value": "330mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "aftermarket" },
+        { "attribute": "replacement_grade", "value": "upgrade" },
+        { "attribute": "oem_plus", "value": "no" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-brembo-355-gt-discs",
+      "source_id": "src-brembo",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-brembo",
+      "product_name": "Brembo GT 330mm slotted discs",
+      "description": "Slotted 330mm upgrade discs for the F355 generation. Still the factory diameter.",
+      "category": "brake-discs",
+      "subcategory": "front",
+      "price": 1480,
+      "currency": "GBP",
+      "url": "https://www.brembo.com",
+      "availability": "in_stock",
+      "sku": "BREMBO-GT-355-330",
+      "part_number": "GT-355-330",
+      "attributes": [
+        { "attribute": "spec", "value": "330mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "aftermarket" },
+        { "attribute": "replacement_grade", "value": "upgrade" },
+        { "attribute": "oem_plus", "value": "no" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "year_from": 1994,
+          "year_to": 1999,
+          "engine": "3.5 V8",
+          "confidence": "exact",
           "source": "manufacturer"
         }
       ]

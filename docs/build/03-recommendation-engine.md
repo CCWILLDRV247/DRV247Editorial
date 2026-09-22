@@ -147,6 +147,7 @@ Editorial stories are **not** in the V1 BUILD set.
 Vehicle
 + Maintenance type
 + Component
++ Replacement grade     oem | oem-plus | upgrade   (default oem)
 + Symptom / notes
 + Urgency
 + Mileage (if present)
@@ -156,16 +157,17 @@ Vehicle
 + Source quality
 ```
 
-Interests, build type, style, and budget taste are **not** inputs. Price may order a compatible set; it must not admit an incompatible part.
+Interests, build type, style, and budget taste are **not** inputs. Replacement grade is a job constraint (which quality of part to fetch), not BUILD taste. Price may order a compatible set; it must not admit an incompatible part. Grade must not admit a part that fails fitment.
 
 ### 4.2 Priority (strict)
 
 1. Correct vehicle fitment
 2. Correct component
 3. Correct specification
-4. Reliability / quality (manufacturer + source)
-5. Availability
-6. Price
+4. Replacement grade (oem / oem-plus / upgrade)
+5. Reliability / quality (manufacturer + source)
+6. Availability
+7. Price
 
 If (1) or (2) fail, stop. Do not “helpfully” substitute a different component because the user likes Modified content.
 
@@ -176,7 +178,20 @@ If (1) or (2) fail, stop. Do not “helpfully” substitute a different componen
 | Product category / subcategory does not match the component | Drop |
 | Fitment below the component’s safety floor | Withhold |
 | Spec conflict when both sides are known (e.g. disc diameter) | Drop |
+| Replacement grade mismatch (see 4.3a) | Drop |
 | `availability = out` | Drop from default set |
+
+### 4.3a Replacement grade
+
+Job input, default `oem`. Classify a product from `replacement_grade` if set, else from `appearance` / `oem_plus` / `competition` / `track_use`.
+
+| Job | Keep | Drop |
+| --- | --- | --- |
+| `oem` | Factory-spec / `oem` | OEM+ and upgrade (aftermarket, show, competition, `oem_plus=no`) |
+| `oem-plus` | OEM and OEM+ | Upgrade (aftermarket, show, competition) |
+| `upgrade` | All that still fit | Nothing on grade — still keep OEM |
+
+A matching grade adds `grade_match` and a reason (`oem_replacement` / `oem_plus_replacement` / `upgrade_replacement`). Fitment still wins: an exact OEM disc outranks a generation-only upgrade.
 
 ### 4.4 Score (internal only)
 
@@ -186,11 +201,12 @@ fitment_generation         30
 correct_component          40
 spec_match                 20
 authoritative_source       15
+grade_match                18
 in_stock                   10
 price_lower_among_ok        5
 ```
 
-No interest weights. No build-type weights.
+No interest weights. No build-type weights. `grade_match` cannot beat a fitment miss.
 
 ### 4.5 Specialists
 
@@ -216,6 +232,9 @@ Stored on `recommendation_reasons`. UI copy is derived from codes. No raw number
 | `road_focused` | Suitable for road-focused use |
 | `oem_plus_direction` | Compatible with your OEM+ direction |
 | `correct_component` | Correct replacement component |
+| `oem_replacement` | OEM-spec replacement |
+| `oem_plus_replacement` | OEM+ replacement |
+| `upgrade_replacement` | Upgrade replacement |
 | `spec_match` | Matches the stated specification |
 | `available` | Currently available |
 | `marque_specialist` | Specialises in Ferrari |

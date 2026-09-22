@@ -13,6 +13,7 @@ import {
   PROOF_BUILD_DEFAULTS,
   PROOF_MAINTAIN_DEFAULTS,
   PROOF_VEHICLES,
+  REPLACEMENT_GRADES,
   STYLES,
   USAGE_TYPES,
 } from "@/lib/intelligence/ui-catalog";
@@ -85,6 +86,7 @@ export function IntelligenceDesk() {
   const [budget, setBudget] = useState(PROOF_BUILD_DEFAULTS.budget);
   const [maintainType, setMaintainType] = useState(PROOF_MAINTAIN_DEFAULTS.type);
   const [component, setComponent] = useState(PROOF_MAINTAIN_DEFAULTS.component);
+  const [grade, setGrade] = useState(PROOF_MAINTAIN_DEFAULTS.grade);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
@@ -137,6 +139,7 @@ export function IntelligenceDesk() {
               maintain: {
                 type: maintainType,
                 component,
+                grade,
               },
             };
       const response = await fetch("/api/intelligence", {
@@ -351,7 +354,8 @@ export function IntelligenceDesk() {
                 3. Maintenance job
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                A job, not a build. Interests and style are not inputs.
+                A job, not a build. Grade is a quality constraint. Interests and style are not
+                inputs, and grade must not admit the wrong part.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -384,6 +388,44 @@ export function IntelligenceDesk() {
                 </select>
               </Field>
             </div>
+            <fieldset>
+              <legend className="text-sm font-medium">Replacement grade</legend>
+              <p className="mt-1 text-sm text-muted-foreground">
+                OEM, OEM+, or upgrade. Fitment still wins.
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                {REPLACEMENT_GRADES.map((row) => {
+                  const selected = row.slug === grade;
+                  return (
+                    <button
+                      key={row.slug}
+                      type="button"
+                      onClick={() => {
+                        setGrade(row.slug);
+                        setResult(null);
+                      }}
+                      aria-pressed={selected}
+                      className={`rounded-xl border px-4 py-4 text-left transition ${
+                        selected
+                          ? "border-ink bg-ink text-white"
+                          : "border-border bg-white hover:border-ink/40"
+                      }`}
+                    >
+                      <p className="font-display text-2xl font-extrabold uppercase leading-none">
+                        {row.name}
+                      </p>
+                      <p
+                        className={`mt-2 text-sm leading-5 ${
+                          selected ? "text-white/80" : "text-muted-foreground"
+                        }`}
+                      >
+                        {row.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
           </section>
         )}
 
@@ -397,7 +439,7 @@ export function IntelligenceDesk() {
               ? ` · ${BUILD_TYPES.find((row) => row.slug === buildType)?.name ?? buildType}`
               : ` · ${MAINTENANCE_TYPES.find((row) => row.slug === maintainType)?.name ?? maintainType} ${
                   MAINTENANCE_COMPONENTS.find((row) => row.slug === component)?.name ?? component
-                }`}
+                } · ${REPLACEMENT_GRADES.find((row) => row.slug === grade)?.name ?? grade}`}
           </p>
         </div>
       </form>
@@ -413,6 +455,7 @@ export function IntelligenceDesk() {
           result={result}
           intent={intent}
           objectiveSummary={selectedObjectiveNames.join(" + ")}
+          gradeName={REPLACEMENT_GRADES.find((row) => row.slug === grade)?.name ?? grade}
         />
       ) : null}
     </div>
@@ -440,10 +483,12 @@ function Results({
   result,
   intent,
   objectiveSummary,
+  gradeName,
 }: {
   result: ApiResult;
   intent: Intent;
   objectiveSummary: string;
+  gradeName: string;
 }) {
   const heading = intent === "build" ? "Recommended for your build" : "For this job";
   const vehicleLine = [
@@ -458,7 +503,7 @@ function Results({
   return (
     <section aria-live="polite" className="mt-12 border-t border-border pt-8">
       <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-        {intent === "build" ? "Build" : "Maintain"} · {vehicleLine}
+        {intent === "build" ? "Build" : `Maintain · ${gradeName}`} · {vehicleLine}
         {result.vehicle.engine ? ` · ${result.vehicle.engine}` : ""}
       </p>
       <h2 className="mt-2 font-display text-4xl font-black uppercase leading-none tracking-tight">
