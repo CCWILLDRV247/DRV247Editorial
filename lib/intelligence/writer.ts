@@ -1,9 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import {
   manufacturers,
   productAttributes,
   products,
+  recommendationReasons,
+  recommendations,
   suppliers,
   vehicleFitments,
 } from "@/lib/db/intelligence-schema";
@@ -140,6 +142,22 @@ export async function persistNormalisedProducts(db: Db, incoming: NormalisedProd
       });
     }
 
+    const existingFitments = await db
+      .select({ id: vehicleFitments.id })
+      .from(vehicleFitments)
+      .where(eq(vehicleFitments.productId, productId));
+    if (existingFitments.length) {
+      const fitmentIds = existingFitments.map((row) => row.id);
+      const linked = await db
+        .select({ id: recommendations.id })
+        .from(recommendations)
+        .where(inArray(recommendations.fitmentId, fitmentIds));
+      if (linked.length) {
+        const recIds = linked.map((row) => row.id);
+        await db.delete(recommendationReasons).where(inArray(recommendationReasons.recommendationId, recIds));
+        await db.delete(recommendations).where(inArray(recommendations.id, recIds));
+      }
+    }
     await db.delete(vehicleFitments).where(eq(vehicleFitments.productId, productId));
     for (const fitment of item.fitments ?? []) {
       const make = canonicalMake(fitment.make) ?? fitment.make;
