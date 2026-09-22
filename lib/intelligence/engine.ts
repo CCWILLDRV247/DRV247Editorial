@@ -163,7 +163,10 @@ async function persistResult(input: {
     await db.delete(recommendations).where(inArray(recommendations.id, ids));
   }
   for (const [index, card] of input.cards.entries()) {
-    const id = `rec_${input.mode}_${input.vehicle.id}_${card.kind}_${card.id}`;
+    const scope = input.buildId ?? input.requestId ?? `${input.mode}_${input.vehicle.id}`;
+    const id = `rec_${scope}_${card.kind}_${card.id}`;
+    await db.delete(recommendationReasons).where(eq(recommendationReasons.recommendationId, id));
+    await db.delete(recommendations).where(eq(recommendations.id, id));
     const match = card.kind === "product" ? input.fitmentsByProduct.get(card.id) : null;
     await db.insert(recommendations).values({
       id,
@@ -293,7 +296,7 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
         buildId,
         cards: results,
         fitmentsByProduct,
-      });
+      }).catch(() => undefined);
     }
     return { mode: "build", vehicle, recommendations: results, trace };
   }
@@ -367,7 +370,7 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
       requestId,
       cards: results,
       fitmentsByProduct,
-    });
+    }).catch(() => undefined);
   }
 
   return { mode: "maintain", vehicle, recommendations: results, trace };
