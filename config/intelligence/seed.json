@@ -1,0 +1,891 @@
+{
+  "vehicles": [
+    {
+      "id": "veh-964",
+      "year": 1992,
+      "engine": "3.6",
+      "fuel": "petrol",
+      "transmission": "manual",
+      "body": "coupe",
+      "powerBhp": 260,
+      "specification": "964 Carrera RS; 3.6 air-cooled"
+    },
+    {
+      "id": "veh-355",
+      "year": 1997,
+      "engine": "3.5 V8",
+      "fuel": "petrol",
+      "transmission": "manual",
+      "body": "coupe",
+      "powerBhp": 380,
+      "specification": "F355 GTB; 330mm front discs"
+    },
+    {
+      "id": "veh-e46",
+      "year": 2003,
+      "engine": "3.2 S54",
+      "fuel": "petrol",
+      "transmission": "manual",
+      "body": "coupe",
+      "powerBhp": 338,
+      "specification": "E46 M3; 325mm front discs"
+    }
+  ],
+  "sources": [
+    { "id": "src-capristo", "name": "Capristo", "kind": "manual", "identifier": "manual:capristo", "priority": 92 },
+    { "id": "src-brembo", "name": "Brembo", "kind": "manual", "identifier": "manual:brembo", "priority": 95 },
+    { "id": "src-kw", "name": "KW Automotive", "kind": "manual", "identifier": "manual:kw", "priority": 90 },
+    { "id": "src-novitec", "name": "Novitec", "kind": "manual", "identifier": "manual:novitec", "priority": 88 },
+    { "id": "src-bmc", "name": "BMC Air Filters", "kind": "manual", "identifier": "manual:bmc", "priority": 84 },
+    { "id": "src-dansk", "name": "Dansk", "kind": "manual", "identifier": "manual:dansk", "priority": 86 },
+    { "id": "src-bilstein", "name": "Bilstein", "kind": "manual", "identifier": "manual:bilstein", "priority": 88 },
+    { "id": "src-pagid", "name": "Pagid", "kind": "manual", "identifier": "manual:pagid", "priority": 90 },
+    { "id": "src-design911", "name": "Design 911", "kind": "csv", "identifier": "config/intelligence/seed-products.csv", "priority": 70 },
+    { "id": "src-manual", "name": "DRV247 curated research", "kind": "manual", "identifier": "manual:drv247", "priority": 45 }
+  ],
+  "manufacturers": [
+    { "id": "mfr-capristo", "name": "Capristo", "slug": "capristo", "aliases": ["Capristo Automotive"], "url": "https://www.capristo.de" },
+    { "id": "mfr-tubi", "name": "Tubi Style", "slug": "tubi-style", "aliases": ["Tubi"], "url": "https://www.tubistyle.com" },
+    { "id": "mfr-novitec", "name": "Novitec", "slug": "novitec", "aliases": [], "url": "https://www.novitecgroup.com" },
+    { "id": "mfr-kw", "name": "KW", "slug": "kw", "aliases": ["KW Automotive", "KW Variant"], "url": "https://www.kwsuspensions.com" },
+    { "id": "mfr-brembo", "name": "Brembo", "slug": "brembo", "aliases": [], "url": "https://www.brembo.com" },
+    { "id": "mfr-bmc", "name": "BMC", "slug": "bmc", "aliases": ["BMC Air Filters"], "url": "https://www.bmcairfilters.com" },
+    { "id": "mfr-dansk", "name": "Dansk", "slug": "dansk", "aliases": ["JP Group Dansk"], "url": "https://www.jpgroup.dk" },
+    { "id": "mfr-bilstein", "name": "Bilstein", "slug": "bilstein", "aliases": ["BILSTEIN"], "url": "https://www.bilstein.com" },
+    { "id": "mfr-pagid", "name": "Pagid", "slug": "pagid", "aliases": ["Pagid Racing"], "url": "https://www.pagid.com" },
+    { "id": "mfr-apex", "name": "Apex", "slug": "apex", "aliases": ["Apex Wheels"], "url": "https://www.apexraceparts.com" },
+    { "id": "mfr-superprint", "name": "Superprint", "slug": "superprint", "aliases": [], "url": "https://www.superprint.co.uk" },
+    { "id": "mfr-afe", "name": "aFe Power", "slug": "afe-power", "aliases": ["aFe"], "url": "https://afepower.com" },
+    { "id": "mfr-mann", "name": "MANN-FILTER", "slug": "mann-filter", "aliases": ["Mann"], "url": "https://www.mann-filter.com" },
+    { "id": "mfr-fuchs", "name": "Fuchs", "slug": "fuchs", "aliases": ["Otto Fuchs"], "url": "https://www.otto-fuchs.com" },
+    { "id": "mfr-generic", "name": "Unbranded", "slug": "unbranded", "aliases": [], "url": null }
+  ],
+  "suppliers": [
+    { "id": "sup-design911", "name": "Design 911", "slug": "design-911", "url": "https://www.design911.co.uk", "region": "UK" },
+    { "id": "sup-foskers", "name": "Foskers", "slug": "foskers", "url": "https://www.foskers.com", "region": "UK" },
+    { "id": "sup-birds", "name": "Birds", "slug": "birds", "url": "https://www.birdsauto.com", "region": "UK" },
+    { "id": "sup-autofarm", "name": "Autofarm", "slug": "autofarm", "url": "https://www.autofarm.co.uk", "region": "UK" },
+    { "id": "sup-capristo", "name": "Capristo", "slug": "capristo-direct", "url": "https://www.capristo.de", "region": "EU" },
+    { "id": "sup-demon", "name": "Demon Tweeks", "slug": "demon-tweeks", "url": "https://www.demon-tweeks.com", "region": "UK" }
+  ],
+  "products": [
+    {
+      "id": "prd-capristo-355-exh",
+      "source_id": "src-capristo",
+      "supplier_id": "sup-capristo",
+      "manufacturer_id": "mfr-capristo",
+      "product_name": "Capristo Sports Exhaust",
+      "description": "Valved stainless sports exhaust for the F355. More character and improved flow while retaining a road-focused setup.",
+      "category": "exhaust",
+      "price": 8495,
+      "currency": "GBP",
+      "url": "https://www.capristo.de",
+      "availability": "in_stock",
+      "sku": "CAP-F355-SE",
+      "part_number": "CAP-F355-SE",
+      "attributes": [
+        { "attribute": "performance_gain", "value": "modest" },
+        { "attribute": "sound", "value": "character" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "track_use", "value": "caution" },
+        { "attribute": "installation_difficulty", "value": "workshop" },
+        { "attribute": "safety_class", "value": "caution" },
+        { "attribute": "noise", "value": "moderate" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "year_from": 1994,
+          "year_to": 1999,
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-tubi-355-exh",
+      "source_id": "src-manual",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-tubi",
+      "product_name": "Tubi Style Sports Exhaust",
+      "description": "Louder aftermarket exhaust for the F355. A second system, not a complement to an existing Capristo.",
+      "category": "exhaust",
+      "price": 7200,
+      "currency": "GBP",
+      "url": "https://www.tubistyle.com",
+      "availability": "limited",
+      "sku": "TUBI-F355",
+      "part_number": "TUBI-F355",
+      "attributes": [
+        { "attribute": "performance_gain", "value": "modest" },
+        { "attribute": "sound", "value": "loud" },
+        { "attribute": "oem_plus", "value": "no" },
+        { "attribute": "appearance", "value": "aftermarket" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "safety_class", "value": "caution" },
+        { "attribute": "noise", "value": "loud" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "confidence": "generation",
+          "source": "supplier"
+        }
+      ]
+    },
+    {
+      "id": "prd-bmc-355-intake",
+      "source_id": "src-bmc",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-bmc",
+      "product_name": "BMC CDA Carbon Dynamic Airbox",
+      "description": "Less restrictive intake with a sharper throttle response and a more audible induction note.",
+      "category": "intake",
+      "price": 620,
+      "currency": "GBP",
+      "url": "https://www.bmcairfilters.com",
+      "availability": "in_stock",
+      "sku": "CDA-F355",
+      "part_number": "CDA-F355",
+      "attributes": [
+        { "attribute": "performance_gain", "value": "modest" },
+        { "attribute": "sound", "value": "character" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "installation_difficulty", "value": "bolt-on" },
+        { "attribute": "safety_class", "value": "caution" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-novitec-355-ecu",
+      "source_id": "src-novitec",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-novitec",
+      "product_name": "Novitec F355 Engine Software",
+      "description": "Manufacturer-supported remap for more power and cleaner throttle response on a road-focused F355.",
+      "category": "ecu",
+      "price": 1850,
+      "currency": "GBP",
+      "url": "https://www.novitecgroup.com",
+      "availability": "in_stock",
+      "sku": "NOV-F355-ECU",
+      "part_number": "NOV-F355-ECU",
+      "attributes": [
+        { "attribute": "performance_gain", "value": "significant" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "installation_difficulty", "value": "specialist" },
+        { "attribute": "safety_class", "value": "caution" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "engine": "3.5 V8",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-kw-355-v3",
+      "source_id": "src-kw",
+      "supplier_id": "sup-demon",
+      "manufacturer_id": "mfr-kw",
+      "product_name": "KW Variant 3 Coilover Kit",
+      "description": "Adjustable street coilovers with a lower, OEM+ stance for the F355 generation.",
+      "category": "suspension",
+      "price": 2795,
+      "currency": "GBP",
+      "url": "https://www.kwsuspensions.com",
+      "availability": "in_stock",
+      "sku": "KW-V3-F355",
+      "part_number": "35271003",
+      "attributes": [
+        { "attribute": "ride_height", "value": "lower" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "comfort", "value": "similar" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "installation_difficulty", "value": "workshop" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "year_from": 1994,
+          "year_to": 1999,
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-challenge-355-wheels",
+      "source_id": "src-manual",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-fuchs",
+      "product_name": "Challenge-style 18-inch wheels",
+      "description": "OEM+ Challenge-inspired wheels that keep the F355's factory language.",
+      "category": "wheels",
+      "price": 3600,
+      "currency": "GBP",
+      "url": "https://www.foskers.com",
+      "availability": "limited",
+      "sku": "CHAL-F355-18",
+      "part_number": "CHAL-F355-18",
+      "attributes": [
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "spec", "value": "5x108" },
+        { "attribute": "safety_class", "value": "critical" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "confidence": "generation",
+          "source": "supplier"
+        }
+      ]
+    },
+    {
+      "id": "prd-brembo-355-discs",
+      "source_id": "src-brembo",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-brembo",
+      "product_name": "Brembo 330mm front brake discs",
+      "description": "Generation-correct 330mm replacement discs for the F355.",
+      "category": "brake-discs",
+      "subcategory": "front",
+      "price": 890,
+      "currency": "GBP",
+      "url": "https://www.brembo.com",
+      "availability": "in_stock",
+      "sku": "09.7746.11",
+      "part_number": "09.7746.11",
+      "attributes": [
+        { "attribute": "spec", "value": "330mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "year_from": 1994,
+          "year_to": 1999,
+          "engine": "3.5 V8",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-brembo-355-pads",
+      "source_id": "src-brembo",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-brembo",
+      "product_name": "Brembo front brake pads",
+      "description": "Correct pad compound for F355 330mm discs.",
+      "category": "brake-pads",
+      "subcategory": "front",
+      "price": 210,
+      "currency": "GBP",
+      "url": "https://www.brembo.com",
+      "availability": "in_stock",
+      "sku": "P23047",
+      "part_number": "P23047",
+      "attributes": [
+        { "attribute": "spec", "value": "330mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-ferrari-355-filter",
+      "source_id": "src-manual",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-mann",
+      "product_name": "MANN-FILTER oil filter",
+      "description": "Service oil filter for the F355 3.5 V8.",
+      "category": "filters",
+      "price": 48,
+      "currency": "GBP",
+      "url": "https://www.mann-filter.com",
+      "availability": "in_stock",
+      "sku": "HU7185X-F355",
+      "part_number": "HU7185X",
+      "attributes": [
+        { "attribute": "safety_class", "value": "lifestyle" },
+        { "attribute": "classic", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "confidence": "generation",
+          "source": "supplier"
+        }
+      ]
+    },
+    {
+      "id": "prd-univ-ferrari-discs",
+      "source_id": "src-manual",
+      "supplier_id": "sup-demon",
+      "manufacturer_id": "mfr-generic",
+      "product_name": "Universal Ferrari performance brake discs",
+      "description": "Listed for Ferrari F355 with no generation application. Must be withheld.",
+      "category": "brake-discs",
+      "price": 400,
+      "currency": "GBP",
+      "url": "https://www.demon-tweeks.com",
+      "availability": "in_stock",
+      "sku": "UNIV-FERRARI-DISC",
+      "part_number": "UNIV-FERRARI-DISC",
+      "attributes": [
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "aftermarket" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "confidence": "model",
+          "source": "inferred"
+        }
+      ]
+    },
+    {
+      "id": "prd-dansk-964-exh",
+      "source_id": "src-dansk",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-dansk",
+      "product_name": "Dansk sports exhaust",
+      "description": "Period-correct sports exhaust for the 964 with more character on the road.",
+      "category": "exhaust",
+      "price": 1890,
+      "currency": "GBP",
+      "url": "https://www.design911.co.uk",
+      "availability": "in_stock",
+      "sku": "DANSK-964-SE",
+      "part_number": "DANSK-964-SE",
+      "attributes": [
+        { "attribute": "sound", "value": "character" },
+        { "attribute": "performance_gain", "value": "modest" },
+        { "attribute": "classic", "value": "yes" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "safety_class", "value": "caution" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "year_from": 1989,
+          "year_to": 1994,
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-bilstein-964",
+      "source_id": "src-bilstein",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-bilstein",
+      "product_name": "Bilstein B6 dampers",
+      "description": "Road-focused damper upgrade that keeps 964 geometry honest.",
+      "category": "suspension",
+      "price": 780,
+      "currency": "GBP",
+      "url": "https://www.bilstein.com",
+      "availability": "in_stock",
+      "sku": "B6-964",
+      "part_number": "24-026548",
+      "attributes": [
+        { "attribute": "ride_height", "value": "stock" },
+        { "attribute": "comfort", "value": "similar" },
+        { "attribute": "classic", "value": "yes" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "safety_class", "value": "critical" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-fuchs-964",
+      "source_id": "src-manual",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-fuchs",
+      "product_name": "17-inch Cup Fuchs wheels",
+      "description": "Period Cup-style Fuchs for a 964 RS stance.",
+      "category": "wheels",
+      "price": 4200,
+      "currency": "GBP",
+      "url": "https://www.design911.co.uk",
+      "availability": "limited",
+      "sku": "FUCHS-964-17",
+      "part_number": "FUCHS-964-17",
+      "attributes": [
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "classic", "value": "yes" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "spec", "value": "5x130" },
+        { "attribute": "safety_class", "value": "critical" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "variant": "Carrera RS",
+          "confidence": "generation",
+          "source": "supplier"
+        }
+      ]
+    },
+    {
+      "id": "prd-pagid-964-pads",
+      "source_id": "src-pagid",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-pagid",
+      "product_name": "Pagid front brake pads",
+      "description": "964-generation replacement pads.",
+      "category": "brake-pads",
+      "price": 280,
+      "currency": "GBP",
+      "url": "https://www.pagid.com",
+      "availability": "in_stock",
+      "sku": "PAGID-964-F",
+      "part_number": "T1164",
+      "attributes": [
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "road_use", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-brembo-964-discs",
+      "source_id": "src-brembo",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-brembo",
+      "product_name": "Brembo 322mm 964 brake discs",
+      "description": "Application-listed 322mm discs for 911 (964) 1989–1994.",
+      "category": "brake-discs",
+      "price": 640,
+      "currency": "GBP",
+      "url": "https://www.brembo.com",
+      "availability": "in_stock",
+      "sku": "09.5720.10",
+      "part_number": "09.5720.10",
+      "attributes": [
+        { "attribute": "spec", "value": "322mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "road_use", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "year_from": 1989,
+          "year_to": 1994,
+          "engine": "3.6",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-approx-911-pads",
+      "source_id": "src-manual",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-generic",
+      "product_name": "Most air-cooled 911 brake pads",
+      "description": "Approximate fitment claim only. Must be withheld on a critical component.",
+      "category": "brake-pads",
+      "price": 90,
+      "currency": "GBP",
+      "url": "https://www.design911.co.uk",
+      "availability": "in_stock",
+      "sku": "APPROX-911-PAD",
+      "part_number": "APPROX-911-PAD",
+      "attributes": [
+        { "attribute": "safety_class", "value": "critical" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "confidence": "approximate",
+          "source": "inferred",
+          "notes": "Most air-cooled 911s"
+        }
+      ]
+    },
+    {
+      "id": "prd-superprint-e46",
+      "source_id": "src-manual",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-superprint",
+      "product_name": "Superprint stainless exhaust",
+      "description": "Road-legal E46 M3 exhaust with more character.",
+      "category": "exhaust",
+      "price": 1450,
+      "currency": "GBP",
+      "url": "https://www.superprint.co.uk",
+      "availability": "in_stock",
+      "sku": "SP-E46-M3",
+      "part_number": "SP-E46-M3",
+      "attributes": [
+        { "attribute": "sound", "value": "character" },
+        { "attribute": "performance_gain", "value": "modest" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "safety_class", "value": "caution" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "confidence": "generation",
+          "source": "supplier"
+        }
+      ]
+    },
+    {
+      "id": "prd-afe-e46-intake",
+      "source_id": "src-manual",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-afe",
+      "product_name": "aFe Magnum FORCE intake",
+      "description": "E46 M3 intake for throttle response and a clearer induction note.",
+      "category": "intake",
+      "price": 390,
+      "currency": "GBP",
+      "url": "https://afepower.com",
+      "availability": "in_stock",
+      "sku": "AFE-E46-M3",
+      "part_number": "54-11482",
+      "attributes": [
+        { "attribute": "performance_gain", "value": "modest" },
+        { "attribute": "sound", "value": "character" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "oem_plus", "value": "no" },
+        { "attribute": "appearance", "value": "aftermarket" },
+        { "attribute": "safety_class", "value": "caution" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "engine": "3.2 S54",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-kw-e46-v3",
+      "source_id": "src-kw",
+      "supplier_id": "sup-demon",
+      "manufacturer_id": "mfr-kw",
+      "product_name": "KW Variant 3 E46 M3",
+      "description": "Street/track coilover for the E46 M3 generation.",
+      "category": "suspension",
+      "price": 1895,
+      "currency": "GBP",
+      "url": "https://www.kwsuspensions.com",
+      "availability": "in_stock",
+      "sku": "KW-V3-E46M3",
+      "part_number": "35220007",
+      "attributes": [
+        { "attribute": "ride_height", "value": "lower" },
+        { "attribute": "appearance", "value": "aftermarket" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "safety_class", "value": "critical" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "year_from": 2000,
+          "year_to": 2006,
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-apex-e46",
+      "source_id": "src-manual",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-apex",
+      "product_name": "Apex ARC-8 18-inch wheels",
+      "description": "Lightweight aftermarket wheels for the E46 M3.",
+      "category": "wheels",
+      "price": 1600,
+      "currency": "GBP",
+      "url": "https://www.apexraceparts.com",
+      "availability": "in_stock",
+      "sku": "ARC8-E46",
+      "part_number": "ARC8-E46",
+      "attributes": [
+        { "attribute": "appearance", "value": "aftermarket" },
+        { "attribute": "weight", "value": "lighter" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "safety_class", "value": "critical" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "confidence": "generation",
+          "source": "supplier"
+        }
+      ]
+    },
+    {
+      "id": "prd-brembo-e46-discs",
+      "source_id": "src-brembo",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-brembo",
+      "product_name": "Brembo 325mm E46 M3 discs",
+      "description": "Correct 325mm front discs for the E46 M3.",
+      "category": "brake-discs",
+      "price": 320,
+      "currency": "GBP",
+      "url": "https://www.brembo.com",
+      "availability": "in_stock",
+      "sku": "09.8933.11",
+      "part_number": "09.8933.11",
+      "attributes": [
+        { "attribute": "spec", "value": "325mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "road_use", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-brembo-e46-pads",
+      "source_id": "src-brembo",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-brembo",
+      "product_name": "Brembo E46 M3 brake pads",
+      "description": "Correct pad set for E46 M3 discs.",
+      "category": "brake-pads",
+      "price": 95,
+      "currency": "GBP",
+      "url": "https://www.brembo.com",
+      "availability": "in_stock",
+      "sku": "P06033",
+      "part_number": "P06033",
+      "attributes": [
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "road_use", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-911-pads-wrong-car",
+      "source_id": "src-pagid",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-pagid",
+      "product_name": "Pagid 996 Carrera brake pads",
+      "description": "996-generation pads. Must never appear on an F355 or E46 request.",
+      "category": "brake-pads",
+      "price": 160,
+      "currency": "GBP",
+      "url": "https://www.pagid.com",
+      "availability": "in_stock",
+      "sku": "PAGID-996-F",
+      "part_number": "T1296",
+      "attributes": [
+        { "attribute": "safety_class", "value": "critical" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "996",
+          "confidence": "generation",
+          "source": "manufacturer"
+        }
+      ]
+    }
+  ],
+  "specialists": [
+    {
+      "id": "spc-autofarm",
+      "name": "Autofarm",
+      "category": "service",
+      "location": "Oxfordshire",
+      "url": "https://www.autofarm.co.uk",
+      "notes": "Air-cooled Porsche specialist.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "Porsche", "model": "911" }]
+    },
+    {
+      "id": "spc-rpm",
+      "name": "RPM Technik",
+      "category": "service",
+      "location": "Hertfordshire",
+      "url": "https://www.rpmtechnik.co.uk",
+      "notes": "Independent Porsche.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "Porsche" }]
+    },
+    {
+      "id": "spc-dk",
+      "name": "DK Engineering",
+      "category": "service",
+      "location": "Hertfordshire",
+      "url": "https://www.dkeng.co.uk",
+      "notes": "Ferrari sales and service.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "Ferrari" }, { "make": "Ferrari", "model": "F355" }]
+    },
+    {
+      "id": "spc-foskers",
+      "name": "Foskers",
+      "category": "service",
+      "location": "Kent",
+      "url": "https://www.foskers.com",
+      "notes": "Ferrari specialist retailer.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "Ferrari" }]
+    },
+    {
+      "id": "spc-gto",
+      "name": "GTO Engineering",
+      "category": "restoration",
+      "location": "Berkshire",
+      "url": "https://www.gtoengineering.com",
+      "notes": "Ferrari restoration.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "Ferrari" }]
+    },
+    {
+      "id": "spc-birds",
+      "name": "Birds",
+      "category": "performance",
+      "location": "Buckinghamshire",
+      "url": "https://www.birdsauto.com",
+      "notes": "BMW M specialist.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "BMW", "model": "M3" }, { "make": "BMW" }]
+    },
+    {
+      "id": "spc-munich",
+      "name": "Munich Legends",
+      "category": "service",
+      "location": "East Sussex",
+      "url": "https://www.munichlegends.co.uk",
+      "notes": "Classic and modern BMW.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "BMW" }]
+    }
+  ],
+  "modifications": [
+    {
+      "id": "mod-355-capristo",
+      "vehicle_id": "veh-355",
+      "category": "exhaust",
+      "product_id": "prd-capristo-355-exh",
+      "manufacturer": "Capristo",
+      "description": "Capristo exhaust",
+      "notes": "Already fitted. BUILD should not lead with another exhaust."
+    },
+    {
+      "id": "mod-e46-nothing-placeholder",
+      "vehicle_id": "veh-e46",
+      "category": "interior",
+      "product_id": null,
+      "manufacturer": null,
+      "description": "Aftermarket short shifter",
+      "notes": "Logged so the garage is not empty; not an exhaust."
+    }
+  ]
+}

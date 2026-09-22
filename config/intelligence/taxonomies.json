@@ -1,0 +1,107 @@
+{
+  "safetyClasses": [
+    { "slug": "critical", "name": "Critical", "withholdBelowFitment": "generation" },
+    { "slug": "caution", "name": "Caution", "withholdBelowFitment": "generation" },
+    { "slug": "lifestyle", "name": "Lifestyle", "withholdBelowFitment": "model" }
+  ],
+  "buildTypes": [
+    { "slug": "fast-street", "name": "Fast Street", "description": "Road-legal pace and character without a race-car brief." },
+    { "slug": "gt-cruiser", "name": "GT Cruiser", "description": "Distance, comfort, and a more involving note." },
+    { "slug": "show-car", "name": "Show Car", "description": "Stance, finish, and presentation first." },
+    { "slug": "oem-plus", "name": "OEM+", "description": "Factory language, quietly improved." },
+    { "slug": "track", "name": "Track", "description": "Chassis, brakes, and thermal load for circuit use." },
+    { "slug": "classic-upgrade", "name": "Classic Upgrade", "description": "Period-correct capability for an older car." },
+    { "slug": "restomod", "name": "Restomod", "description": "Modern hardware under a classic identity." },
+    { "slug": "stance", "name": "Stance", "description": "Ride height, wheels, and attitude." },
+    { "slug": "sound-and-feel", "name": "Sound & Feel", "description": "Note, response, and how the car talks back." },
+    { "slug": "custom", "name": "Custom", "description": "A one-off brief driven by objectives." }
+  ],
+  "objectiveCategories": [
+    { "slug": "performance", "name": "Performance" },
+    { "slug": "sound", "name": "Sound" },
+    { "slug": "handling", "name": "Handling" },
+    { "slug": "braking", "name": "Braking" },
+    { "slug": "appearance", "name": "Appearance" },
+    { "slug": "comfort", "name": "Comfort" },
+    { "slug": "preservation", "name": "Preservation" }
+  ],
+  "objectives": [
+    { "category": "performance", "slug": "more-power", "name": "More power" },
+    { "category": "performance", "slug": "more-torque", "name": "More torque" },
+    { "category": "performance", "slug": "better-throttle-response", "name": "Better throttle response" },
+    { "category": "performance", "slug": "better-acceleration", "name": "Better acceleration" },
+    { "category": "performance", "slug": "lower-weight", "name": "Lower weight" },
+    { "category": "sound", "slug": "better-exhaust-note", "name": "Better exhaust note" },
+    { "category": "sound", "slug": "louder", "name": "Louder" },
+    { "category": "sound", "slug": "deeper", "name": "Deeper" },
+    { "category": "sound", "slug": "more-character", "name": "More character" },
+    { "category": "sound", "slug": "less-restrictive", "name": "Less restrictive" },
+    { "category": "handling", "slug": "sharper-handling", "name": "Sharper handling" },
+    { "category": "handling", "slug": "lower-ride-height", "name": "Lower ride height" },
+    { "category": "handling", "slug": "better-cornering", "name": "Better cornering" },
+    { "category": "handling", "slug": "better-steering-feel", "name": "Better steering feel" },
+    { "category": "braking", "slug": "better-braking", "name": "Better braking" },
+    { "category": "braking", "slug": "track-braking", "name": "Track braking" },
+    { "category": "braking", "slug": "brake-feel", "name": "Brake feel" },
+    { "category": "appearance", "slug": "better-stance", "name": "Better stance" },
+    { "category": "appearance", "slug": "new-wheels", "name": "New wheels" },
+    { "category": "appearance", "slug": "exterior-styling", "name": "Exterior styling" },
+    { "category": "appearance", "slug": "interior-styling", "name": "Interior styling" },
+    { "category": "appearance", "slug": "aero", "name": "Aero" },
+    { "category": "appearance", "slug": "lighting", "name": "Lighting" },
+    { "category": "comfort", "slug": "better-seats", "name": "Better seats" },
+    { "category": "comfort", "slug": "better-ride", "name": "Better ride" },
+    { "category": "comfort", "slug": "better-audio", "name": "Better audio" },
+    { "category": "comfort", "slug": "modern-technology", "name": "Modern technology" },
+    { "category": "preservation", "slug": "retain-originality", "name": "Retain originality" },
+    { "category": "preservation", "slug": "period-correct", "name": "Period correct" },
+    { "category": "preservation", "slug": "oem-specification", "name": "OEM specification" }
+  ],
+  "usageTypes": [
+    { "slug": "weekend-road", "name": "Weekend road" },
+    { "slug": "daily", "name": "Daily" },
+    { "slug": "track-day", "name": "Track day" },
+    { "slug": "show", "name": "Show" },
+    { "slug": "tour", "name": "Tour" },
+    { "slug": "mixed", "name": "Mixed" }
+  ],
+  "budgetBands": [
+    { "slug": "under-1k", "name": "Under £1,000", "currency": "GBP", "minAmount": 0, "maxAmount": 1000 },
+    { "slug": "1-3k", "name": "£1,000–£3,000", "currency": "GBP", "minAmount": 1000, "maxAmount": 3000 },
+    { "slug": "3-5k", "name": "£3,000–£5,000", "currency": "GBP", "minAmount": 3000, "maxAmount": 5000 },
+    { "slug": "5-10k", "name": "£5,000–£10,000", "currency": "GBP", "minAmount": 5000, "maxAmount": 10000 },
+    { "slug": "10-25k", "name": "£10,000–£25,000", "currency": "GBP", "minAmount": 10000, "maxAmount": 25000 },
+    { "slug": "25k-plus", "name": "£25,000+", "currency": "GBP", "minAmount": 25000, "maxAmount": null }
+  ],
+  "styles": [
+    { "slug": "oem-plus", "name": "OEM+", "description": "Looks factory, works better." },
+    { "slug": "period-correct", "name": "Period correct", "description": "Hardware the original car could have worn." },
+    { "slug": "aftermarket", "name": "Aftermarket", "description": "Open to specialist brands." },
+    { "slug": "track-focused", "name": "Track focused", "description": "Circuit first, road second." },
+    { "slug": "show", "name": "Show", "description": "Presentation over pace." },
+    { "slug": "custom", "name": "Custom", "description": "No house style." }
+  ],
+  "maintenanceTypes": [
+    { "slug": "replace", "name": "Replace" },
+    { "slug": "service", "name": "Service" },
+    { "slug": "diagnose", "name": "Diagnose" },
+    { "slug": "mot-prep", "name": "MOT prep" },
+    { "slug": "find-specialist", "name": "Find specialist" }
+  ],
+  "maintenanceComponents": [
+    { "slug": "brake-discs", "name": "Brake discs", "category": "brakes", "safetyClass": "critical" },
+    { "slug": "brake-pads", "name": "Brake pads", "category": "brakes", "safetyClass": "critical" },
+    { "slug": "tyres", "name": "Tyres", "category": "chassis", "safetyClass": "critical" },
+    { "slug": "suspension", "name": "Suspension components", "category": "chassis", "safetyClass": "critical" },
+    { "slug": "steering", "name": "Steering", "category": "chassis", "safetyClass": "critical" },
+    { "slug": "cooling", "name": "Cooling system", "category": "engine", "safetyClass": "critical" },
+    { "slug": "clutch", "name": "Clutch", "category": "drivetrain", "safetyClass": "caution" },
+    { "slug": "exhaust", "name": "Exhaust", "category": "exhaust", "safetyClass": "caution" },
+    { "slug": "battery", "name": "Battery", "category": "electrical", "safetyClass": "caution" },
+    { "slug": "filters", "name": "Filters", "category": "service", "safetyClass": "lifestyle" },
+    { "slug": "service", "name": "Service", "category": "service", "safetyClass": "caution" },
+    { "slug": "mot", "name": "MOT preparation", "category": "service", "safetyClass": "caution" },
+    { "slug": "engine", "name": "Engine (general)", "category": "engine", "safetyClass": "critical" },
+    { "slug": "other", "name": "Other", "category": "other", "safetyClass": "caution" }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "weights": {
+    "fitment_exact": 50,
+    "fitment_generation": 30,
+    "correct_component": 40,
+    "spec_match": 20,
+    "authoritative_source": 15,
+    "in_stock": 10,
+    "price_lower_among_ok": 5
+  },
+  "componentAliases": {
+    "brakes": ["brake-discs", "brake-pads"],
+    "brake-discs": ["brake-discs"],
+    "brake-pads": ["brake-pads"],
+    "tyres": ["tyres"],
+    "suspension": ["suspension"],
+    "steering": ["steering"],
+    "cooling": ["cooling"],
+    "clutch": ["clutch"],
+    "exhaust": ["exhaust"],
+    "battery": ["battery"],
+    "filters": ["filters"],
+    "service": ["filters", "service"],
+    "mot": ["mot", "brake-discs", "brake-pads", "tyres"],
+    "engine": ["engine"],
+    "other": ["other"]
+  },
+  "workshopComponents": ["service", "cooling", "clutch", "mot"],
+  "specialistCategoryForComponent": {
+    "brake-discs": ["service", "performance"],
+    "brake-pads": ["service", "performance"],
+    "tyres": ["tyres", "service"],
+    "suspension": ["service", "performance"],
+    "steering": ["service"],
+    "cooling": ["service"],
+    "clutch": ["service", "performance"],
+    "exhaust": ["service", "performance"],
+    "battery": ["service"],
+    "filters": ["service"],
+    "service": ["service"],
+    "mot": ["service"],
+    "engine": ["service", "restoration", "performance"],
+    "other": ["service"]
+  }
+}

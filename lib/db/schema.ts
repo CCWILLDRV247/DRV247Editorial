@@ -189,6 +189,14 @@ export const demoVehicles = sqliteTable("demo_vehicles", {
   model: text("model").notNull(),
   generation: text("generation"),
   variant: text("variant"),
+  year: integer("year"),
+  engine: text("engine"),
+  fuel: text("fuel"),
+  transmission: text("transmission"),
+  body: text("body"),
+  powerBhp: integer("power_bhp"),
+  registration: text("registration"),
+  specification: text("specification"),
 });
 
 export const demoUserInterests = sqliteTable("demo_user_interests", {
