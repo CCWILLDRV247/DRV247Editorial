@@ -137,7 +137,13 @@ maintenance_components
   id, slug, name, category, safety_class_id, sort_order, enabled
   -- exhaust, brake-discs, brake-pads, battery, clutch, tyres,
   -- suspension, filters, cooling, service, mot
+
+replacement_grades
+  id, slug, name, description, sort_order, enabled
+  -- oem | oem-plus | upgrade
 ```
+
+`replacement_grades` is a MAINTAIN job constraint (quality of the replacement), not a BUILD style. `oem-plus` can appear in both worlds: as a build type / style it is taste; as a replacement grade it is “factory language, quietly better” for a part that still has to fit.
 
 ### 3.5 Safety classes
 
@@ -206,6 +212,7 @@ maintenance_requests
   vehicle_id        text not null → demo_vehicles.id
   type_id           integer → maintenance_types.id
   component_id      integer → maintenance_components.id
+  replacement_grade_id integer → replacement_grades.id   -- oem | oem-plus | upgrade
   symptom           text
   urgency           text                    -- low | soon | urgent
   mileage           integer
@@ -223,6 +230,7 @@ Example:
 Vehicle:   Ferrari F355 GTB
 Type:      replace
 Component: brake-discs + brake-pads   (two requests, or notes if bundled)
+Grade:     oem
 Status:    looking_for_parts
 ```
 
@@ -336,8 +344,9 @@ Stored as rows, not columns, so the list can grow.
 | `installation_difficulty` | bolt-on / workshop / specialist | both |
 | `road_use` | yes / caution / no | both |
 | `track_use` | yes / caution / no | BUILD |
-| `oem_plus` | yes / no | BUILD |
-| `competition` | yes / no | BUILD |
+| `oem_plus` | yes / no | both |
+| `replacement_grade` | oem / oem-plus / upgrade | MAINTAIN (explicit; inferred if absent) |
+| `competition` | yes / no | both |
 | `classic` | yes / no | BUILD |
 | `noise` | quiet / moderate / loud | BUILD |
 | `warranty` | yes / no / unknown | both |

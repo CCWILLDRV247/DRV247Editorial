@@ -8,6 +8,7 @@ import {
   buildTypes,
   maintenanceComponents,
   maintenanceTypes,
+  replacementGrades,
   manufacturers,
   objectiveCategories,
   objectives,
@@ -40,6 +41,7 @@ type TaxonomyFile = {
     maxAmount: number | null;
   }[];
   styles: { slug: string; name: string; description?: string }[];
+  replacementGrades: { slug: string; name: string; description?: string }[];
   maintenanceTypes: { slug: string; name: string }[];
   maintenanceComponents: { slug: string; name: string; category: string; safetyClass: string }[];
 };
@@ -174,6 +176,17 @@ export async function seedIntelligence(db: Db, cwd = process.cwd()) {
   const existingStyles = await db.select().from(styles);
   await upsertBySlug(existingStyles, taxonomies.styles, async (row, index) => {
     await db.insert(styles).values({
+      slug: row.slug,
+      name: row.name,
+      description: row.description ?? null,
+      sortOrder: index,
+      enabled: true,
+    });
+  });
+
+  const existingGrades = await db.select().from(replacementGrades);
+  await upsertBySlug(existingGrades, taxonomies.replacementGrades, async (row, index) => {
+    await db.insert(replacementGrades).values({
       slug: row.slug,
       name: row.name,
       description: row.description ?? null,

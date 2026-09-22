@@ -81,6 +81,11 @@
     { "slug": "show", "name": "Show", "description": "Presentation over pace." },
     { "slug": "custom", "name": "Custom", "description": "No house style." }
   ],
+  "replacementGrades": [
+    { "slug": "oem", "name": "OEM", "description": "Factory-spec. Like-for-like." },
+    { "slug": "oem-plus", "name": "OEM+", "description": "Factory language, quietly better." },
+    { "slug": "upgrade", "name": "Upgrade", "description": "Performance or track-oriented. Still has to fit." }
+  ],
   "maintenanceTypes": [
     { "slug": "replace", "name": "Replace" },
     { "slug": "service", "name": "Service" },

@@ -16,7 +16,7 @@ Related: [01 Product architecture](01-product-architecture.md) · [03 Recommenda
 1. Select a seeded garage vehicle
 2. Choose BUILD or MAINTAIN
 3. BUILD:   type + objectives + budget + usage (+ style if set)
-   MAINTAIN: component + type (replace / service / specialist)
+   MAINTAIN: component + type (replace / service / specialist) + grade (oem / oem-plus / upgrade)
 4. Engine returns a small personalised set
 ```
 

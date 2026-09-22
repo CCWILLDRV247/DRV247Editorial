@@ -56,6 +56,14 @@ const INTELLIGENCE_TABLES = [
       sort_order INTEGER NOT NULL DEFAULT 0,
       enabled INTEGER NOT NULL DEFAULT 1
     )`,
+  `CREATE TABLE IF NOT EXISTS replacement_grades (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      enabled INTEGER NOT NULL DEFAULT 1
+    )`,
   `CREATE TABLE IF NOT EXISTS maintenance_types (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       slug TEXT NOT NULL UNIQUE,
@@ -98,6 +106,7 @@ const INTELLIGENCE_TABLES = [
       vehicle_id TEXT NOT NULL REFERENCES demo_vehicles(id),
       type_id INTEGER REFERENCES maintenance_types(id),
       component_id INTEGER REFERENCES maintenance_components(id),
+      replacement_grade_id INTEGER REFERENCES replacement_grades(id),
       symptom TEXT,
       urgency TEXT,
       mileage INTEGER,
@@ -234,6 +243,10 @@ const INDEXES = [
   `CREATE UNIQUE INDEX IF NOT EXISTS product_attributes_product_attribute_uidx ON product_attributes (product_id, attribute)`,
 ];
 
+const MAINTENANCE_REQUEST_COLUMNS: [string, string][] = [
+  ["replacement_grade_id", "INTEGER"],
+];
+
 const VEHICLE_COLUMNS: [string, string][] = [
   ["year", "INTEGER"],
   ["engine", "TEXT"],
@@ -262,5 +275,8 @@ export async function ensureIntelligenceSchema(client: Client) {
   }
   for (const sql of INDEXES) {
     await client.execute(sql);
+  }
+  for (const [name, type] of MAINTENANCE_REQUEST_COLUMNS) {
+    await addColumnIfMissing(client, "maintenance_requests", name, type);
   }
 }

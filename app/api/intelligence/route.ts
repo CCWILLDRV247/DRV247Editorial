@@ -34,6 +34,7 @@ function fromSearchParams(searchParams: URLSearchParams) {
       ? {
           type: searchParams.get("type") ?? "replace",
           component: searchParams.get("component") ?? "",
+          grade: (searchParams.get("grade") ?? undefined) as MaintainInput["grade"],
           urgency: searchParams.get("urgency") ?? undefined,
           notes: searchParams.get("notes") ?? undefined,
         }
