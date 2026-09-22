@@ -112,6 +112,64 @@ describe("fitment matcher", () => {
   it("does not upgrade confidence", () => {
     assert.equal(capConfidence("model", "exact"), "model");
   });
+
+  it("keeps exact when the garage has the year and engine the product claims", () => {
+    const row = fitment({
+      confidence: "exact",
+      yearFrom: 1994,
+      yearTo: 1999,
+      engine: "3.5 V8",
+    });
+    const match = matchFitmentRow(vehicle, row);
+    assert.equal(match?.effectiveConfidence, "exact");
+    assert.match(match?.label ?? "", /1997/);
+  });
+
+  it("rejects a year range the garage year misses", () => {
+    const row = fitment({
+      make: "Porsche",
+      model: "911",
+      generation: "964",
+      yearFrom: 1989,
+      yearTo: 1990,
+      engine: "3.6",
+      confidence: "exact",
+    });
+    const rs = {
+      ...vehicle,
+      id: "veh-964",
+      make: "Porsche",
+      model: "911",
+      generation: "964",
+      variant: "Carrera RS",
+      year: 1992,
+      engine: "3.6",
+    };
+    assert.equal(matchFitmentRow(rs, row), null);
+  });
+
+  it("rejects an engine the garage does not have", () => {
+    const row = fitment({
+      make: "BMW",
+      model: "M3",
+      generation: "E46",
+      yearFrom: 2001,
+      yearTo: 2006,
+      engine: "3.2 M54",
+      confidence: "exact",
+    });
+    const e46 = {
+      ...vehicle,
+      id: "veh-e46",
+      make: "BMW",
+      model: "M3",
+      generation: "E46",
+      variant: null,
+      year: 2003,
+      engine: "3.2 S54",
+    };
+    assert.equal(matchFitmentRow(e46, row), null);
+  });
 });
 
 describe("safety gate", () => {

@@ -113,6 +113,9 @@ export async function GET() {
       upgradeNames.some((name) => /Pagid RS14|Brembo GT/i.test(name)) &&
       upgradeNames.some((name) => /Ferrari genuine|Brembo 330mm/i.test(name)) &&
       upgradeCodes.includes("upgrade_replacement"),
+    yearEngineEnablesExact: maintain.recommendations.some(
+      (card) => card.fitmentConfidence === "exact" && /1997/.test(card.fitmentLabel ?? ""),
+    ),
   };
 
   return NextResponse.json(
