@@ -47,6 +47,7 @@
     { "id": "src-pirelli", "name": "Pirelli", "kind": "manual", "identifier": "manual:pirelli", "priority": 88 },
     { "id": "src-bridgestone", "name": "Bridgestone", "kind": "manual", "identifier": "manual:bridgestone", "priority": 88 },
     { "id": "src-design911", "name": "Design 911", "kind": "csv", "identifier": "config/intelligence/seed-products.csv", "priority": 70 },
+    { "id": "src-design911-live", "name": "Design 911 catalogue", "kind": "sitemap", "identifier": "https://www.design911.co.uk/sitemap.xml", "priority": 80 },
     { "id": "src-manual", "name": "DRV247 curated research", "kind": "manual", "identifier": "manual:drv247", "priority": 45 }
   ],
   "manufacturers": [

@@ -60,3 +60,10 @@ export type AdapterResult = {
   products: NormalisedProduct[];
   errors: AdapterError[];
 };
+
+export type AdapterContext = {
+  manualProducts?: NormalisedProduct[];
+  cwd?: string;
+  allowLive?: boolean;
+  fetchImpl?: typeof fetch;
+};

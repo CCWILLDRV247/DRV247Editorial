@@ -296,7 +296,9 @@ export async function seedIntelligence(db: Db, cwd = process.cwd()) {
 
   const normalised: NormalisedProduct[] = [];
   for (const source of adapterSources) {
-    const result = runAdapter(source, { manualProducts: seed.products, cwd });
+    // Live catalogue adapters stay off the boot/seed path. Ingest them via
+    // /api/cron/intelligence-ingest or scripts/intelligence-ingest.ts.
+    const result = await runAdapter(source, { manualProducts: seed.products, cwd, allowLive: false });
     if (result.errors.length) {
       await db
         .update(productSources)

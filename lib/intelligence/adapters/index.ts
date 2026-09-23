@@ -1,18 +1,9 @@
-import type { AdapterResult, NormalisedProduct, ProductSourceRow } from "./types";
+import type { AdapterContext, AdapterResult, ProductSourceRow } from "./types";
 import { loadCsvProducts } from "./csv";
+import { loadDesign911Products, isDesign911Source } from "./design911";
 import { loadManualProducts } from "./manual";
 
-export function runAdapter(
-  source: ProductSourceRow,
-  context: { manualProducts?: NormalisedProduct[]; cwd?: string },
-): AdapterResult {
-  if (!source.enabled) return { products: [], errors: [] };
-  if (source.kind === "manual") {
-    return loadManualProducts(source, context.manualProducts ?? []);
-  }
-  if (source.kind === "csv") {
-    return loadCsvProducts(source, context.cwd);
-  }
+function reserved(source: ProductSourceRow): AdapterResult {
   return {
     products: [],
     errors: [
@@ -25,4 +16,25 @@ export function runAdapter(
   };
 }
 
-export type { AdapterResult, NormalisedProduct, ProductSourceRow } from "./types";
+export async function runAdapter(
+  source: ProductSourceRow,
+  context: AdapterContext = {},
+): Promise<AdapterResult> {
+  if (!source.enabled) return { products: [], errors: [] };
+  if (source.kind === "manual") {
+    return loadManualProducts(source, context.manualProducts ?? []);
+  }
+  if (source.kind === "csv") {
+    return loadCsvProducts(source, context.cwd);
+  }
+  if (source.kind === "sitemap") {
+    if (!context.allowLive) return { products: [], errors: [] };
+    if (isDesign911Source(source)) {
+      return loadDesign911Products(source, context);
+    }
+    return reserved(source);
+  }
+  return reserved(source);
+}
+
+export type { AdapterContext, AdapterResult, NormalisedProduct, ProductSourceRow } from "./types";
