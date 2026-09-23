@@ -12,8 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default function IntelligencePage() {
   return (
-    <main className="min-h-full bg-white text-ink">
-      <VehicleEntry />
-    </main>
+    <div className="min-h-full overflow-x-clip bg-white">
+      <main>
+        <VehicleEntry />
+      </main>
+    </div>
   );
 }

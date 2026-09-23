@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { FeatureTag } from "@/components/story-card";
 import {
   BUILD_DEFAULTS,
   BUILD_TYPES,
@@ -56,6 +55,15 @@ type ApiResult = {
   trace?: ApiTrace;
   error?: string;
 };
+
+const selectClass =
+  "h-11 min-w-0 w-full rounded-[5px] border border-[#1b1d1f] bg-white px-3 font-display text-lg font-bold uppercase text-[#1b1d1f]";
+
+const inkButtonClass =
+  "flex h-11 items-center justify-center rounded-[5px] bg-[#1b1d1f] px-6 font-display text-lg font-extrabold uppercase text-white disabled:opacity-50";
+
+const outlineButtonClass =
+  "inline-flex h-11 items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white px-6 font-display text-lg font-extrabold uppercase text-[#1b1d1f]";
 
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price == null) return null;
@@ -176,27 +184,32 @@ export function VehicleEntry() {
         : vehicleTitle(vehicle);
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
-      <header className="border-b border-border pb-8">
-        <p className="font-display text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">
-          DRV247 · Vehicle Intelligence
-        </p>
-        <h1 className="mt-3 max-w-4xl font-display text-5xl font-black uppercase leading-[0.82] tracking-[-0.03em] sm:text-6xl">
+    <div className="mx-auto max-w-6xl pb-20 text-[#1b1d1f]">
+      <header className="px-7 pt-8 md:px-6">
+        <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
           What do you want to do with your car?
         </h1>
-        <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground">
+        <p className="mt-8 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
+          Change it, or look after it.
+        </p>
+        <p className="mt-[26px] max-w-xl text-[18px] leading-[22px] tracking-[-0.36px]">
           We understand your car and what you want to do with it, then help you find the relevant
-          things to make it happen. Build and Maintain are different jobs — they never share a form.
+          things. Build discovers. Maintain replaces. They never share a form.
         </p>
       </header>
 
-      <form onSubmit={askEngine} className="mt-8 space-y-10">
+      <form onSubmit={askEngine} className="mt-12 space-y-14 px-7 md:px-6">
         <section aria-labelledby="car-heading">
-          <h2 id="car-heading" className="font-display text-2xl font-extrabold uppercase tracking-tight">
+          <h2
+            id="car-heading"
+            className="font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]"
+          >
             Your car
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">The seeded garage. One car at a time.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <p className="mt-4 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
+            The seeded garage. One car at a time.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
             {GARAGE_VEHICLES.map((row) => {
               const selected = row.id === vehicleId;
               return (
@@ -208,17 +221,23 @@ export function VehicleEntry() {
                     setResult(null);
                   }}
                   aria-pressed={selected}
-                  className={`rounded-xl border px-4 py-4 text-left transition ${
+                  className={`rounded-xl px-5 py-5 text-left transition ${
                     selected
-                      ? "border-ink bg-ink text-white"
-                      : "border-border bg-white hover:border-ink/40"
+                      ? "bg-[#1b1d1f] text-white"
+                      : "border border-[#1b1d1f] bg-white hover:bg-[#f3f3f3]"
                   }`}
                 >
-                  <p className="text-xs uppercase tracking-[0.16em] opacity-70">{row.owner}</p>
-                  <p className="mt-1 font-display text-2xl font-extrabold uppercase leading-none">
+                  <p
+                    className={`font-display text-lg font-bold uppercase leading-none ${
+                      selected ? "text-white/70" : "text-[#1b1d1f]/70"
+                    }`}
+                  >
+                    {row.owner}
+                  </p>
+                  <p className="mt-3 font-display text-[clamp(2.5rem,8vw,3.5rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
                     {row.generation}
                   </p>
-                  <p className="mt-2 text-sm">
+                  <p className="mt-3 text-[18px] leading-[22px] tracking-[-0.36px]">
                     {row.make} {row.model}
                     {row.variant ? ` ${row.variant}` : ""}
                   </p>
@@ -229,53 +248,41 @@ export function VehicleEntry() {
         </section>
 
         <section aria-labelledby="intent-heading">
-          <h2 id="intent-heading" className="font-display text-2xl font-extrabold uppercase tracking-tight">
-            Choose a path
+          <h2
+            id="intent-heading"
+            className="font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]"
+          >
+            Two paths
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Two intents. Never one funnel.
+          <p className="mt-4 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
+            Never one funnel.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <PathCard
+              label="Build"
+              dek="Change it. Improve it. Make it yours."
+              selected={intent === "build"}
               onClick={() => chooseIntent("build")}
-              aria-pressed={intent === "build"}
-              className={`rounded-xl border px-5 py-6 text-left transition ${
-                intent === "build" ? "border-ink bg-ink text-white" : "border-border hover:border-ink/40"
-              }`}
-            >
-              <p className="font-display text-4xl font-black uppercase leading-none">Build</p>
-              <p className={`mt-4 text-sm leading-6 ${intent === "build" ? "text-white/85" : "text-muted-foreground"}`}>
-                Change it. Improve it. Make it yours.
-              </p>
-            </button>
-            <button
-              type="button"
+            />
+            <PathCard
+              label="Maintain"
+              dek="Keep it running. Replace it. Look after it."
+              selected={intent === "maintain"}
               onClick={() => chooseIntent("maintain")}
-              aria-pressed={intent === "maintain"}
-              className={`rounded-xl border px-5 py-6 text-left transition ${
-                intent === "maintain" ? "border-ink bg-ink text-white" : "border-border hover:border-ink/40"
-              }`}
-            >
-              <p className="font-display text-4xl font-black uppercase leading-none">Maintain</p>
-              <p
-                className={`mt-4 text-sm leading-6 ${
-                  intent === "maintain" ? "text-white/85" : "text-muted-foreground"
-                }`}
-              >
-                Keep it running. Replace it. Look after it.
-              </p>
-            </button>
+            />
           </div>
         </section>
 
         {intent === "build" ? (
-          <section aria-labelledby="build-heading" className="space-y-5">
+          <section aria-labelledby="build-heading" className="space-y-6">
             <div>
-              <h2 id="build-heading" className="font-display text-2xl font-extrabold uppercase tracking-tight">
+              <h2
+                id="build-heading"
+                className="font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]"
+              >
                 Your build
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-4 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
                 Discovery for {vehicleTitle(vehicle)}. Type, objectives, budget, and usage. Style is
                 an aesthetic constraint — it is not a fitment claim.
               </p>
@@ -286,7 +293,7 @@ export function VehicleEntry() {
                   id="build-type"
                   value={buildType}
                   onChange={(event) => setBuildType(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-border bg-white px-3"
+                  className={selectClass}
                 >
                   {BUILD_TYPES.map((row) => (
                     <option key={row.slug} value={row.slug}>
@@ -300,7 +307,7 @@ export function VehicleEntry() {
                   id="build-budget"
                   value={budget}
                   onChange={(event) => setBudget(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-border bg-white px-3"
+                  className={selectClass}
                 >
                   {BUDGET_BANDS.map((row) => (
                     <option key={row.slug} value={row.slug}>
@@ -314,7 +321,7 @@ export function VehicleEntry() {
                   id="build-usage"
                   value={usage}
                   onChange={(event) => setUsage(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-border bg-white px-3"
+                  className={selectClass}
                 >
                   {USAGE_TYPES.map((row) => (
                     <option key={row.slug} value={row.slug}>
@@ -328,7 +335,7 @@ export function VehicleEntry() {
                   id="build-style"
                   value={style}
                   onChange={(event) => setStyle(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-border bg-white px-3"
+                  className={selectClass}
                 >
                   {STYLES.map((row) => (
                     <option key={row.slug} value={row.slug}>
@@ -339,14 +346,14 @@ export function VehicleEntry() {
               </Field>
             </div>
             <fieldset>
-              <legend className="text-sm font-medium">Objectives</legend>
-              <div className="mt-3 space-y-4">
+              <legend className="font-display text-lg font-bold uppercase">Objectives</legend>
+              <div className="mt-4 space-y-5">
                 {OBJECTIVE_CATEGORIES.map((category) => (
                   <div key={category.slug}>
-                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                    <p className="font-display text-lg font-bold uppercase leading-none text-[#1b1d1f]/70">
                       {category.name}
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       {OBJECTIVES.filter((row) => row.category === category.slug).map((row) => {
                         const selected = objectives.includes(row.slug);
                         return (
@@ -355,9 +362,11 @@ export function VehicleEntry() {
                             type="button"
                             onClick={() => toggleObjective(row.slug)}
                             aria-pressed={selected}
-                            className={`rounded-full border px-3 py-1 text-sm ${
-                              selected ? "border-ink bg-ink text-white" : "border-border hover:border-ink/40"
-                            }`}
+                            className={
+                              selected
+                                ? "inline-flex w-fit items-center rounded-[4px] bg-[#1b1d1f] px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-white"
+                                : "inline-flex w-fit items-center rounded-[4px] border border-[#1b1d1f]/20 bg-white px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-[#1b1d1f]"
+                            }
                           >
                             {row.name}
                           </button>
@@ -372,12 +381,15 @@ export function VehicleEntry() {
         ) : null}
 
         {intent === "maintain" ? (
-          <section aria-labelledby="maintain-heading" className="space-y-5">
+          <section aria-labelledby="maintain-heading" className="space-y-6">
             <div>
-              <h2 id="maintain-heading" className="font-display text-2xl font-extrabold uppercase tracking-tight">
+              <h2
+                id="maintain-heading"
+                className="font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]"
+              >
                 The job
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-4 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
                 A replacement for {vehicleTitle(vehicle)} — not a taste brief. Grade cannot admit the
                 wrong part.
               </p>
@@ -388,7 +400,7 @@ export function VehicleEntry() {
                   id="maintain-type"
                   value={maintainType}
                   onChange={(event) => setMaintainType(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-border bg-white px-3"
+                  className={selectClass}
                 >
                   {MAINTENANCE_TYPES.map((row) => (
                     <option key={row.slug} value={row.slug}>
@@ -402,7 +414,7 @@ export function VehicleEntry() {
                   id="maintain-component"
                   value={component}
                   onChange={(event) => setComponent(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-border bg-white px-3"
+                  className={selectClass}
                 >
                   {MAINTENANCE_COMPONENTS.map((row) => (
                     <option key={row.slug} value={row.slug}>
@@ -413,9 +425,11 @@ export function VehicleEntry() {
               </Field>
             </div>
             <fieldset>
-              <legend className="text-sm font-medium">Replacement grade</legend>
-              <p className="mt-1 text-sm text-muted-foreground">OEM, OEM+, or Upgrade. Fitment still wins.</p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <legend className="font-display text-lg font-bold uppercase">Replacement grade</legend>
+              <p className="mt-3 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
+                OEM, OEM+, or Upgrade. Fitment still wins.
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {REPLACEMENT_GRADES.map((row) => {
                   const selected = row.slug === grade;
                   return (
@@ -427,18 +441,18 @@ export function VehicleEntry() {
                         setResult(null);
                       }}
                       aria-pressed={selected}
-                      className={`rounded-xl border px-4 py-4 text-left transition ${
+                      className={`rounded-xl px-5 py-5 text-left transition ${
                         selected
-                          ? "border-ink bg-ink text-white"
-                          : "border-border bg-white hover:border-ink/40"
+                          ? "bg-[#1b1d1f] text-white"
+                          : "border border-[#1b1d1f] bg-white hover:bg-[#f3f3f3]"
                       }`}
                     >
-                      <p className="font-display text-2xl font-extrabold uppercase leading-none">
+                      <p className="font-display text-[clamp(2rem,6vw,2.75rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
                         {row.name}
                       </p>
                       <p
-                        className={`mt-2 text-sm leading-5 ${
-                          selected ? "text-white/80" : "text-muted-foreground"
+                        className={`mt-3 text-[18px] leading-[22px] tracking-[-0.36px] ${
+                          selected ? "text-white/80" : "text-[#1b1d1f]/70"
                         }`}
                       >
                         {row.description}
@@ -452,23 +466,28 @@ export function VehicleEntry() {
         ) : null}
 
         {intent ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" size="lg" disabled={loading} className="h-11 px-5">
+          <div className="space-y-3">
+            <button type="submit" disabled={loading} className={`${inkButtonClass} w-full sm:w-auto`}>
               {loading
-                ? "Finding the relevant set…"
+                ? "Looking…"
                 : intent === "build"
                   ? "See recommendations"
                   : "Find replacements"}
-            </Button>
-            <p className="text-sm text-muted-foreground">{pathSummary}</p>
+            </button>
+            <p className="font-display text-lg font-bold uppercase text-[#1b1d1f]/70">{pathSummary}</p>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Pick Build or Maintain to continue.</p>
+          <p className="text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
+            Pick Build or Maintain to continue.
+          </p>
         )}
       </form>
 
       {error ? (
-        <p role="alert" className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+        <p
+          role="alert"
+          className="mx-7 mt-10 border border-[#1b1d1f]/20 px-5 py-4 text-[18px] leading-[22px] tracking-[-0.36px] md:mx-6"
+        >
           {error}
         </p>
       ) : null}
@@ -485,6 +504,40 @@ export function VehicleEntry() {
   );
 }
 
+function PathCard({
+  label,
+  dek,
+  selected,
+  onClick,
+}: {
+  label: string;
+  dek: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`min-h-[180px] rounded-xl px-6 py-7 text-left transition ${
+        selected ? "bg-[#1b1d1f] text-white" : "border border-[#1b1d1f] bg-white hover:bg-[#f3f3f3]"
+      }`}
+    >
+      <p className="font-display text-[clamp(3.5rem,10vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
+        {label}
+      </p>
+      <p
+        className={`mt-6 text-[18px] leading-[22px] tracking-[-0.36px] ${
+          selected ? "text-white/85" : "text-[#1b1d1f]/70"
+        }`}
+      >
+        {dek}
+      </p>
+    </button>
+  );
+}
+
 function Field({
   label,
   htmlFor,
@@ -495,9 +548,9 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label htmlFor={htmlFor} className="block text-sm font-medium">
-      {label}
-      <div className="mt-1.5">{children}</div>
+    <label htmlFor={htmlFor} className="block">
+      <span className="font-display text-lg font-bold uppercase">{label}</span>
+      <div className="mt-2">{children}</div>
     </label>
   );
 }
@@ -514,35 +567,32 @@ function Results({
   gradeName: string;
 }) {
   const heading = intent === "build" ? "Recommended for your build" : "For this job";
-  const vehicleLine = [
-    result.vehicle.year,
-    result.vehicle.make,
-    result.vehicle.model,
-    result.vehicle.variant,
-  ]
+  const vehicleLine = [result.vehicle.year, result.vehicle.make, result.vehicle.model, result.vehicle.variant]
     .filter(Boolean)
     .join(" ");
 
   return (
-    <section aria-live="polite" className="mt-12 border-t border-border pt-8">
-      <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+    <section aria-live="polite" className="mt-16 px-7 md:px-6">
+      <p className="font-display text-lg font-bold uppercase text-[#1b1d1f]/70">
         {intent === "build" ? "Build" : `Maintain · ${gradeName}`} · {vehicleLine}
         {result.vehicle.engine ? ` · ${result.vehicle.engine}` : ""}
       </p>
-      <h2 className="mt-2 font-display text-4xl font-black uppercase leading-none tracking-tight">
+      <h2 className="mt-4 font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
         {heading}
       </h2>
       {intent === "build" && objectiveSummary ? (
-        <p className="mt-3 text-sm text-muted-foreground">Looking for {objectiveSummary}.</p>
+        <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
+          Looking for {objectiveSummary}.
+        </p>
       ) : null}
 
       {result.recommendations.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-border px-4 py-5 text-sm text-muted-foreground">
+        <p className="mt-8 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
           Nothing we can stand behind for this brief. An empty honest set is better than a confident
           wrong part.
         </p>
       ) : (
-        <ul className="mt-6 grid gap-4">
+        <ul className="mt-8 grid gap-4">
           {result.recommendations.map((card) => (
             <li key={`${card.kind}-${card.name}-${card.category}`}>
               <RecommendationCard card={card} />
@@ -552,15 +602,15 @@ function Results({
       )}
 
       {result.trace && (result.trace.suppressed.length || result.trace.withheld.length) ? (
-        <details className="mt-8 rounded-xl border border-border px-4 py-3 text-sm">
-          <summary className="cursor-pointer font-medium">
+        <details className="mt-10 border-t border-[#1b1d1f]/10 pt-6 text-[18px] leading-[22px] tracking-[-0.36px]">
+          <summary className="cursor-pointer font-display text-lg font-bold uppercase">
             Not shown as recommendations
             {result.trace.suppressed.length
               ? ` · ${result.trace.suppressed.length} already fitted`
               : ""}
             {result.trace.withheld.length ? ` · ${result.trace.withheld.length} withheld` : ""}
           </summary>
-          <ul className="mt-3 space-y-2 text-muted-foreground">
+          <ul className="mt-4 space-y-2 text-[#1b1d1f]/70">
             {result.trace.suppressed.map((event) => (
               <li key={`sup-${event.name}`}>
                 {event.name} — {event.reason}
@@ -584,43 +634,51 @@ function RecommendationCard({ card }: { card: ApiCard }) {
   const monogram = (card.manufacturer || card.category || card.kind).slice(0, 1).toUpperCase();
 
   return (
-    <article className="overflow-hidden rounded-xl border border-border bg-white">
-      <div className="grid gap-0 sm:grid-cols-[8rem_1fr]">
-        <div className="flex min-h-32 items-center justify-center bg-muted">
+    <article className="overflow-hidden rounded-xl bg-[#f3f3f3]">
+      <div className="grid gap-0 sm:grid-cols-[10rem_1fr]">
+        <div className="flex min-h-36 items-center justify-center bg-[#1b1d1f] text-white">
           {card.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={card.image} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="font-display text-5xl font-black text-muted-foreground/50">{monogram}</span>
+            <span className="font-display text-[80px] font-black leading-none tracking-[-0.04em]">
+              {monogram}
+            </span>
           )}
         </div>
-        <div className="space-y-3 px-5 py-5">
+        <div className="space-y-5 px-6 py-6">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{card.kind === "specialist" ? "Specialist" : "Product"}</Badge>
-            {card.category ? <Badge variant="secondary">{card.category}</Badge> : null}
+            <FeatureTag>{card.kind === "specialist" ? "Specialist" : "Product"}</FeatureTag>
+            {card.category ? (
+              <span className="inline-flex w-fit items-center rounded-[4px] bg-[#1b1d1f] px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-white">
+                {card.category}
+              </span>
+            ) : null}
           </div>
           <div>
-            <h3 className="font-display text-3xl font-extrabold uppercase leading-none tracking-tight">
+            <h3 className="font-display text-[clamp(2rem,6vw,3.25rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
               {card.name}
             </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-3 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
               {[card.manufacturer, card.supplier, card.location].filter(Boolean).join(" · ")}
               {price ? ` · ${price}` : ""}
             </p>
           </div>
           {card.fitmentLabel && tone !== "hidden" ? (
-            <p className={`text-sm ${tone === "caution" ? "text-amber-800" : "text-foreground"}`}>
+            <p
+              className={`text-[18px] leading-[22px] tracking-[-0.36px] ${
+                tone === "caution" ? "text-[#1b1d1f]/70" : "text-[#1b1d1f]"
+              }`}
+            >
               {card.fitmentLabel}
             </p>
           ) : null}
           {card.reasons.length ? (
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                Why we&apos;re showing you this
-              </p>
-              <ul className="mt-2 space-y-1">
+              <p className="font-display text-lg font-bold uppercase">Why we&apos;re showing you this</p>
+              <ul className="mt-3 space-y-2">
                 {card.reasons.map((reason) => (
-                  <li key={reason.code} className="flex gap-2 text-sm">
+                  <li key={reason.code} className="flex gap-2 text-[18px] leading-[22px] tracking-[-0.36px]">
                     <span aria-hidden="true">✓</span>
                     <span>
                       {reason.label}
@@ -636,7 +694,7 @@ function RecommendationCard({ card }: { card: ApiCard }) {
               href={card.url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex text-sm font-medium underline underline-offset-4"
+              className={`${outlineButtonClass} w-full sm:w-auto`}
             >
               {card.kind === "specialist" ? "Visit specialist" : "View product"}
             </a>
