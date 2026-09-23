@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { after } from "next/server";
+import { startLiveIntelligenceIngest } from "@/lib/intelligence/ingest";
 import { VehicleEntry } from "./vehicle-entry";
 
 export const metadata: Metadata = {
@@ -11,6 +13,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default function IntelligencePage() {
+  after(() => {
+    startLiveIntelligenceIngest();
+  });
   return (
     <div className="min-h-full overflow-x-clip bg-white">
       <main>

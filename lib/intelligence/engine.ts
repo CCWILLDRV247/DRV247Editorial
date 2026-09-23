@@ -27,6 +27,7 @@ import {
   vehicleModifications,
 } from "@/lib/db/intelligence-schema";
 import { loadBuildConfig, runBuildPipeline, type BuildContext } from "./build";
+import { ensureLiveIntelligenceSources } from "./ingest";
 import { loadMaintainConfig, normaliseReplacementGrade, runMaintainPipeline } from "./maintain";
 import { REPLACEMENT_GRADES } from "./types";
 import { bestFitment } from "./fitment";
@@ -199,6 +200,7 @@ export async function recommend(input: RecommendInput): Promise<RecommendResult>
   if (input.intent === "restore") {
     throw new Error("restore is reserved and not implemented in V1");
   }
+  await ensureLiveIntelligenceSources();
   const db = await getDb();
   const vehicle = await loadVehicle(input.vehicleId);
   if (!vehicle) throw new Error(`Unknown vehicle ${input.vehicleId}`);
