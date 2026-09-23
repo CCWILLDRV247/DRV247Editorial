@@ -3,8 +3,11 @@ import path from "node:path";
 import { createClient, type Client } from "@libsql/client";
 import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
+import * as intelligenceSchema from "./intelligence-schema";
 import { seedIfEmpty } from "./seed";
 import { seedEngine } from "@/lib/engine/seed";
+import { ensureIntelligenceSchema } from "@/lib/intelligence/ensure";
+import { seedIntelligence } from "@/lib/intelligence/seed";
 
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS categories (
@@ -193,7 +196,8 @@ const SCHEMA_STATEMENTS = [
     )`,
 ];
 
-export type AppDb = LibSQLDatabase<typeof schema>;
+const appSchema = { ...schema, ...intelligenceSchema };
+export type AppDb = LibSQLDatabase<typeof appSchema>;
 
 const globalForDb = globalThis as unknown as {
   drvLibsql?: Client;
@@ -376,9 +380,11 @@ async function createDb() {
   const client = globalForDb.drvLibsql ?? createClient(connection());
   globalForDb.drvLibsql = client;
   await ensureSchema(client);
-  const db = drizzle(client, { schema });
-  await seedIfEmpty(db);
-  await seedEngine(db);
+  await ensureIntelligenceSchema(client);
+  const db = drizzle(client, { schema: appSchema });
+  await seedIfEmpty(db as never);
+  await seedEngine(db as never);
+  await seedIntelligence(db as never);
   globalForDb.drvDb = db;
   return db;
 }

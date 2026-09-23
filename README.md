@@ -1,6 +1,6 @@
 # DRV247 Editorial
 
-UK/EU automotive culture desk. Seventy-four live culture titles: the original CSV minus the dark list, plus 28 underground Priority titles. Flat 6, AUTOMOBILSPORT, 9WERKS, and EuroStance stay dark — EuroStance is a shop; 9WERKS is paywalled. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled but Cloudflare 403s. Teasers and outbound links only — never full article bodies. Ingest keeps English teasers, skips non-English items, and skips shop URLs. User-facing nav is For You, Cars, Culture, Driving, Motorsport, and Events.
+UK/EU automotive culture desk. Seventy-four live culture titles: the original CSV minus the dark list, plus 28 underground Priority titles. Flat 6, AUTOMOBILSPORT, 9WERKS, and EuroStance stay dark — EuroStance is a shop; 9WERKS is paywalled. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled but Cloudflare 403s. Teasers and outbound links only — never full article bodies. Ingest keeps English teasers, skips non-English items, and skips shop URLs. User-facing nav is For You, Cars, Culture, Driving, and Events. Motorsport is taxonomy-only, not on the primary bar. Vehicle Intelligence lives at `/intelligence` and is not linked from the homepage.
 
 ## Run locally
 
@@ -24,7 +24,7 @@ Set these on the `drv247-editorial` project (Preview and Production):
 | --- | --- |
 | `TURSO_DATABASE_URL` | libSQL URL, e.g. `libsql://drv247-editorial-….turso.io` |
 | `TURSO_AUTH_TOKEN` | Turso database token |
-| `CRON_SECRET` | Shared secret for weekly ingest (`Authorization: Bearer …`) |
+| `CRON_SECRET` | Shared secret for weekly editorial ingest **and** the intelligence catalogue cron (`Authorization: Bearer …`) |
 | `ADMIN_PASSWORD` | Desk login (already set) |
 
 Create the database in **Dublin (`dub1`)** so it sits with the Vercel functions (`regions: ["dub1"]` in `vercel.json`):
@@ -47,6 +47,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 - **Admin** (`/admin/engine`) — ingest now, source health, classification, **Desk curation** (select a teaser, label, optional note, active/featured), For You ranking debug (article / score / why)
 - **JSON** — `GET /api/editorial` (includes `ranking` why/score when a test profile is set), `GET /api/editorial/status`
 - **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
+- **Vehicle Intelligence** — `/intelligence` (same Vercel project and Turso database; Design 911 + Eurospares). Not on the magazine nav. Live catalogues refresh on `15 6 * * 1` → `/api/cron/intelligence-ingest`.
 
 ## Ingest
 
