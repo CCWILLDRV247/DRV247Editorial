@@ -145,6 +145,7 @@ function extractLocs(xml: string): string[] {
 
 export function urlBucket(url: string): string {
   const value = url.toLowerCase();
+  if (/cover-plate|pad-pin|pin-kit|bolt|nut|washer|gasket|bracket/.test(value)) return "other";
   if (/brake-disc|disc-rotor|brake-rotor/.test(value)) return "brake-discs";
   if (/brake-pad/.test(value)) return "brake-pads";
   if (/exhaust|muffler|silencer/.test(value)) return "exhaust";
@@ -175,6 +176,9 @@ export function isAllowedDesign911Url(url: string, config: Design911Config): boo
   const turboOnly = /(?:^|[^0-9])965(?:[^0-9]|$)|turbo/.test(value) && !/(c2|c4|carrera|964-rs|\/rs)/.test(value);
   if (turboOnly) return false;
   if (/1965|1966|1967|1968|1969|1970|1971|1972|1973|1974|1975/.test(value) && /caliper/.test(value)) {
+    return false;
+  }
+  if (/cover-plate|pad-pin|pin-kit|(?:^|-)bolt(?:-|$)|(?:^|-)nut(?:-|$)|washer|gasket|bracket/.test(value)) {
     return false;
   }
   return true;
@@ -222,6 +226,12 @@ export function mapDesign911Category(category: string | null, name: string, url:
   subcategory: string | null;
 } {
   const haystack = `${category ?? ""} ${name} ${url}`.toLowerCase();
+  if (/service kit/.test(haystack)) {
+    return { category: "service", subcategory: category };
+  }
+  if (/cover plate|pad pin|pin kit|bolt|nut|washer|gasket|bracket/.test(haystack)) {
+    return { category: "uncategorised", subcategory: category };
+  }
   if (/brake disc|brake-disc|disc rotor|brake rotor/.test(haystack)) {
     return { category: "brake-discs", subcategory: category };
   }
@@ -234,14 +244,15 @@ export function mapDesign911Category(category: string | null, name: string, url:
   if (/coilover|shock absorber|damper|suspension|lowering spring/.test(haystack)) {
     return { category: "suspension", subcategory: category };
   }
-  if (/(bmc|k&n|k and n|vortex|designtek).{0,40}(air filter|intake)|performance air filter/.test(haystack)) {
+  if (
+    /(bmc|k&n|k and n|vortex|designtek).{0,40}(air filter|intake)|(air filter|intake).{0,40}(bmc|k&n|k and n|vortex|designtek)|performance air filter/.test(
+      haystack,
+    )
+  ) {
     return { category: "intake", subcategory: category };
   }
   if (/air filter|oil filter/.test(haystack)) {
     return { category: "filters", subcategory: category };
-  }
-  if (/service kit/.test(haystack)) {
-    return { category: "service", subcategory: category };
   }
   return { category: "uncategorised", subcategory: category };
 }

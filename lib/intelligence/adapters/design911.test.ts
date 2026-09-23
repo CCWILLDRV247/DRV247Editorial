@@ -82,6 +82,10 @@ describe("Design 911 adapter", () => {
       mapDesign911Category("Service Parts > Air Filters", "BMC Air Filter. Porsche 964", "bmc-air-filter").category,
       "intake",
     );
+    assert.equal(
+      mapDesign911Category("Service Parts", "Engine Service Kit for Porsche 964", "service-kits-for-porsche-964").category,
+      "service",
+    );
   });
 
   it("parses 1989-94 as a year window and never upgrades to exact", () => {

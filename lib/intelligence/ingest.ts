@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db";
 import { productSources } from "@/lib/db/intelligence-schema";
 import { runAdapter } from "./adapters";
 import type { AdapterResult, NormalisedProduct, ProductSourceRow } from "./adapters/types";
-import { persistNormalisedProducts } from "./writer";
+import { deleteProductsForSources, persistNormalisedProducts } from "./writer";
 
 const LIVE_KINDS = new Set(["sitemap", "scrape", "api", "feed", "rss", "xml"]);
 
@@ -76,6 +76,8 @@ export async function ingestIntelligenceSources(options?: {
   }
 
   if (normalised.length) {
+    const replaced = [...new Set(normalised.map((item) => item.source_id))];
+    await deleteProductsForSources(db, replaced);
     await persistNormalisedProducts(db, normalised);
   }
 

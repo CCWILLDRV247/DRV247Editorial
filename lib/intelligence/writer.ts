@@ -26,6 +26,32 @@ function exactKey(manufacturerSlug: string | null, partNumber: string | null): s
   return `${slugify(manufacturerSlug)}::${slugify(partNumber)}`;
 }
 
+export async function deleteProductsForSources(db: Db, sourceIds: string[]) {
+  if (!sourceIds.length) return;
+  const existing = await db.select({ id: products.id }).from(products).where(inArray(products.sourceId, sourceIds));
+  if (!existing.length) return;
+  const productIds = existing.map((row) => row.id);
+  const existingFitments = await db
+    .select({ id: vehicleFitments.id })
+    .from(vehicleFitments)
+    .where(inArray(vehicleFitments.productId, productIds));
+  if (existingFitments.length) {
+    const fitmentIds = existingFitments.map((row) => row.id);
+    const linked = await db
+      .select({ id: recommendations.id })
+      .from(recommendations)
+      .where(inArray(recommendations.fitmentId, fitmentIds));
+    if (linked.length) {
+      const recIds = linked.map((row) => row.id);
+      await db.delete(recommendationReasons).where(inArray(recommendationReasons.recommendationId, recIds));
+      await db.delete(recommendations).where(inArray(recommendations.id, recIds));
+    }
+    await db.delete(vehicleFitments).where(inArray(vehicleFitments.productId, productIds));
+  }
+  await db.delete(productAttributes).where(inArray(productAttributes.productId, productIds));
+  await db.delete(products).where(inArray(products.id, productIds));
+}
+
 export async function persistNormalisedProducts(db: Db, incoming: NormalisedProduct[]) {
   const now = Date.now();
   const manufacturerRows = await db.select().from(manufacturers);
