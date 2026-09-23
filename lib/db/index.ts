@@ -166,7 +166,15 @@ const SCHEMA_STATEMENTS = [
       make TEXT NOT NULL,
       model TEXT NOT NULL,
       generation TEXT,
-      variant TEXT
+      variant TEXT,
+      year INTEGER,
+      engine TEXT,
+      fuel TEXT,
+      transmission TEXT,
+      body TEXT,
+      power_bhp INTEGER,
+      registration TEXT,
+      specification TEXT
     )`,
   `CREATE TABLE IF NOT EXISTS demo_user_interests (
       user_id TEXT NOT NULL REFERENCES demo_users(id),
