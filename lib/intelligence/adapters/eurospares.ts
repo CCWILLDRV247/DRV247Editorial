@@ -56,7 +56,7 @@ const DEFAULT_CONFIG: EurosparesConfig = {
   yearTo: 1999,
 };
 
-const FASTENER = /^(washer|screw|bolt|nut|spacer|pipe|cover|spring|clamp|ring|rosetta|mounting)\b/i;
+const FASTENER = /^(washer|screw|bolt|nut|spacer|pipe|cover|spring|clamp|ring|rosetta|mounting|plug)\b|washer|copper washer/i;
 
 export function isEurosparesSource(source: ProductSourceRow): boolean {
   const haystack = `${source.id} ${source.name} ${source.identifier ?? ""}`.toLowerCase();
@@ -164,7 +164,7 @@ export function rejectEurosparesProduct(input: { name: string; url: string; manu
   if (/\b964\b|\be46\b/.test(haystack)) return "Out of scope: 964/E46";
   if (/\bporsche\b|\bbmw\b/.test(haystack)) return "Out of scope: non-Ferrari";
   if (/\bmaserati\b/.test(haystack) && !/\bferrari\b/.test(haystack)) return "Out of scope: non-Ferrari";
-  if (/\b348\b/.test(haystack) && !/\bf355\b|\b355\b/.test(haystack)) return "Wrong Ferrari generation";
+  if (/348/.test(haystack) && !/\bf355\b/.test(haystack)) return "Wrong Ferrari generation";
   if (FASTENER.test(input.name)) return "Fastener, not a recommendable part";
   if (!/ferrari|f355|\b355\b|brembo|exhaust|silencer|brake|pad|disc|caliper|intake|filter|suspension|shock/i.test(haystack)) {
     return "Not an F355-relevant part";

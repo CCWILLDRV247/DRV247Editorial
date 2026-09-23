@@ -53,6 +53,7 @@ describe("Eurospares adapter", () => {
 
   it("drops fasteners and 964/E46 coverage", () => {
     assert.equal(rejectEurosparesProduct({ name: "Washer", url: "/parts/1/ferrari", manufacturer: "ferrari" }), "Fastener, not a recommendable part");
+    assert.ok(rejectEurosparesProduct({ name: "348Chall Brake Pad Each", url: "/parts/168780/ferrari", manufacturer: "ferrari" }));
     assert.equal(
       rejectEurosparesProduct({ name: "964 brake pad", url: "/parts/1/ferrari", manufacturer: "ferrari" }),
       "Out of scope: 964/E46",
