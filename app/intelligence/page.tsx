@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteHeader } from "@/components/site-chrome";
 import { VehicleEntry } from "./vehicle-entry";
 
 export const metadata: Metadata = {
@@ -12,8 +13,11 @@ export const dynamic = "force-dynamic";
 
 export default function IntelligencePage() {
   return (
-    <main className="min-h-full bg-white text-ink">
-      <VehicleEntry />
-    </main>
+    <div className="min-h-full overflow-x-clip bg-white">
+      <SiteHeader title="Your car" backHref="/" />
+      <main className="pt-2">
+        <VehicleEntry />
+      </main>
+    </div>
   );
 }
