@@ -234,7 +234,12 @@ async function ensureSchema(client: Client) {
     await client.execute("SELECT 1 FROM media_sources LIMIT 1");
   } catch {
     for (const sql of SCHEMA_STATEMENTS) {
-      await client.execute(sql);
+      try {
+        await client.execute(sql);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!/no such table/i.test(message)) throw error;
+      }
     }
   }
   await ensureTaxonomy(client);
