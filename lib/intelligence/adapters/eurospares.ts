@@ -304,23 +304,29 @@ async function fetchHtmlWithChrome(url: string): Promise<string> {
     fs.existsSync(bin),
   );
   if (!chrome) throw new Error("Chrome is required to read Eurospares HTML behind Sucuri");
-  const profile = path.join(os.tmpdir(), "drv247-eurospares-chrome");
-  const { stdout } = await execFileAsync(
-    chrome,
-    [
-      "--headless",
-      "--disable-gpu",
-      "--no-first-run",
-      `--user-data-dir=${profile}`,
-      "--dump-dom",
-      url,
-    ],
-    { timeout: 45000, maxBuffer: 12 * 1024 * 1024 },
-  );
-  if (!stdout.includes("application/ld+json") && /You are being redirected/i.test(stdout)) {
-    throw new Error(`Sucuri challenge still present for ${url}`);
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), "drv247-eurospares-"));
+  try {
+    const { stdout } = await execFileAsync(
+      chrome,
+      [
+        "--headless",
+        "--disable-gpu",
+        "--no-first-run",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        `--user-data-dir=${profile}`,
+        "--dump-dom",
+        url,
+      ],
+      { timeout: 45000, maxBuffer: 12 * 1024 * 1024 },
+    );
+    if (!stdout.includes("application/ld+json") && /You are being redirected/i.test(stdout)) {
+      throw new Error(`Sucuri challenge still present for ${url}`);
+    }
+    return stdout;
+  } finally {
+    fs.rmSync(profile, { recursive: true, force: true });
   }
-  return stdout;
 }
 
 export async function discoverEurosparesDiagrams(

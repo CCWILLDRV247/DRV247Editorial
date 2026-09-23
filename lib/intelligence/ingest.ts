@@ -78,6 +78,10 @@ export async function ingestIntelligenceSources(options?: {
         })
         .where(eq(productSources.id, source.id));
     }
+    if (result.products.length) {
+      await deleteProductsForSources(db, [source.id]);
+      await persistNormalisedProducts(db, result.products);
+    }
     normalised.push(...result.products);
     sources.push({
       sourceId: source.id,
@@ -85,12 +89,6 @@ export async function ingestIntelligenceSources(options?: {
       products: result.products.length,
       errors: result.errors,
     });
-  }
-
-  if (normalised.length) {
-    const replaced = [...new Set(normalised.map((item) => item.source_id))];
-    await deleteProductsForSources(db, replaced);
-    await persistNormalisedProducts(db, normalised);
   }
 
   return {
