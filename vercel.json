@@ -6,12 +6,18 @@
     "app/api/editorial/ingest/route.ts": { "maxDuration": 300 },
     "app/api/editorial/reprocess/route.ts": { "maxDuration": 300 },
     "app/api/admin/ingest/route.ts": { "maxDuration": 300 },
-    "app/api/cron/ingest/route.ts": { "maxDuration": 300 }
+    "app/api/cron/ingest/route.ts": { "maxDuration": 300 },
+    "app/api/cron/intelligence-ingest/route.ts": { "maxDuration": 300 },
+    "app/api/intelligence/ingest/route.ts": { "maxDuration": 300 }
   },
   "crons": [
     {
       "path": "/api/cron/ingest",
       "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/intelligence-ingest",
+      "schedule": "15 6 * * 1"
     }
   ]
 }

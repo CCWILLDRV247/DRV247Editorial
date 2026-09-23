@@ -299,7 +299,27 @@ function maybeGunzip(buf: Buffer): string {
   return buf.toString("utf8");
 }
 
+export function eurosparesChromeAllowed(): boolean {
+  if (process.env.VERCEL || process.env.INTELLIGENCE_DISABLE_CHROME === "1") return false;
+  return ["/usr/local/bin/google-chrome", "/usr/bin/google-chrome", "/usr/bin/chromium"].some((bin) =>
+    fs.existsSync(bin),
+  );
+}
+
+export function loadEurosparesSnapshot(cwd = process.cwd()): NormalisedProduct[] {
+  const file = path.join(cwd, "config/intelligence/eurospares-snapshot.json");
+  try {
+    const rows = JSON.parse(fs.readFileSync(file, "utf8")) as NormalisedProduct[];
+    return Array.isArray(rows) ? rows : [];
+  } catch {
+    return [];
+  }
+}
+
 async function fetchHtmlWithChrome(url: string): Promise<string> {
+  if (!eurosparesChromeAllowed()) {
+    throw new Error("Eurospares Chrome extract is disabled on serverless");
+  }
   const chrome = ["/usr/local/bin/google-chrome", "/usr/bin/google-chrome", "/usr/bin/chromium"].find((bin) =>
     fs.existsSync(bin),
   );
@@ -373,6 +393,7 @@ export async function loadEurosparesProducts(
   }));
   const selected = selectEurosparesDiagrams(discovered.urls, config);
   const incoming: NormalisedProduct[] = [];
+  const allowChrome = eurosparesChromeAllowed();
   for (const diagramUrl of selected) {
     let html: string;
     try {
@@ -380,7 +401,18 @@ export async function loadEurosparesProducts(
         headers: { "User-Agent": config.userAgent, Accept: "text/html" },
       });
       const text = await direct.text();
-      html = /application\/ld\+json/.test(text) ? text : await fetchHtmlWithChrome(diagramUrl);
+      if (/application\/ld\+json/.test(text)) {
+        html = text;
+      } else if (allowChrome) {
+        html = await fetchHtmlWithChrome(diagramUrl);
+      } else {
+        errors.push({
+          sourceId: source.id,
+          kind: "http",
+          message: `Sucuri HTML on ${diagramUrl}; using snapshot on serverless`,
+        });
+        continue;
+      }
     } catch (error) {
       errors.push({
         sourceId: source.id,
@@ -403,5 +435,19 @@ export async function loadEurosparesProducts(
       incoming.push(normalised);
     }
   }
-  return { products: pickBucketed(incoming, config), errors };
+  if (incoming.length) {
+    return { products: pickBucketed(incoming, config), errors };
+  }
+  const snapshot = loadEurosparesSnapshot(context.cwd).map((row) => ({
+    ...row,
+    source_id: source.id,
+  }));
+  if (snapshot.length) {
+    errors.push({
+      sourceId: source.id,
+      kind: "parse",
+      message: `Live HTML unavailable; loaded ${snapshot.length} F355 snapshot offers`,
+    });
+  }
+  return { products: snapshot, errors };
 }

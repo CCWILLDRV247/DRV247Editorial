@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   cleanEurosparesName,
+  eurosparesChromeAllowed,
   inferEurosparesFitment,
   isAllowedEurosparesDiagram,
   loadEurosparesConfig,
+  loadEurosparesSnapshot,
   mapEurosparesCategory,
   normaliseEurosparesProduct,
   parseEurosparesJsonLd,
@@ -112,5 +114,25 @@ describe("Eurospares adapter", () => {
     assert.equal(fitment.year_to, 1999);
     assert.equal(fitment.confidence, "generation");
     assert.equal(fitment.engine, null);
+  });
+
+  it("loads the F355 snapshot without Chrome and keeps generation fitment", () => {
+    const snapshot = loadEurosparesSnapshot("/home/ubuntu/worktrees/drv247-intelligence-oem-brakes");
+    assert.ok(snapshot.length >= 8);
+    assert.ok(snapshot.every((row) => row.url?.includes("/parts/") && row.url.includes("/ferrari")));
+    assert.ok(snapshot.some((row) => row.category === "brake-discs"));
+    assert.ok(snapshot.some((row) => row.category === "brake-pads"));
+    assert.ok(snapshot.every((row) => row.fitments?.every((fit) => fit.confidence === "generation")));
+  });
+
+  it("disables Chrome on Vercel", () => {
+    const previous = process.env.VERCEL;
+    process.env.VERCEL = "1";
+    try {
+      assert.equal(eurosparesChromeAllowed(), false);
+    } finally {
+      if (previous === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = previous;
+    }
   });
 });

@@ -24,7 +24,7 @@ Set these on the `drv247-editorial` project (Preview and Production):
 | --- | --- |
 | `TURSO_DATABASE_URL` | libSQL URL, e.g. `libsql://drv247-editorial-….turso.io` |
 | `TURSO_AUTH_TOKEN` | Turso database token |
-| `CRON_SECRET` | Shared secret for weekly ingest (`Authorization: Bearer …`) |
+| `CRON_SECRET` | Shared secret for weekly editorial ingest **and** the intelligence catalogue cron (`Authorization: Bearer …`) |
 | `ADMIN_PASSWORD` | Desk login (already set) |
 
 Create the database in **Dublin (`dub1`)** so it sits with the Vercel functions (`regions: ["dub1"]` in `vercel.json`):
@@ -47,6 +47,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 - **Admin** (`/admin/engine`) — ingest now, source health
 - **JSON** — `GET /api/editorial`, `GET /api/editorial/status`
 - **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
+- **Vehicle Intelligence** — `/intelligence` (same Vercel project and Turso database). Live catalogues refresh on `15 6 * * 1` → `/api/cron/intelligence-ingest` (not the editorial cron).
 
 ## Ingest
 
