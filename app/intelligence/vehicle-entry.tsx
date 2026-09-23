@@ -224,7 +224,7 @@ export function VehicleEntry() {
                   className={`rounded-xl px-5 py-5 text-left transition ${
                     selected
                       ? "bg-[#1b1d1f] text-white"
-                      : "border border-[#1b1d1f]/15 bg-white hover:border-[#1b1d1f]/40"
+                      : "border border-[#1b1d1f] bg-white hover:bg-[#f3f3f3]"
                   }`}
                 >
                   <p
@@ -444,7 +444,7 @@ export function VehicleEntry() {
                       className={`rounded-xl px-5 py-5 text-left transition ${
                         selected
                           ? "bg-[#1b1d1f] text-white"
-                          : "border border-[#1b1d1f]/15 bg-white hover:border-[#1b1d1f]/40"
+                          : "border border-[#1b1d1f] bg-white hover:bg-[#f3f3f3]"
                       }`}
                     >
                       <p className="font-display text-[clamp(2rem,6vw,2.75rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
@@ -521,7 +521,7 @@ function PathCard({
       onClick={onClick}
       aria-pressed={selected}
       className={`min-h-[180px] rounded-xl px-6 py-7 text-left transition ${
-        selected ? "bg-[#1b1d1f] text-white" : "border border-[#1b1d1f]/15 bg-white hover:border-[#1b1d1f]/40"
+        selected ? "bg-[#1b1d1f] text-white" : "border border-[#1b1d1f] bg-white hover:bg-[#f3f3f3]"
       }`}
     >
       <p className="font-display text-[clamp(3.5rem,10vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
