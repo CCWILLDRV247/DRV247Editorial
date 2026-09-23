@@ -1,0 +1,1266 @@
+[
+  {
+    "id": "prd-euro-160051",
+    "source_id": "src-eurospares-live",
+    "sku": "160051",
+    "part_number": "160051",
+    "product_name": "Brake Disc",
+    "description": "Brake Disc, part number 160051",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "brake-discs",
+    "subcategory": "brakes",
+    "price": 394.74,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/160051/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/70898/large/000044958.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-169830",
+    "source_id": "src-eurospares-live",
+    "sku": "169830",
+    "part_number": "169830",
+    "product_name": "Front Brake Disc, Drilled",
+    "description": "Front Brake Disc, Drilled, part number 169830",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "brake-discs",
+    "subcategory": "brakes",
+    "price": 524.52,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/169830/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/65511/large/000053761.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-160052",
+    "source_id": "src-eurospares-live",
+    "sku": "160052",
+    "part_number": "160052",
+    "product_name": "Rear Brake Disc",
+    "description": "Rear Brake Disc, part number 160052",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "brake-discs",
+    "subcategory": "brakes",
+    "price": 327.57,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/160052/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/70191/large/000028377.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-160052-a",
+    "source_id": "src-eurospares-live",
+    "sku": "160052/A",
+    "part_number": "160052/A",
+    "product_name": "Rear Brake Disc",
+    "description": "Rear Brake Disc, part number 160052/A",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "brake-discs",
+    "subcategory": "brakes",
+    "price": 420.81,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/160052/A/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/050.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-70000910",
+    "source_id": "src-eurospares-live",
+    "sku": "70000910",
+    "part_number": "70000910",
+    "product_name": "F355 Front Brake Pad Kit",
+    "description": "F355 Front Brake Pad Kit, part number 70000910",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "brake-pads",
+    "subcategory": "brakes",
+    "price": 410.63,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/70000910/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/043.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-70000598",
+    "source_id": "src-eurospares-live",
+    "sku": "70000598",
+    "part_number": "70000598",
+    "product_name": "Front Brake Pad Set",
+    "description": "Front Brake Pad Set, part number 70000598",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "brake-pads",
+    "subcategory": "brakes",
+    "price": 460.97,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/70000598/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/043.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-70000874",
+    "source_id": "src-eurospares-live",
+    "sku": "70000874",
+    "part_number": "70000874",
+    "product_name": "Front Brake Pads Set (Brembo",
+    "description": "Front Brake Pads Set (Brembo, part number 70000874",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "brake-pads",
+    "subcategory": "brakes",
+    "price": 190.56,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/70000874/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/33086/large/000006307.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-70000803",
+    "source_id": "src-eurospares-live",
+    "sku": "70000803",
+    "part_number": "70000803",
+    "product_name": "Rear Brake Pad Set",
+    "description": "Rear Brake Pad Set, part number 70000803",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "brake-pads",
+    "subcategory": "brakes",
+    "price": 217.23,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/70000803/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/41603/large/000028302.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-168827",
+    "source_id": "src-eurospares-live",
+    "sku": "168827",
+    "part_number": "168827",
+    "product_name": "Complete Bypass Tube",
+    "description": "Complete Bypass Tube, part number 168827",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "exhaust",
+    "subcategory": "exhaust",
+    "price": 1673.05,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/168827/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/016.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "performance_gain",
+        "value": "modest"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      },
+      {
+        "attribute": "sound",
+        "value": "character"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-168977",
+    "source_id": "src-eurospares-live",
+    "sku": "168977",
+    "part_number": "168977",
+    "product_name": "Exhaust Bypass Tube",
+    "description": "Exhaust Bypass Tube, part number 168977",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "exhaust",
+    "subcategory": "exhaust",
+    "price": 2103.5,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/168977/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/016.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "performance_gain",
+        "value": "modest"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      },
+      {
+        "attribute": "sound",
+        "value": "character"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-179948",
+    "source_id": "src-eurospares-live",
+    "sku": "179948",
+    "part_number": "179948",
+    "product_name": "Lh Exhaust Manifold",
+    "description": "Lh Exhaust Manifold, part number 179948",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "exhaust",
+    "subcategory": "exhaust",
+    "price": 1990.46,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/179948/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/78456/large/000387753.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "performance_gain",
+        "value": "modest"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      },
+      {
+        "attribute": "sound",
+        "value": "character"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-kl-fer-355-mf-inc",
+    "source_id": "src-eurospares-live",
+    "sku": "KL-FER-355-MF-INC",
+    "part_number": "KL-FER-355-MF-INC",
+    "product_name": "Manifolds - Inconel",
+    "description": "Manifolds - Inconel, part number KL-FER-355-MF-INC",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "exhaust",
+    "subcategory": "exhaust",
+    "price": 4971.55,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/KL-FER-355-MF-INC/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/185594/large/000084424.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "performance_gain",
+        "value": "modest"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      },
+      {
+        "attribute": "sound",
+        "value": "character"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-kl-fer-355-mf-ss",
+    "source_id": "src-eurospares-live",
+    "sku": "KL-FER-355-MF-SS",
+    "part_number": "KL-FER-355-MF-SS",
+    "product_name": "Manifolds - Stainless Steel",
+    "description": "Manifolds - Stainless Steel, part number KL-FER-355-MF-SS",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "exhaust",
+    "subcategory": "exhaust",
+    "price": 3131.03,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/KL-FER-355-MF-SS/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/185595/large/000084427.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "performance_gain",
+        "value": "modest"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      },
+      {
+        "attribute": "sound",
+        "value": "character"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-179947",
+    "source_id": "src-eurospares-live",
+    "sku": "179947",
+    "part_number": "179947",
+    "product_name": "Rh Exhaust Manifold",
+    "description": "Rh Exhaust Manifold, part number 179947",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "exhaust",
+    "subcategory": "exhaust",
+    "price": 1990.46,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/179947/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/78457/large/000387809.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "performance_gain",
+        "value": "modest"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      },
+      {
+        "attribute": "sound",
+        "value": "character"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-70001503-a",
+    "source_id": "src-eurospares-live",
+    "sku": "70001503/A",
+    "part_number": "70001503/A",
+    "product_name": "Service Kit (5.2M) Oem",
+    "description": "Service Kit (5.2M) Oem, part number 70001503/A",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "filters",
+    "subcategory": "service",
+    "price": null,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/70001503/A/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/013.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-162416",
+    "source_id": "src-eurospares-live",
+    "sku": "162416",
+    "part_number": "162416",
+    "product_name": "Com. Rh Air Intake",
+    "description": "Com. Rh Air Intake, part number 162416",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "intake",
+    "subcategory": "intake",
+    "price": 980.53,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/162416/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/7443/large/000042011.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "oem_plus",
+        "value": "yes"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-164190",
+    "source_id": "src-eurospares-live",
+    "sku": "164190",
+    "part_number": "164190",
+    "product_name": "Lh Air Intake Complete",
+    "description": "Lh Air Intake Complete, part number 164190",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "intake",
+    "subcategory": "intake",
+    "price": 817.02,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/164190/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/013.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "oem_plus",
+        "value": "yes"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-168966",
+    "source_id": "src-eurospares-live",
+    "sku": "168966",
+    "part_number": "168966",
+    "product_name": "Rh Air Intake Complete",
+    "description": "Rh Air Intake Complete, part number 168966",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "intake",
+    "subcategory": "intake",
+    "price": 886.08,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/168966/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/013.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "oem_plus",
+        "value": "yes"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "caution"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-176027",
+    "source_id": "src-eurospares-live",
+    "sku": "176027",
+    "part_number": "176027",
+    "product_name": "355 Fiorano H/P Front Road Spring",
+    "description": "355 Fiorano H/P Front Road Spring, part number 176027",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "suspension",
+    "subcategory": "suspension",
+    "price": 111.78,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/176027/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/048.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "aftermarket"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "upgrade"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      },
+      {
+        "attribute": "track_use",
+        "value": "yes"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-157633",
+    "source_id": "src-eurospares-live",
+    "sku": "157633",
+    "part_number": "157633",
+    "product_name": "Front Shock Absorber",
+    "description": "Front Shock Absorber, part number 157633",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "suspension",
+    "subcategory": "suspension",
+    "price": null,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/157633/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/048.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-183633",
+    "source_id": "src-eurospares-live",
+    "sku": "183633",
+    "part_number": "183633",
+    "product_name": "Front Shock Absorber",
+    "description": "Front Shock Absorber, part number 183633",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "suspension",
+    "subcategory": "suspension",
+    "price": 1240.61,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/183633/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/048.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-103264",
+    "source_id": "src-eurospares-live",
+    "sku": "103264",
+    "part_number": "103264",
+    "product_name": "Lower Spring Pad",
+    "description": "Lower Spring Pad, part number 103264",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "suspension",
+    "subcategory": "suspension",
+    "price": 31.73,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/103264/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/productphotos/22226/large/000007864.jpg",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-124982",
+    "source_id": "src-eurospares-live",
+    "sku": "124982",
+    "part_number": "124982",
+    "product_name": "Suspension Spring",
+    "description": "Suspension Spring, part number 124982",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "suspension",
+    "subcategory": "suspension",
+    "price": 275.14,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/124982/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/048.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  },
+  {
+    "id": "prd-euro-162985",
+    "source_id": "src-eurospares-live",
+    "sku": "162985",
+    "part_number": "162985",
+    "product_name": "Upper Spring Pad",
+    "description": "Upper Spring Pad, part number 162985",
+    "manufacturer_name": "Ferrari",
+    "supplier_name": "Eurospares",
+    "supplier_id": "sup-eurospares",
+    "category": "suspension",
+    "subcategory": "suspension",
+    "price": 40.98,
+    "currency": "GBP",
+    "url": "https://www.eurospares.co.uk/parts/162985/ferrari",
+    "image_url": "https://www.eurospares.co.uk/images/catalogues/114/Large/048.gif",
+    "availability": "unknown",
+    "attributes": [
+      {
+        "attribute": "appearance",
+        "value": "oem"
+      },
+      {
+        "attribute": "replacement_grade",
+        "value": "oem"
+      },
+      {
+        "attribute": "road_use",
+        "value": "yes"
+      },
+      {
+        "attribute": "safety_class",
+        "value": "critical"
+      }
+    ],
+    "fitments": [
+      {
+        "make": "Ferrari",
+        "model": "F355",
+        "generation": "F355",
+        "year_from": 1996,
+        "year_to": 1999,
+        "engine": null,
+        "variant": null,
+        "notes": "Supplier parts diagram for Ferrari 355 5.2 Motronic. Not a manufacturer application file.",
+        "confidence": "generation",
+        "source": "supplier"
+      }
+    ]
+  }
+]
