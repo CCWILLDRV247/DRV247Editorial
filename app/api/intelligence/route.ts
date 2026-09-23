@@ -5,6 +5,7 @@ import { INTENTS } from "@/lib/intelligence/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 function parseObjectives(value: string | null): string[] {
   if (!value) return [];

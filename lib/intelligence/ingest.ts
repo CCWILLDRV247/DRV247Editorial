@@ -1,11 +1,23 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { productSources } from "@/lib/db/intelligence-schema";
+import { productSources, products } from "@/lib/db/intelligence-schema";
 import { runAdapter } from "./adapters";
 import type { AdapterResult, NormalisedProduct, ProductSourceRow } from "./adapters/types";
 import { deleteProductsForSources, persistNormalisedProducts } from "./writer";
 
 const LIVE_KINDS = new Set(["sitemap", "scrape", "api", "feed", "rss", "xml"]);
+
+export function liveSourceIdsMissingProducts(
+  sources: { id: string; enabled: boolean | number; kind: string }[],
+  productSourceIds: string[],
+): string[] {
+  const present = new Set(productSourceIds);
+  return sources
+    .filter((row) => Boolean(row.enabled) && LIVE_KINDS.has(row.kind) && !present.has(row.id))
+    .map((row) => row.id);
+}
+
+let liveIngestInflight: Promise<IntelligenceIngestResult> | null = null;
 
 export type IntelligenceIngestResult = {
   pipeline: "intelligence";
@@ -86,4 +98,46 @@ export async function ingestIntelligenceSources(options?: {
     products: normalised.length,
     sources,
   };
+}
+
+export async function missingLiveSourceIds(): Promise<string[]> {
+  const db = await getDb();
+  const [sourceRows, productRows] = await Promise.all([
+    db
+      .select({
+        id: productSources.id,
+        enabled: productSources.enabled,
+        kind: productSources.kind,
+      })
+      .from(productSources),
+    db.select({ sourceId: products.sourceId }).from(products),
+  ]);
+  return liveSourceIdsMissingProducts(
+    sourceRows,
+    productRows.map((row) => row.sourceId),
+  );
+}
+
+/**
+ * First `/intelligence` or `/api/intelligence` use loads empty live sources
+ * (Eurospares, Design 911). Not magazine boot, not the Monday editorial cron.
+ */
+export async function ensureLiveIntelligenceSources(options?: {
+  cwd?: string;
+}): Promise<IntelligenceIngestResult | null> {
+  const sourceIds = await missingLiveSourceIds();
+  if (!sourceIds.length) return null;
+  if (!liveIngestInflight) {
+    liveIngestInflight = ingestIntelligenceSources({
+      sourceIds,
+      cwd: options?.cwd,
+    }).finally(() => {
+      liveIngestInflight = null;
+    });
+  }
+  return liveIngestInflight;
+}
+
+export function startLiveIntelligenceIngest(): void {
+  void ensureLiveIntelligenceSources();
 }

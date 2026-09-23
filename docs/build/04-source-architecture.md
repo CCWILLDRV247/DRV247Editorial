@@ -164,10 +164,11 @@ When implementation starts:
 - Separate route, e.g. `app/api/cron/intelligence-ingest` — **not** `app/api/cron/ingest`.
 - Hard cap on rows per run (magazine already caps articles per source).
 - Same Turso database, different tables. No lock-step with Monday editorial ingest.
-- No ingest on boot. Follow the magazine guard in [`lib/db/ensure.ts`](../../lib/db/ensure.ts).
+- No ingest on magazine boot. Follow the magazine guard in [`lib/db/ensure.ts`](../../lib/db/ensure.ts). Do not run live product adapters from `getDb()` / homepage load.
+- First `/intelligence` or `/api/intelligence` use may load empty live (`sitemap`) sources. That is the intelligence path, not the Monday editorial cron.
 - Seed path: `config/intelligence/seed-products.csv` (or JSON) loaded by intelligence seed, not [`lib/engine/seed.ts`](../../lib/engine/seed.ts).
 
-V1 can load the curated corpus at seed time via `manual` / `csv` and skip cron entirely.
+V1 loads the curated corpus at seed time via `manual` / `csv`. Live catalogues still need an intelligence ingest (lazy first use or `/api/cron/intelligence-ingest`).
 
 ---
 
