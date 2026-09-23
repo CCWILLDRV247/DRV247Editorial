@@ -1,0 +1,23 @@
+{
+  "supplierName": "Eurospares",
+  "supplierId": "sup-eurospares",
+  "baseUrl": "https://www.eurospares.co.uk",
+  "sitemapIndex": "https://www.eurospares.co.uk/sitemap-gb.xml",
+  "diagramSitemapPattern": "diagrams-[128]-gb\\.xml\\.gz",
+  "maxSitemaps": 3,
+  "maxDiagrams": 6,
+  "maxProducts": 24,
+  "userAgent": "Mozilla/5.0 (compatible; DRV247-Intelligence/1.0; +https://drv247.com)",
+  "modelPath": "/ferrari/355/355-5-2-motronic/",
+  "preferKeywords": [
+    "brake-disc",
+    "calipers-for-front-and-rear-brakes",
+    "exhaust-system",
+    "air-intake",
+    "front-suspension-shock-absorber-and-brake-disc",
+    "rear-suspension-shock-absorber-and-brake-disc"
+  ],
+  "rejectDiagram": ["challenge", "348", "360", "430", "964", "e46", "porsche", "bmw"],
+  "yearFrom": 1996,
+  "yearTo": 1999
+}

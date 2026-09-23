@@ -48,6 +48,7 @@
     { "id": "src-bridgestone", "name": "Bridgestone", "kind": "manual", "identifier": "manual:bridgestone", "priority": 88 },
     { "id": "src-design911", "name": "Design 911", "kind": "csv", "identifier": "config/intelligence/seed-products.csv", "priority": 70 },
     { "id": "src-design911-live", "name": "Design 911 catalogue", "kind": "sitemap", "identifier": "https://www.design911.co.uk/sitemap.xml", "priority": 80 },
+    { "id": "src-eurospares-live", "name": "Eurospares catalogue", "kind": "sitemap", "identifier": "https://www.eurospares.co.uk/sitemap-gb.xml", "priority": 80 },
     { "id": "src-manual", "name": "DRV247 curated research", "kind": "manual", "identifier": "manual:drv247", "priority": 45 }
   ],
   "manufacturers": [
@@ -76,6 +77,7 @@
   ],
   "suppliers": [
     { "id": "sup-design911", "name": "Design 911", "slug": "design-911", "url": "https://www.design911.co.uk", "region": "UK" },
+    { "id": "sup-eurospares", "name": "Eurospares", "slug": "eurospares", "url": "https://www.eurospares.co.uk", "region": "UK" },
     { "id": "sup-foskers", "name": "Foskers", "slug": "foskers", "url": "https://www.foskers.com", "region": "UK" },
     { "id": "sup-birds", "name": "Birds", "slug": "birds", "url": "https://www.birdsauto.com", "region": "UK" },
     { "id": "sup-autofarm", "name": "Autofarm", "slug": "autofarm", "url": "https://www.autofarm.co.uk", "region": "UK" },

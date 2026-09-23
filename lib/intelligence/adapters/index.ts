@@ -1,6 +1,7 @@
 import type { AdapterContext, AdapterResult, ProductSourceRow } from "./types";
 import { loadCsvProducts } from "./csv";
 import { loadDesign911Products, isDesign911Source } from "./design911";
+import { loadEurosparesProducts, isEurosparesSource } from "./eurospares";
 import { loadManualProducts } from "./manual";
 
 function reserved(source: ProductSourceRow): AdapterResult {
@@ -31,6 +32,9 @@ export async function runAdapter(
     if (!context.allowLive) return { products: [], errors: [] };
     if (isDesign911Source(source)) {
       return loadDesign911Products(source, context);
+    }
+    if (isEurosparesSource(source)) {
+      return loadEurosparesProducts(source, context);
     }
     return reserved(source);
   }
