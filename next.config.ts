@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   },
   // Intelligence JSON is imported into the server bundle. The seed CSV is still
   // read from disk (adapter identifier), so the serverless trace must include it.
-  // `/*` covers getDb() → seedIntelligence on magazine and intelligence routes.
+  // Do not load that CSV via import.meta.url — Turbopack rewrites it and crashes.
   outputFileTracingIncludes: {
     "/*": ["./config/intelligence/**/*"],
   },

@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0 --port 43127",
+    "dev": "next dev --hostname 0.0.0.0 --port 43131 --webpack",
     "build": "next build",
-    "start": "next start --hostname 0.0.0.0 --port 43127",
+    "start": "next start --hostname 0.0.0.0 --port 43131",
     "lint": "eslint",
-    "test": "tsx --test lib/engine/engine.test.ts",
+    "test": "tsx --test lib/engine/engine.test.ts lib/engine/homepage-hierarchy.test.ts lib/engine/editorial-interlude.test.ts lib/engine/editorial-voice-library.test.ts lib/engine/interlude-selection.test.ts lib/engine/editorial-composition.test.ts lib/engine/interlude-typography.test.ts lib/engine/images.test.ts lib/engine/classify.test.ts lib/engine/desk.test.ts",
     "test:intelligence": "tsx --test lib/intelligence/intelligence.test.ts lib/intelligence/ingest.test.ts lib/intelligence/adapters/design911.test.ts lib/intelligence/adapters/eurospares.test.ts",
     "ingest:intelligence": "tsx scripts/intelligence-ingest.ts",
     "ingest:wave1": "tsx scripts/ingest-wave1.ts",
@@ -15,10 +15,13 @@
     "ingest:wave3": "tsx scripts/ingest-wave3.ts",
     "ingest:wave4": "tsx scripts/ingest-wave4.ts",
     "ingest:wave5": "tsx scripts/ingest-wave5.ts",
+    "ingest:wave6": "tsx scripts/ingest-wave6.ts",
     "extract:summaries": "tsx scripts/extract-summaries.ts",
     "purge:non-english": "tsx scripts/purge-non-english.ts",
     "purge:merch": "tsx scripts/purge-merch.ts",
-    "reprocess:entities": "tsx scripts/reprocess-entities.ts"
+    "purge:junk": "tsx scripts/purge-junk.ts",
+    "reprocess:entities": "tsx scripts/reprocess-entities.ts",
+    "backfill:metadata": "tsx scripts/backfill-metadata.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

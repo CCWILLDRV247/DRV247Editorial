@@ -2,16 +2,17 @@
 
 CSV is the source of truth: [`config/drv247_uk_eu_automotive_media_sources.csv`](../config/drv247_uk_eu_automotive_media_sources.csv) (JSON sibling beside it).
 
-## Catalogue counts (51 titles)
+## Catalogue counts (79 titles)
 
 | | Count |
 | --- | ---: |
-| Publications | 51 |
+| Publications | 79 |
 | Wave 1 still live | **10** |
 | Wave 2 live | **7** (11 listed; Flat 6, AUTOMOBILSPORT, EuroStance, 9WERKS stay dark) |
 | Wave 3 live | **10** (Car & Classic enabled, Cloudflare 403) |
 | Wave 4 live | **10** (Just Auto enabled, Cloudflare 403) |
-| Remaining catalogue | **9** |
+| Remaining original catalogue | **9** |
+| Underground Priority | **28** |
 | Dark list | 5 (Autoitaliana, Flat 6, AUTOMOBILSPORT, EuroStance, 9WERKS) |
 
 Do not assume an unverified RSS URL is valid. The pipeline always validates a genuine RSS/Atom document before accepting it.
@@ -101,6 +102,41 @@ The last CSV rows that were not already live. Dark list stays off. Rampstyle sha
 | auto_046 | Sunday Times Driving | scrape |
 | auto_050 | 911 & Porsche World | scrape |
 
+## Underground Priority (enabled now)
+
+Twenty-eight English titles with verified public feeds from the underground research. Research further / Manual only / Reference only stay out. Fast Car is already live (`auto_022`); Performance VW is a different title. Auto Italia (`auto_095`) is not Autoitaliana. Classic Cars (`auto_103`) is not Classic & Sports Car. Dark list stays off.
+
+| ID | Title | Config method |
+| --- | --- | --- |
+| auto_054 | Petrolicious | rss (`/blogs/articles.atom`) |
+| auto_057 | Japanese Nostalgic Car | rss (`/feed`) |
+| auto_059 | Performance VW | rss (`/feed`) |
+| auto_061 | Fuel Curve | rss (`/feed`) |
+| auto_063 | The Rodder's Journal | rss (`/feed`) |
+| auto_064 | Hop Up Magazine | rss (`/blog?format=rss`) |
+| auto_066 | Street Machine | rss (`/feed`) |
+| auto_070 | Silodrome | rss (`/feed`) |
+| auto_071 | SpeedHolics | rss (`/blog-feed.xml`) |
+| auto_076 | NIWWRD | rss (`/blog-feed.xml`) |
+| auto_078 | Gridline Press | rss (`/rss/`) |
+| auto_079 | Kaido Racer | rss (`/feed`) |
+| auto_081 | MotoIQ | rss (`/feed`) |
+| auto_082 | DSPORT | rss (`/feed`) |
+| auto_084 | Hagerty Media | rss (`/media/feed/`) |
+| auto_085 | Hot Rod | rss (`/rss/all.xml`) |
+| auto_086 | EngineLabs | rss (`/feed`) |
+| auto_089 | DirtFish | rss (`/feed`) |
+| auto_090 | DailySportsCar | rss (`/feed`) |
+| auto_095 | Auto Italia | rss (`/feed`) |
+| auto_103 | Classic Cars | rss (Bauer aggregator) |
+| auto_111 | Engine Swap Depot | rss (`?feed=rss2`) |
+| auto_118 | Retro Ford | rss (`/feed`) |
+| auto_120 | RallySport Magazine | rss (`/feed`) |
+| auto_127 | In the Garage Media | rss (`/feed`) |
+| auto_128 | Time Attack UK | rss (`/feed`) |
+| auto_130 | Motorsport Retro | rss (`/feed`) |
+| auto_131 | Racecar Engineering | rss (`/feed`) |
+
 ## Pipeline
 
 Per source, isolated:
@@ -109,7 +145,7 @@ Per source, isolated:
 2. Else sitemap.xml / sitemap_index / news sitemaps, then article-page metadata.
 3. Else homepage scrape: `robots.txt`, polite delay, article URLs only, Open Graph / canonical / excerpt. **No full body stored.**
 
-Shop feeds can be disabled (or pointed at editorial RSS) in `config/merch.ts`. Ingest also skips URLs whose path has a shop segment (`/shop`, `/product`, `/collection`, `/cart`, `/merch`, and close variants). Weekly cron and desk ingest-now both use this.
+Shop feeds can be disabled (or pointed at editorial RSS) in `config/merch.ts`. Ingest also skips URLs whose path has a shop segment (`/shop`, `/product`, `/collection`, `/cart`, `/merch`, and close variants). Non-editorial URL skip lives in `config/non-editorial.ts`: auction/subscribe/buy/sell/gassing path segments, empty or `/undefined` URLs, the `/news` index (not `/news/slug`), and off-site magazine-shop hosts such as `themagazineshop.com`. Not a title denylist. PistonHeads and Classic & Sports Car stay enabled. Weekly cron and desk ingest-now both use this.
 
 At ingest, fetch the original URL and persist a short extract (standfirst / meta description / first substantial paragraph). Discard the HTML.
 

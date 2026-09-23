@@ -8,11 +8,20 @@ export type StoryDto = {
   summary: string;
   aiSummary: string | null;
   imageUrl: string | null;
+  imageSources: string[];
   canonicalUrl: string;
   publishedAt: string;
   hidden: boolean;
+  relevanceExplanation?: string | null;
   category: { id: number; slug: string; name: string };
   source: { id: number; name: string; type: string };
+  desk?: {
+    label: string;
+    labelName: string;
+    note: string | null;
+    curator: string;
+    featured: boolean;
+  } | null;
 };
 
 function toDto(row: {
@@ -26,6 +35,7 @@ function toDto(row: {
     summary: row.story.summary,
     aiSummary: null,
     imageUrl: row.story.imageUrl,
+    imageSources: [],
     canonicalUrl: row.story.canonicalUrl,
     publishedAt: new Date(row.story.publishedAt).toISOString(),
     hidden: row.story.hidden,

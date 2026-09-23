@@ -18,6 +18,7 @@ import { VEHICLE_CATALOG } from "./catalog";
 import { parseCsv } from "./csv";
 import { slugify } from "./normalize";
 import { PRIMARY_META, SECONDARY_TAXONOMY } from "./taxonomy";
+import { seedDeskPicksIfEmpty } from "./desk";
 
 type Db = LibSQLDatabase<typeof schema>;
 
@@ -223,6 +224,8 @@ export async function seedEngine(db: Db) {
       { userId: "demo-m3", interest: "Performance" },
     ]);
   }
+
+  await seedDeskPicksIfEmpty(db);
 }
 
 async function seedTaxonomy(db: Db) {

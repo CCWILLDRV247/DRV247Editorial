@@ -117,6 +117,10 @@ export const articleEntities = sqliteTable("article_entities", {
   make: text("make"),
   model: text("model"),
   confidence: integer("confidence").notNull().default(80),
+  relevance: text("relevance"),
+  chassis: text("chassis"),
+  canonicalId: text("canonical_id"),
+  source: text("source").notNull().default("rule"),
 });
 
 export const vehicleEntities = sqliteTable("vehicle_entities", {
@@ -157,6 +161,11 @@ export const articleImages = sqliteTable("article_images", {
   url: text("url").notNull(),
   source: text("source"),
   alt: text("alt"),
+  sourceType: text("source_type"),
+  status: text("status"),
+  lastValidated: integer("last_validated"),
+  sortOrder: integer("sort_order").default(0),
+  isPrimary: integer("is_primary", { mode: "boolean" }).default(false),
 });
 
 export const ingestionRuns = sqliteTable("ingestion_runs", {
@@ -235,9 +244,80 @@ export const articlePrimary = sqliteTable("article_primary", {
   source: text("source").notNull().default("rule"),
 });
 
+export const articleContentTypes = sqliteTable("article_content_types", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  contentType: text("content_type").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
+export const articleScenes = sqliteTable("article_scenes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  scene: text("scene").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
+export const articleMotorsport = sqliteTable("article_motorsport", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  series: text("series").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
+export const articleGeography = sqliteTable("article_geography", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  kind: text("kind").notNull(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  confidence: integer("confidence").notNull().default(80),
+  source: text("source").notNull().default("rule"),
+});
+
+export const articleRelated = sqliteTable("article_related", {
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  relatedArticleId: integer("related_article_id")
+    .notNull()
+    .references(() => articles.id),
+  reason: text("reason").notNull(),
+  score: integer("score").notNull().default(0),
+});
+
+export const deskPicks = sqliteTable("desk_picks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id)
+    .unique(),
+  note: text("note"),
+  curator: text("curator").notNull().default("DRV247 Desk"),
+  selectedAt: integer("selected_at").notNull(),
+  expiresAt: integer("expires_at"),
+  featured: integer("featured", { mode: "boolean" }).notNull().default(false),
+  category: text("category"),
+  label: text("label").notNull().default("from-the-desk"),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
 export type MediaSource = typeof mediaSources.$inferSelect;
 export type Article = typeof articles.$inferSelect;
 export type IngestionRun = typeof ingestionRuns.$inferSelect;
 export type DemoUser = typeof demoUsers.$inferSelect;
 export type DemoVehicle = typeof demoVehicles.$inferSelect;
+export type DeskPick = typeof deskPicks.$inferSelect;
 

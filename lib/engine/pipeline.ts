@@ -2,28 +2,49 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   articleCategories,
+  articleContentTypes,
   articleEntities,
+  articleGeography,
   articleImages,
   articleInterests,
   articleLocations,
+  articleMotorsport,
   articlePrimary,
+  articleRelated,
+  articleScenes,
   articles,
   ingestionRuns,
   mediaSources,
+  type Article,
   type MediaSource,
 } from "@/lib/db/schema";
 import { parseFeedXml, type EngineItem } from "./adapters/rss";
 import { isSitemapIndex, looksLikeArticleUrl, parseSitemapXml } from "./adapters/sitemap";
 import { parseArticleMetadata, parseHomeLinks, robotsAllows } from "./adapters/scrape";
-import { extractEntities } from "./extract";
 import { fetchText, looksLikeFeed } from "./http";
-import { resolveImageUrl } from "./magazine";
+import {
+  emptyImagePayload,
+  mergeImageMetadata,
+  parseImagePayload,
+  resolveCandidates,
+  selectPrimaryImage,
+  type ImageCandidate,
+} from "./images";
+import { isUsableArticleImage } from "../text";
 import { isMerchArticle, isMerchUrl } from "./merch";
+import { evaluateEditorialEligibility, isEditorialIneligibleArticle } from "./editorial-eligibility";
+import { isNonEditorialArticle, isNonEditorialUrl } from "./non-editorial";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
 import { extractOriginalPage } from "./summarize";
 import { upsertArticlePrimary } from "./article-primary";
+import {
+  classifyArticle,
+  classificationSnapshot,
+  mergeClassificationMetadata,
+} from "./classify";
+import { rebuildRelatedStories } from "./related";
 import { DISABLED_SOURCE_SET, ENABLED_SOURCE_SET } from "@/config/wave1-sources";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,6 +58,7 @@ export type SourceIngestResult = {
   summarized: number;
   skippedNonEnglish: number;
   skippedMerch: number;
+  skippedNonEditorial: number;
   error: string | null;
   httpStatus: number | null;
 };
@@ -45,6 +67,8 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
   const db = await getDb();
   await purgeNonEnglishArticles();
   await purgeMerchArticles();
+  await purgeNonEditorialArticles();
+  await purgeEditorialIneligibleArticles();
   const sources = (await db.select().from(mediaSources)).filter((source) => {
     if (!source.enabled) return false;
     if (DISABLED_SOURCE_SET.has(source.id)) return false;
@@ -103,13 +127,22 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       }
     }
 
-    items = items.filter((item) => !isMerchUrl(item.canonicalUrl) && !isMerchUrl(item.url));
-    items = items.slice(0, source.maxArticles);
-    const { inserted, summarized, skippedNonEnglish, skippedMerch } = await persistItems(
-      source,
-      items,
-      method ?? "none",
+    items = items.filter(
+      (item) =>
+        !isEditorialIneligibleArticle(
+          {
+            url: item.url,
+            canonicalUrl: item.canonicalUrl,
+            title: item.title,
+            excerpt: item.excerpt,
+            sourceId: source.id,
+          },
+          source.url,
+        ),
     );
+    items = items.slice(0, source.maxArticles);
+    const { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial } =
+      await persistItems(source, items, method ?? "none");
     const ok = items.length > 0;
     await db.insert(ingestionRuns).values({
       sourceId: source.id,
@@ -153,6 +186,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       summarized,
       skippedNonEnglish,
       skippedMerch,
+      skippedNonEditorial,
       error: ok ? null : error ?? "No articles found",
       httpStatus,
     };
@@ -188,6 +222,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       summarized: 0,
       skippedNonEnglish: 0,
       skippedMerch: 0,
+      skippedNonEditorial: 0,
       error: message,
       httpStatus,
     };
@@ -318,13 +353,20 @@ async function persistItems(
   source: MediaSource,
   items: EngineItem[],
   method: string,
-): Promise<{ inserted: number; summarized: number; skippedNonEnglish: number; skippedMerch: number }> {
+): Promise<{
+  inserted: number;
+  summarized: number;
+  skippedNonEnglish: number;
+  skippedMerch: number;
+  skippedNonEditorial: number;
+}> {
   const db = await getDb();
   const now = Date.now();
   const weights = loadRankWeights();
   let inserted = 0;
   let skippedNonEnglish = 0;
   let skippedMerch = 0;
+  let skippedNonEditorial = 0;
   const pendingPages: PendingPage[] = [];
   const existing = await db.select().from(articles);
   const byTitle = new Map(
@@ -332,8 +374,17 @@ async function persistItems(
   );
 
   for (const item of items) {
-    if (isMerchUrl(item.canonicalUrl) || isMerchUrl(item.url)) {
-      skippedMerch += 1;
+    const gate = evaluateEditorialEligibility({
+      url: item.url,
+      canonicalUrl: item.canonicalUrl,
+      title: item.title,
+      excerpt: item.excerpt,
+      sourceId: source.id,
+      sourceUrl: source.url,
+    });
+    if (!gate.editorialEligible) {
+      if (gate.editorialExclusionReason === "commerce") skippedMerch += 1;
+      else skippedNonEditorial += 1;
       continue;
     }
     if (!isEnglish(item.title, item.excerpt)) {
@@ -344,28 +395,36 @@ async function persistItems(
       await db.select().from(articles).where(eq(articles.canonicalUrl, item.canonicalUrl)).limit(1)
     )[0];
     if (seen) {
-      const imageUrl =
-        seen.imageUrl || (source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null);
+      const kept = isUsableArticleImage(seen.imageUrl) ? seen.imageUrl : null;
+      const incoming = source.allowImage
+        ? resolveCandidates(item.imageCandidates ?? imageCandidatesFromUrl(item.imageUrl), item.canonicalUrl)
+        : [];
+      const imageUrl = kept || incoming[0]?.url || null;
       await db
         .update(articles)
-        .set({ lastSeen: now, imageUrl: imageUrl ?? seen.imageUrl })
+        .set({ lastSeen: now, imageUrl })
         .where(eq(articles.id, seen.id));
-      if (!seen.aiSummary?.trim() || (source.allowImage && !(imageUrl ?? seen.imageUrl)?.trim())) {
+      if (!seen.aiSummary?.trim() || (source.allowImage && !isUsableArticleImage(imageUrl))) {
         pendingPages.push({
           id: seen.id,
           title: seen.title,
           canonicalUrl: seen.canonicalUrl,
           teaser: seen.excerpt,
-          imageUrl: imageUrl ?? seen.imageUrl ?? null,
+          imageUrl,
           aiSummary: seen.aiSummary,
           publication: seen.publication,
           allowImage: source.allowImage,
+          metadata: seen.metadata,
+          imageCandidates: incoming,
         });
       }
       continue;
     }
     const group = byTitle.get(sameStoryKey(item.title)) ?? sameStoryKey(item.title);
     byTitle.set(sameStoryKey(item.title), group);
+    const feedCandidates = source.allowImage
+      ? resolveCandidates(item.imageCandidates ?? imageCandidatesFromUrl(item.imageUrl), item.canonicalUrl)
+      : [];
     const created = await db
       .insert(articles)
       .values({
@@ -377,7 +436,7 @@ async function persistItems(
         guid: item.guid ?? null,
         author: source.allowExcerpt ? item.author ?? null : null,
         publishedAt: Number.isFinite(item.publishedAt) ? item.publishedAt : now,
-        imageUrl: source.allowImage ? resolveImageUrl(item.imageUrl, item.canonicalUrl) : null,
+        imageUrl: feedCandidates[0]?.url ?? null,
         excerpt: source.allowExcerpt ? item.excerpt : "",
         editorialScore: publisherScore(source.relevance) + (item.excerpt.length >= 180 ? weights.longForm : 0),
         processed: true,
@@ -412,11 +471,13 @@ async function persistItems(
       aiSummary: row.aiSummary,
       publication: source.publication,
       allowImage: source.allowImage,
+      metadata: row.metadata,
+      imageCandidates: feedCandidates,
     });
     await persistArticleExtraction(row.id);
   }
   const summarized = await summarizePending(pendingPages);
-  return { inserted, summarized, skippedNonEnglish, skippedMerch };
+  return { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial };
 }
 
 export async function deleteArticleById(id: number): Promise<void> {
@@ -425,6 +486,12 @@ export async function deleteArticleById(id: number): Promise<void> {
   await db.delete(articleCategories).where(eq(articleCategories.articleId, id));
   await db.delete(articleInterests).where(eq(articleInterests.articleId, id));
   await db.delete(articleLocations).where(eq(articleLocations.articleId, id));
+  await db.delete(articleContentTypes).where(eq(articleContentTypes.articleId, id));
+  await db.delete(articleScenes).where(eq(articleScenes.articleId, id));
+  await db.delete(articleMotorsport).where(eq(articleMotorsport.articleId, id));
+  await db.delete(articleGeography).where(eq(articleGeography.articleId, id));
+  await db.delete(articleRelated).where(eq(articleRelated.articleId, id));
+  await db.delete(articleRelated).where(eq(articleRelated.relatedArticleId, id));
   await db.delete(articleImages).where(eq(articleImages.articleId, id));
   await db.delete(articlePrimary).where(eq(articlePrimary.articleId, id));
   await db.delete(articles).where(eq(articles.id, id));
@@ -460,6 +527,89 @@ export async function purgeMerchArticles(): Promise<{
   return { removed: ids.length, ids };
 }
 
+export async function purgeNonEditorialArticles(): Promise<{
+  removed: number;
+  ids: number[];
+  rows: {
+    id: number;
+    publication: string;
+    title: string;
+    url: string;
+    canonicalUrl: string;
+  }[];
+}> {
+  const db = await getDb();
+  const sources = await db.select().from(mediaSources);
+  const sourceUrl = new Map(sources.map((source) => [source.id, source.url]));
+  const rows = await db.select().from(articles);
+  const removed: {
+    id: number;
+    publication: string;
+    title: string;
+    url: string;
+    canonicalUrl: string;
+  }[] = [];
+  for (const row of rows) {
+    if (!isNonEditorialArticle(row, sourceUrl.get(row.sourceId))) continue;
+    await deleteArticleById(row.id);
+    removed.push({
+      id: row.id,
+      publication: row.publication,
+      title: row.title,
+      url: row.url,
+      canonicalUrl: row.canonicalUrl,
+    });
+  }
+  return { removed: removed.length, ids: removed.map((row) => row.id), rows: removed };
+}
+
+export async function purgeEditorialIneligibleArticles(): Promise<{
+  removed: number;
+  ids: number[];
+  rows: {
+    id: number;
+    publication: string;
+    title: string;
+    url: string;
+    canonicalUrl: string;
+    reason: string | null;
+  }[];
+}> {
+  const db = await getDb();
+  const sources = await db.select().from(mediaSources);
+  const sourceUrl = new Map(sources.map((source) => [source.id, source.url]));
+  const rows = await db.select().from(articles);
+  const removed: {
+    id: number;
+    publication: string;
+    title: string;
+    url: string;
+    canonicalUrl: string;
+    reason: string | null;
+  }[] = [];
+  for (const row of rows) {
+    const gate = evaluateEditorialEligibility({
+      url: row.url,
+      canonicalUrl: row.canonicalUrl,
+      title: row.title,
+      excerpt: row.excerpt,
+      sourceId: row.sourceId,
+      sourceUrl: sourceUrl.get(row.sourceId),
+    });
+    if (gate.editorialEligible) continue;
+    await deleteArticleById(row.id);
+    removed.push({
+      id: row.id,
+      publication: row.publication,
+      title: row.title,
+      url: row.url,
+      canonicalUrl: row.canonicalUrl,
+      reason: gate.editorialExclusionReason,
+    });
+  }
+  return { removed: removed.length, ids: removed.map((row) => row.id), rows: removed };
+}
+
 export async function purgeArticlesBySourceId(sourceId: string): Promise<{
   removed: number;
   ids: number[];
@@ -485,6 +635,8 @@ type PendingPage = {
   aiSummary: string | null;
   publication: string;
   allowImage: boolean;
+  metadata: string | null;
+  imageCandidates: ImageCandidate[];
 };
 
 async function summarizePending(pending: PendingPage[]): Promise<number> {
@@ -507,10 +659,8 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
       })),
     );
     for (const result of results) {
-      const pageImage = result.item.allowImage
-        ? resolveImageUrl(result.page.imageUrl, result.item.canonicalUrl)
-        : null;
-      const nextImage = pageImage || result.item.imageUrl;
+      const stored = isUsableArticleImage(result.item.imageUrl) ? result.item.imageUrl : null;
+      const existingPayload = parseImagePayload(result.item.metadata);
       if (result.page.summary && !result.item.aiSummary?.trim()) {
         await db
           .update(articles)
@@ -519,13 +669,28 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
         summarized += 1;
         await persistArticleExtraction(result.item.id);
       }
-      if (nextImage && !result.item.imageUrl?.trim()) {
-        await persistArticleImage(result.item.id, nextImage, result.item.publication, result.item.title);
-      } else if (pageImage && result.item.imageUrl && pageImage !== result.item.imageUrl) {
-        await db
-          .update(articles)
-          .set({ imageUrl: pageImage })
-          .where(eq(articles.id, result.item.id));
+      if (result.item.allowImage && (!stored || !existingPayload)) {
+        const merged = [
+          ...result.item.imageCandidates,
+          ...imageCandidatesFromUrl(stored),
+          ...resolveCandidates(result.page.imageCandidates, result.item.canonicalUrl),
+        ];
+        const payload = await selectPrimaryImage(merged);
+        await persistArticleImages(
+          result.item.id,
+          payload,
+          result.item.publication,
+          result.item.title,
+          result.item.metadata,
+        );
+      } else if (!stored && result.item.imageUrl) {
+        await persistArticleImages(
+          result.item.id,
+          emptyImagePayload(),
+          result.item.publication,
+          result.item.title,
+          result.item.metadata,
+        );
       }
     }
     await delay(150);
@@ -533,24 +698,40 @@ async function summarizePending(pending: PendingPage[]): Promise<number> {
   return summarized;
 }
 
-async function persistArticleImage(
+async function persistArticleImages(
   articleId: number,
-  url: string,
+  payload: Awaited<ReturnType<typeof selectPrimaryImage>>,
   publication: string,
   title: string,
+  metadata: string | null,
 ): Promise<void> {
   const db = await getDb();
-  await db.update(articles).set({ imageUrl: url }).where(eq(articles.id, articleId));
-  const existing = (
-    await db.select().from(articleImages).where(eq(articleImages.articleId, articleId)).limit(1)
-  )[0];
-  if (existing) return;
-  await db.insert(articleImages).values({
-    articleId,
-    url,
-    source: publication,
-    alt: title,
-  });
+  await db
+    .update(articles)
+    .set({
+      imageUrl: payload.primary,
+      metadata: mergeImageMetadata(metadata, payload),
+    })
+    .where(eq(articles.id, articleId));
+  await db.delete(articleImages).where(eq(articleImages.articleId, articleId));
+  for (const [index, source] of payload.sources.entries()) {
+    await db.insert(articleImages).values({
+      articleId,
+      url: source.url,
+      source: publication,
+      alt: title,
+      sourceType: source.sourceType,
+      status: source.status ?? "pending",
+      lastValidated: source.lastValidated ?? null,
+      sortOrder: index,
+      isPrimary: payload.primary === source.url,
+    });
+  }
+}
+
+function imageCandidatesFromUrl(url: string | null | undefined): ImageCandidate[] {
+  if (!isUsableArticleImage(url)) return [];
+  return [{ url, sourceType: "article" }];
 }
 
 function toPendingPage(
@@ -562,9 +743,11 @@ function toPendingPage(
     imageUrl: string | null;
     aiSummary: string | null;
     publication: string;
+    metadata?: string | null;
   },
   allowImage = true,
 ): PendingPage {
+  const payload = parseImagePayload(row.metadata);
   return {
     id: row.id,
     title: row.title,
@@ -574,6 +757,10 @@ function toPendingPage(
     aiSummary: row.aiSummary,
     publication: row.publication,
     allowImage,
+    metadata: row.metadata ?? null,
+    imageCandidates: payload?.sources.length
+      ? payload.sources
+      : imageCandidatesFromUrl(row.imageUrl),
   };
 }
 
@@ -599,7 +786,7 @@ export async function extractMissingImages(options?: {
 }): Promise<{ attempted: number; filled: number }> {
   const db = await getDb();
   const rows = await db.select().from(articles);
-  let missing = rows.filter((row) => !row.imageUrl?.trim());
+  let missing = rows.filter((row) => !isUsableArticleImage(row.imageUrl));
   if (options?.ids?.length) {
     const wanted = new Set(options.ids);
     missing = missing.filter((row) => wanted.has(row.id));
@@ -614,24 +801,43 @@ export async function extractMissingImages(options?: {
         const current = (
           await db.select().from(articles).where(eq(articles.id, row.id)).limit(1)
         )[0];
-        return current?.imageUrl?.trim() ? 1 : 0;
+        return isUsableArticleImage(current?.imageUrl) ? 1 : 0;
       }),
     )
   ).reduce((sum: number, value: number) => sum + value, 0);
   return { attempted: missing.length, filled };
 }
 
-async function persistArticleExtraction(articleId: number): Promise<void> {
+async function insertAll<T extends Record<string, unknown>>(
+  insert: (values: T[]) => Promise<unknown>,
+  rows: T[],
+) {
+  if (!rows.length) return;
+  const chunk = 40;
+  for (let index = 0; index < rows.length; index += chunk) {
+    await insert(rows.slice(index, index + chunk));
+  }
+}
+
+async function persistArticleExtraction(articleId: number, existing?: Article): Promise<void> {
   const db = await getDb();
-  const row = (await db.select().from(articles).where(eq(articles.id, articleId)).limit(1))[0];
+  const row =
+    existing ?? (await db.select().from(articles).where(eq(articles.id, articleId)).limit(1))[0];
   if (!row) return;
-  const extracted = extractEntities(row.title, row.excerpt, row.aiSummary ?? "");
-  await db.delete(articleEntities).where(eq(articleEntities.articleId, articleId));
-  await db.delete(articleCategories).where(eq(articleCategories.articleId, articleId));
-  await db.delete(articleInterests).where(eq(articleInterests.articleId, articleId));
-  await db.delete(articleLocations).where(eq(articleLocations.articleId, articleId));
-  for (const entity of extracted.entities) {
-    await db.insert(articleEntities).values({
+  const classified = classifyArticle(row.title, row.excerpt, row.aiSummary ?? "", row.publication);
+  await Promise.all([
+    db.delete(articleEntities).where(eq(articleEntities.articleId, articleId)),
+    db.delete(articleCategories).where(eq(articleCategories.articleId, articleId)),
+    db.delete(articleInterests).where(eq(articleInterests.articleId, articleId)),
+    db.delete(articleLocations).where(eq(articleLocations.articleId, articleId)),
+    db.delete(articleContentTypes).where(eq(articleContentTypes.articleId, articleId)),
+    db.delete(articleScenes).where(eq(articleScenes.articleId, articleId)),
+    db.delete(articleMotorsport).where(eq(articleMotorsport.articleId, articleId)),
+    db.delete(articleGeography).where(eq(articleGeography.articleId, articleId)),
+  ]);
+  await insertAll(
+    (values) => db.insert(articleEntities).values(values),
+    classified.entities.map((entity) => ({
       articleId,
       kind: entity.kind,
       name: entity.name,
@@ -639,24 +845,83 @@ async function persistArticleExtraction(articleId: number): Promise<void> {
       make: entity.make ?? null,
       model: entity.model ?? null,
       confidence: Math.round(entity.confidence * 100),
-    });
-  }
-  for (const category of extracted.categories) {
-    await db.insert(articleCategories).values({ articleId, category });
-  }
-  for (const interest of extracted.interests) {
-    await db.insert(articleInterests).values({ articleId, interest });
-  }
-  for (const location of extracted.locations) {
-    await db.insert(articleLocations).values({ articleId, location });
-  }
-  await upsertArticlePrimary(articleId, {
-    title: row.title,
-    excerpt: row.excerpt,
-    publication: row.publication,
-    categories: extracted.categories,
-    interests: extracted.interests,
-  });
+      relevance: entity.relevance,
+      chassis: entity.chassis ?? null,
+      canonicalId: entity.canonicalId,
+      source: entity.source,
+    })),
+  );
+  await insertAll(
+    (values) => db.insert(articleCategories).values(values),
+    classified.categories.map((category) => ({ articleId, category })),
+  );
+  await insertAll(
+    (values) => db.insert(articleInterests).values(values),
+    classified.interests.map((interest) => ({ articleId, interest })),
+  );
+  await insertAll(
+    (values) => db.insert(articleLocations).values(values),
+    classified.locations.map((location) => ({ articleId, location })),
+  );
+  await insertAll(
+    (values) => db.insert(articleContentTypes).values(values),
+    classified.contentTypes.map((rowType) => ({
+      articleId,
+      contentType: rowType.name,
+      confidence: rowType.confidence,
+      source: rowType.source,
+    })),
+  );
+  await insertAll(
+    (values) => db.insert(articleScenes).values(values),
+    classified.scenes.map((scene) => ({
+      articleId,
+      scene: scene.name,
+      confidence: scene.confidence,
+      source: scene.source,
+    })),
+  );
+  await insertAll(
+    (values) => db.insert(articleMotorsport).values(values),
+    classified.motorsport.map((series) => ({
+      articleId,
+      series: series.name,
+      confidence: series.confidence,
+      source: series.source,
+    })),
+  );
+  await insertAll(
+    (values) => db.insert(articleGeography).values(values),
+    classified.geography.map((place) => ({
+      articleId,
+      kind: place.kind,
+      name: place.name,
+      slug: place.slug,
+      confidence: place.confidence,
+      source: place.source,
+    })),
+  );
+  await db
+    .update(articles)
+    .set({
+      metadata: mergeClassificationMetadata(row.metadata, classificationSnapshot(classified)),
+      processed: true,
+      lastProcessed: Date.now(),
+    })
+    .where(eq(articles.id, articleId));
+  await upsertArticlePrimary(
+    articleId,
+    {
+      title: row.title,
+      excerpt: row.excerpt,
+      publication: row.publication,
+      categories: classified.categories,
+      interests: classified.interests,
+      contentTypes: classified.contentTypes.map((item) => item.name),
+      scenes: classified.scenes.map((item) => item.name),
+    },
+    classified.primaryConfidence,
+  );
 }
 
 export async function reprocessArticles(): Promise<number> {
@@ -665,12 +930,34 @@ export async function reprocessArticles(): Promise<number> {
   const rows = await db.select().from(articles);
   let count = 0;
   for (const row of rows) {
-    await persistArticleExtraction(row.id);
-    await db
-      .update(articles)
-      .set({ processed: true, lastProcessed: Date.now() })
-      .where(eq(articles.id, row.id));
+    await persistArticleExtraction(row.id, row);
     count += 1;
   }
+  await rebuildRelatedStories();
   return count;
+}
+
+/** Classify stored teasers/extracts only. No page fetch, no ingest wave. Idempotent. */
+export async function backfillArticleMetadata(options?: {
+  ids?: number[];
+  limit?: number;
+}): Promise<{ classified: number; related: number }> {
+  const db = await getDb();
+  let rows = await db.select().from(articles);
+  if (options?.ids?.length) {
+    const wanted = new Set(options.ids);
+    rows = rows.filter((row) => wanted.has(row.id));
+  }
+  if (options?.limit && options.limit > 0) {
+    rows = rows.slice(0, options.limit);
+  }
+  let classified = 0;
+  const concurrency = 6;
+  for (let index = 0; index < rows.length; index += concurrency) {
+    const batch = rows.slice(index, index + concurrency);
+    await Promise.all(batch.map((row) => persistArticleExtraction(row.id, row)));
+    classified += batch.length;
+  }
+  const related = await rebuildRelatedStories();
+  return { classified, related };
 }

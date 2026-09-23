@@ -1,18 +1,17 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import {
-  FOR_YOU_TEST_STORAGE_KEY,
+  FOR_YOU_DEMO_PROFILES,
   forYouTestIsActive,
   forYouTestSearchString,
   forYouTestSummary,
   type ForYouTestCatalog,
   type ForYouTestProfile,
 } from "@/lib/engine/for-you-test";
+import { ForYouTestStorageSync } from "./for-you-test-storage";
 
 const selectClass =
   "h-9 min-w-0 w-full rounded-[5px] border border-[#1b1d1f] bg-white px-2 font-display text-sm font-bold uppercase text-[#1b1d1f]";
+
+const autoSubmitScript = `(function(){var f=document.getElementById("for-you-test-form");if(!f)return;f.querySelectorAll("select").forEach(function(s){s.addEventListener("change",function(){f.requestSubmit();});});})();`;
 
 function withCurrent(options: string[], current?: string) {
   if (!current) return options;
@@ -20,114 +19,97 @@ function withCurrent(options: string[], current?: string) {
   return [current, ...options];
 }
 
+function hrefFor(pathname: string, profile: ForYouTestProfile) {
+  const query = forYouTestSearchString(profile);
+  return query ? `${pathname}?${query}` : pathname;
+}
+
 export function ForYouTestFilter({
   initial,
   catalog,
+  pathname,
 }: {
   initial: ForYouTestProfile;
   catalog: ForYouTestCatalog;
+  pathname: string;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [open, setOpen] = useState(forYouTestIsActive(initial));
-  const [profile, setProfile] = useState<ForYouTestProfile>(initial);
-  const makeRecord = catalog.makes.find((item) => item.name === profile.make);
+  const makeRecord = catalog.makes.find((item) => item.name === initial.make);
   const models = withCurrent(
     (makeRecord?.models ?? []).map((model) => model.name),
-    profile.model,
+    initial.model,
   );
-  const selectedModel = makeRecord?.models.find((item) => item.name === profile.model);
-  const generations = withCurrent(selectedModel?.generations ?? [], profile.generation);
-  const variants = withCurrent(selectedModel?.variants ?? [], profile.variant);
+  const selectedModel = makeRecord?.models.find((item) => item.name === initial.model);
+  const generations = withCurrent(selectedModel?.generations ?? [], initial.generation);
+  const variants = withCurrent(selectedModel?.variants ?? [], initial.variant);
   const makes = withCurrent(
     catalog.makes.map((make) => make.name),
-    profile.make,
+    initial.make,
   );
-  const locations = withCurrent(catalog.locations, profile.location);
+  const locations = withCurrent(catalog.locations, initial.location);
   const interests = [...catalog.interests];
-  for (const interest of profile.interests) {
+  for (const interest of initial.interests) {
     if (!interests.includes(interest)) interests.push(interest);
   }
   const initialQuery = forYouTestSearchString(initial);
-
-  useEffect(() => {
-    if (initialQuery) {
-      window.localStorage.setItem(FOR_YOU_TEST_STORAGE_KEY, initialQuery);
-      return;
-    }
-    const stored = window.localStorage.getItem(FOR_YOU_TEST_STORAGE_KEY);
-    if (!stored) return;
-    router.replace(`${pathname}?${stored}`);
-  }, [initialQuery, pathname, router]);
-
-  function apply(next: ForYouTestProfile) {
-    const cleaned: ForYouTestProfile = {
-      make: next.make,
-      model: next.make ? next.model : undefined,
-      generation: next.make && next.model ? next.generation : undefined,
-      variant: next.make && next.model ? next.variant : undefined,
-      interests: next.interests,
-      location: next.location,
-    };
-    setProfile(cleaned);
-    const query = forYouTestSearchString(cleaned);
-    if (query) window.localStorage.setItem(FOR_YOU_TEST_STORAGE_KEY, query);
-    else window.localStorage.removeItem(FOR_YOU_TEST_STORAGE_KEY);
-    router.replace(query ? `${pathname}?${query}` : pathname);
-  }
-
-  const active = forYouTestIsActive(profile);
+  const active = forYouTestIsActive(initial);
 
   return (
-    <section className="mx-auto w-full max-w-3xl px-4 pt-3 md:max-w-6xl md:px-6">
-      <div className="rounded-[8px] border border-dashed border-[#1b1d1f]/30 bg-[#f6f6f6] px-3 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="font-display text-xs font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55">
-              Test personalization — placeholder
-            </p>
-            <p className="mt-1 text-[13px] leading-5 text-[#1b1d1f]/70">
-              Not a garage. Hides anything that does not match each setting you choose — make,
-              model, generation, variant, interest, location. Blank settings do not constrain. The
-              list is every value on stories plus the gazetteer, including off-catalog marques.
-              Saved in the URL and on this phone.
-            </p>
-            {active ? (
-              <p className="mt-1 font-display text-sm font-bold uppercase text-[#1b1d1f]">
-                {forYouTestSummary(profile)}
+    <>
+      <ForYouTestStorageSync query={initialQuery} />
+      <section className="relative z-30 mx-auto w-full max-w-3xl px-4 pt-3 md:max-w-6xl md:px-6">
+        <details
+          open={active}
+          className="rounded-[8px] border border-dashed border-[#1b1d1f]/30 bg-[#f6f6f6] px-3 py-3"
+        >
+          <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-xs font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55">
+                Test personalization — placeholder
               </p>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            className="h-9 rounded-[5px] border border-[#1b1d1f] px-3 font-display text-sm font-extrabold uppercase"
-            onClick={() => setOpen((value) => !value)}
-          >
-            {open ? "Hide" : "Set test"}
-          </button>
-        </div>
-        {open ? (
-          <form
-            className="mt-3 flex flex-col gap-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              apply(profile);
-            }}
-          >
+              <p className="mt-1 text-[13px] leading-5 text-[#1b1d1f]/70">
+                Ranks the desk around your car first, then interests, then the rest of the car world.
+                Not a garage. A–D are switchable test cars. Saved in the URL and on this phone.
+                Cars, Culture, Driving, and Events still hide anything that misses a set filter.
+              </p>
+              {active ? (
+                <p className="mt-1 font-display text-sm font-bold uppercase text-[#1b1d1f]">
+                  {forYouTestSummary(initial)}
+                </p>
+              ) : null}
+            </div>
+            <span className="inline-flex h-9 shrink-0 items-center rounded-[5px] border border-[#1b1d1f] px-3 font-display text-sm font-extrabold uppercase">
+              Set test
+            </span>
+          </summary>
+          <form id="for-you-test-form" method="get" action={pathname} className="mt-3 flex flex-col gap-3">
+            {initial.preset ? <input type="hidden" name="profile" value={initial.preset} /> : null}
+            {initial.interests.map((interest) => (
+              <input key={interest} type="hidden" name="interest" value={interest} />
+            ))}
+            <div className="flex flex-wrap gap-2">
+              {Object.values(FOR_YOU_DEMO_PROFILES).map((demo) => {
+                const on = initial.preset === demo.id;
+                return (
+                  <a
+                    key={demo.id}
+                    href={hrefFor(pathname, { ...demo })}
+                    className={
+                      on
+                        ? "inline-flex h-8 items-center rounded-[4px] bg-[#1b1d1f] px-3 font-display text-xs font-bold uppercase text-white no-underline"
+                        : "inline-flex h-8 items-center rounded-[4px] border border-[#1b1d1f]/30 bg-white px-3 font-display text-xs font-bold uppercase text-[#1b1d1f] no-underline"
+                    }
+                  >
+                    {demo.id} · {demo.label}
+                  </a>
+                );
+              })}
+            </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <select
                 aria-label="Test make"
+                name="make"
                 className={selectClass}
-                value={profile.make ?? ""}
-                onChange={(event) =>
-                  apply({
-                    ...profile,
-                    make: event.target.value || undefined,
-                    model: undefined,
-                    generation: undefined,
-                    variant: undefined,
-                  })
-                }
+                defaultValue={initial.make ?? ""}
               >
                 <option value="">Any make</option>
                 {makes.map((make) => (
@@ -138,17 +120,10 @@ export function ForYouTestFilter({
               </select>
               <select
                 aria-label="Test model"
+                name="model"
                 className={selectClass}
-                value={profile.model ?? ""}
-                disabled={!profile.make}
-                onChange={(event) =>
-                  apply({
-                    ...profile,
-                    model: event.target.value || undefined,
-                    generation: undefined,
-                    variant: undefined,
-                  })
-                }
+                defaultValue={initial.model ?? ""}
+                disabled={!initial.make}
               >
                 <option value="">Any model</option>
                 {models.map((model) => (
@@ -159,12 +134,10 @@ export function ForYouTestFilter({
               </select>
               <select
                 aria-label="Test generation"
+                name="generation"
                 className={selectClass}
-                value={profile.generation ?? ""}
-                disabled={!profile.make || !profile.model}
-                onChange={(event) =>
-                  apply({ ...profile, generation: event.target.value || undefined })
-                }
+                defaultValue={initial.generation ?? ""}
+                disabled={!initial.make || !initial.model}
               >
                 <option value="">Any generation</option>
                 {generations.map((generation) => (
@@ -175,12 +148,10 @@ export function ForYouTestFilter({
               </select>
               <select
                 aria-label="Test variant"
+                name="variant"
                 className={selectClass}
-                value={profile.variant ?? ""}
-                disabled={!profile.make || !profile.model}
-                onChange={(event) =>
-                  apply({ ...profile, variant: event.target.value || undefined })
-                }
+                defaultValue={initial.variant ?? ""}
+                disabled={!initial.make || !initial.model}
               >
                 <option value="">Any variant</option>
                 {variants.map((variant) => (
@@ -192,9 +163,9 @@ export function ForYouTestFilter({
             </div>
             <select
               aria-label="Test location"
+              name="location"
               className={selectClass}
-              value={profile.location ?? ""}
-              onChange={(event) => apply({ ...profile, location: event.target.value || undefined })}
+              defaultValue={initial.location ?? ""}
             >
               <option value="">Any location</option>
               {locations.map((location) => (
@@ -203,47 +174,48 @@ export function ForYouTestFilter({
                 </option>
               ))}
             </select>
+            <button
+              type="submit"
+              className="self-start rounded-[5px] border border-[#1b1d1f] bg-white px-3 py-2 font-display text-xs font-bold uppercase text-[#1b1d1f]"
+            >
+              Apply garage filters
+            </button>
             <div>
               <p className="mb-2 font-display text-xs font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55">
                 Interests
               </p>
               <div className="flex flex-wrap gap-2">
                 {interests.map((interest) => {
-                  const on = profile.interests.includes(interest);
+                  const on = initial.interests.includes(interest);
+                  const nextInterests = on
+                    ? initial.interests.filter((item) => item !== interest)
+                    : [...initial.interests, interest];
                   return (
-                    <button
+                    <a
                       key={interest}
-                      type="button"
+                      href={hrefFor(pathname, { ...initial, preset: undefined, interests: nextInterests })}
                       className={
                         on
-                          ? "h-8 rounded-[4px] bg-[#1b1d1f] px-3 font-display text-xs font-bold uppercase text-white"
-                          : "h-8 rounded-[4px] border border-[#1b1d1f]/30 bg-white px-3 font-display text-xs font-bold uppercase text-[#1b1d1f]"
-                      }
-                      onClick={() =>
-                        apply({
-                          ...profile,
-                          interests: on
-                            ? profile.interests.filter((item) => item !== interest)
-                            : [...profile.interests, interest],
-                        })
+                          ? "inline-flex h-8 items-center rounded-[4px] bg-[#1b1d1f] px-3 font-display text-xs font-bold uppercase text-white no-underline"
+                          : "inline-flex h-8 items-center rounded-[4px] border border-[#1b1d1f]/30 bg-white px-3 font-display text-xs font-bold uppercase text-[#1b1d1f] no-underline"
                       }
                     >
                       {interest}
-                    </button>
+                    </a>
                   );
                 })}
               </div>
             </div>
-            <button
-              type="button"
+            <a
+              href={pathname}
               className="self-start font-display text-sm font-bold uppercase text-[#1b1d1f]/70 underline"
-              onClick={() => apply({ interests: [] })}
             >
               Clear test
-            </button>
+            </a>
           </form>
-        ) : null}
-      </div>
-    </section>
+          <script dangerouslySetInnerHTML={{ __html: autoSubmitScript }} />
+        </details>
+      </section>
+    </>
   );
 }

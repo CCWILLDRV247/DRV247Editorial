@@ -509,8 +509,22 @@ describe("bundled intelligence config", () => {
     assert.deepEqual(maintain.componentAliases.brakes, ["brake-discs", "brake-pads"]);
   });
 
-  it("loads the seed CSV without a project cwd", () => {
+  it("loads the seed CSV from the project cwd, not import.meta.url", () => {
     const result = loadCsvProducts(
+      {
+        id: "src-design911",
+        name: "Design 911",
+        kind: "csv",
+        identifier: "config/intelligence/seed-products.csv",
+        enabled: true,
+        priority: 70,
+      },
+      process.cwd(),
+    );
+    assert.ok(result.products.length > 0);
+    assert.equal(result.errors.length, 0);
+
+    const missing = loadCsvProducts(
       {
         id: "src-design911",
         name: "Design 911",
@@ -521,7 +535,7 @@ describe("bundled intelligence config", () => {
       },
       "/tmp/does-not-exist",
     );
-    assert.ok(result.products.length > 0);
-    assert.equal(result.errors.length, 0);
+    assert.equal(missing.products.length, 0);
+    assert.ok(missing.errors.length > 0);
   });
 });

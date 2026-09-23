@@ -1,0 +1,21 @@
+{
+  "categoryMatch": 18,
+  "tagMatch": 22,
+  "marqueMatch": 28,
+  "themeMatch": 14,
+  "userMarqueMatch": 9,
+  "userInterestMatch": 11,
+  "personalisationRepeatPenalty": 16,
+  "recentUsePenalty": 34,
+  "recentMostRecentExtraPenalty": 18,
+  "recentExcludeMaxGap": 18,
+  "usagePenalty": 45,
+  "consecutiveTypePenalty": 12,
+  "consecutiveTagPenalty": 18,
+  "randomSpread": 8,
+  "priorityBonus": 6,
+  "broadLineBaseline": 4,
+  "wrongMarquePenalty": 22,
+  "minHomepageInterludes": 1,
+  "maxHomepageInterludes": 4
+}

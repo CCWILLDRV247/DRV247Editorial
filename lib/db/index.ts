@@ -136,7 +136,12 @@ const SCHEMA_STATEMENTS = [
       article_id INTEGER NOT NULL REFERENCES articles(id),
       url TEXT NOT NULL,
       source TEXT,
-      alt TEXT
+      alt TEXT,
+      source_type TEXT,
+      status TEXT,
+      last_validated INTEGER,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      is_primary INTEGER NOT NULL DEFAULT 0
     )`,
   `CREATE TABLE IF NOT EXISTS ingestion_runs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -161,7 +166,15 @@ const SCHEMA_STATEMENTS = [
       make TEXT NOT NULL,
       model TEXT NOT NULL,
       generation TEXT,
-      variant TEXT
+      variant TEXT,
+      year INTEGER,
+      engine TEXT,
+      fuel TEXT,
+      transmission TEXT,
+      body TEXT,
+      power_bhp INTEGER,
+      registration TEXT,
+      specification TEXT
     )`,
   `CREATE TABLE IF NOT EXISTS demo_user_interests (
       user_id TEXT NOT NULL REFERENCES demo_users(id),
@@ -230,6 +243,9 @@ async function ensureSchema(client: Client) {
     }
   }
   await ensureTaxonomy(client);
+  await ensureArticleImageColumns(client);
+  await ensureMetadataFoundation(client);
+  await ensureDeskPicks(client);
 }
 
 const INDEX_STATEMENTS = [
@@ -268,13 +284,118 @@ async function ensureTaxonomy(client: Client) {
   await Promise.all(INDEX_STATEMENTS.map((sql) => client.execute(sql)));
 }
 
+const ARTICLE_IMAGE_COLUMNS = [
+  "ALTER TABLE article_images ADD COLUMN source_type TEXT",
+  "ALTER TABLE article_images ADD COLUMN status TEXT",
+  "ALTER TABLE article_images ADD COLUMN last_validated INTEGER",
+  "ALTER TABLE article_images ADD COLUMN sort_order INTEGER",
+  "ALTER TABLE article_images ADD COLUMN is_primary INTEGER",
+];
+
+async function ensureArticleImageColumns(client: Client) {
+  for (const sql of ARTICLE_IMAGE_COLUMNS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Column already exists on live Turso / local sqlite.
+    }
+  }
+}
+
+const METADATA_STATEMENTS = [
+  "ALTER TABLE article_entities ADD COLUMN relevance TEXT",
+  "ALTER TABLE article_entities ADD COLUMN chassis TEXT",
+  "ALTER TABLE article_entities ADD COLUMN canonical_id TEXT",
+  "ALTER TABLE article_entities ADD COLUMN source TEXT",
+  `CREATE TABLE IF NOT EXISTS article_content_types (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      content_type TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_scenes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      scene TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_motorsport (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      series TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_geography (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      kind TEXT NOT NULL,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      confidence INTEGER NOT NULL DEFAULT 80,
+      source TEXT NOT NULL DEFAULT 'rule'
+    )`,
+  `CREATE TABLE IF NOT EXISTS article_related (
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      related_article_id INTEGER NOT NULL REFERENCES articles(id),
+      reason TEXT NOT NULL,
+      score INTEGER NOT NULL DEFAULT 0
+    )`,
+  `CREATE INDEX IF NOT EXISTS article_content_types_article_idx ON article_content_types (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_scenes_article_idx ON article_scenes (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_motorsport_article_idx ON article_motorsport (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_geography_article_idx ON article_geography (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_related_article_idx ON article_related (article_id)`,
+  `CREATE INDEX IF NOT EXISTS article_entities_canonical_idx ON article_entities (canonical_id)`,
+];
+
+async function ensureMetadataFoundation(client: Client) {
+  for (const sql of METADATA_STATEMENTS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Column/table already exists on live Turso / local sqlite.
+    }
+  }
+}
+
+const DESK_PICK_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS desk_picks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id INTEGER NOT NULL UNIQUE REFERENCES articles(id),
+      note TEXT,
+      curator TEXT NOT NULL DEFAULT 'DRV247 Desk',
+      selected_at INTEGER NOT NULL,
+      expires_at INTEGER,
+      featured INTEGER NOT NULL DEFAULT 0,
+      category TEXT,
+      label TEXT NOT NULL DEFAULT 'from-the-desk',
+      active INTEGER NOT NULL DEFAULT 1
+    )`,
+  `CREATE INDEX IF NOT EXISTS desk_picks_article_idx ON desk_picks (article_id)`,
+  `CREATE INDEX IF NOT EXISTS desk_picks_active_idx ON desk_picks (active, featured, selected_at)`,
+  "ALTER TABLE desk_picks ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0",
+];
+
+async function ensureDeskPicks(client: Client) {
+  for (const sql of DESK_PICK_STATEMENTS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Table/index already exists on live Turso / local sqlite.
+    }
+  }
+}
+
 async function createDb() {
   const client = globalForDb.drvLibsql ?? createClient(connection());
   globalForDb.drvLibsql = client;
   await ensureSchema(client);
   await ensureIntelligenceSchema(client);
   const db = drizzle(client, { schema: appSchema });
-  await seedIfEmpty(db);
+  await seedIfEmpty(db as never);
   await seedEngine(db as never);
   await seedIntelligence(db as never);
   globalForDb.drvDb = db;

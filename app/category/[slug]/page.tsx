@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { ForYouTestFilter } from "@/components/for-you-test-filter";
+import { MagazineQueryProvider } from "@/components/magazine-link";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryFeed } from "@/components/story-feed";
 import { LEGACY_NAV_TO_PRIMARY, contentPrimaryBySlug } from "@/config/magazine-nav";
@@ -14,7 +15,7 @@ import { listMagazineStories } from "@/lib/engine/magazine";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({
   params,
@@ -42,12 +43,14 @@ export default async function CategoryPage({
   const catalog = withProfileInCatalog(catalogRows, testProfile);
 
   return (
-    <div className="min-h-full overflow-x-clip bg-white">
-      <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
-      <ForYouTestFilter initial={testProfile} catalog={catalog} />
-      <main className="pt-2">
-        <StoryFeed stories={stories} copyKey={category.slug} categoryName={category.name} />
-      </main>
-    </div>
+    <MagazineQueryProvider testQuery={testQuery}>
+      <div className="min-h-full overflow-x-clip bg-white">
+        <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
+        <ForYouTestFilter initial={testProfile} catalog={catalog} pathname={`/category/${slug}`} />
+        <main className="pt-2">
+          <StoryFeed stories={stories} copyKey={category.slug} categoryName={category.name} />
+        </main>
+      </div>
+    </MagazineQueryProvider>
   );
 }

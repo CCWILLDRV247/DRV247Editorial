@@ -20,7 +20,14 @@ export const metadata: Metadata = {
     template: "%s · DRV247",
   },
   description:
-    "Drive 24/7 editorial desk — For You, Cars, Culture, Driving, Motorsport, and Events. Metadata, summaries, and the original link. Never the full article.",
+    "Drive 24/7 editorial desk — For You, Cars, Culture, Driving, and Events. Metadata, summaries, and the original link. Never the full article.",
+  icons: {
+    icon: [
+      { url: "/drv247-favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

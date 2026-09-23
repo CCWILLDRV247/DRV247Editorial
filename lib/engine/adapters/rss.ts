@@ -1,4 +1,11 @@
-import { capSummary, canonicalizeUrl, feedImageUrl, firstImageFromHtml, stripHtml } from "../../text";
+import {
+  capSummary,
+  canonicalizeUrl,
+  feedImageCandidates,
+  feedImageUrl,
+  stripHtml,
+} from "../../text";
+import type { ImageCandidate } from "../images";
 import { looksLikeFeed } from "../http";
 
 export type EngineItem = {
@@ -9,6 +16,7 @@ export type EngineItem = {
   author?: string | null;
   excerpt: string;
   imageUrl: string | null;
+  imageCandidates?: ImageCandidate[];
   publishedAt: number;
   method: "rss" | "atom" | "sitemap" | "scrape";
 };
@@ -35,6 +43,7 @@ function parseRss(xml: string): EngineItem[] {
     if (!title || !canonical) continue;
     const encoded = tag(block, "content:encoded") || tag(block, "description");
     const date = tag(block, "pubDate") || tag(block, "dc:date");
+    const imageCandidates = feedImageCandidates(block);
     items.push({
       title,
       url: canonical,
@@ -42,7 +51,8 @@ function parseRss(xml: string): EngineItem[] {
       guid,
       author: decode(tag(block, "dc:creator") || tag(block, "author")) || null,
       excerpt: capSummary(encoded || title),
-      imageUrl: feedImageUrl(block) || firstImageFromHtml(encoded),
+      imageUrl: feedImageUrl(block),
+      imageCandidates,
       publishedAt: parseDate(date),
       method: "rss",
     });
@@ -62,6 +72,7 @@ function parseAtom(xml: string): EngineItem[] {
     const canonical = canonicalizeUrl(href || "");
     if (!title || !canonical) continue;
     const summary = tag(block, "summary") || tag(block, "content");
+    const imageCandidates = feedImageCandidates(block);
     items.push({
       title,
       url: canonical,
@@ -69,7 +80,8 @@ function parseAtom(xml: string): EngineItem[] {
       guid: tag(block, "id"),
       author: decode(tag(block, "name")) || null,
       excerpt: capSummary(summary || title),
-      imageUrl: feedImageUrl(block) || firstImageFromHtml(summary),
+      imageUrl: feedImageUrl(block),
+      imageCandidates,
       publishedAt: parseDate(tag(block, "updated") || tag(block, "published")),
       method: "atom",
     });

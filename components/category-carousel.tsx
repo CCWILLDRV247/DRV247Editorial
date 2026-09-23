@@ -1,4 +1,6 @@
-import Link from "next/link";
+import { cn } from "cn";
+import { MagazineLink } from "@/components/magazine-link";
+import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 import { StoryImage } from "./story-image";
 
@@ -8,37 +10,50 @@ export type CategoryLane = {
   stories: StoryDto[];
 };
 
-export function CategoryCarousel({ slug, name, stories }: CategoryLane) {
+export function CarouselStoryCard({ story }: { story: StoryDto }) {
+  return (
+    <MagazineLink
+      href={`/story/${story.id}`}
+      className="w-[200px] shrink-0 snap-start md:w-[220px]"
+    >
+      <div className="relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px]">
+        <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" eager />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
+        <p className="absolute bottom-4 left-4 right-4 font-display text-[11px] font-bold uppercase leading-none tracking-[-0.02em] text-white">
+          {story.source.name}
+        </p>
+      </div>
+      <p className="mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px]">
+        {story.title}
+      </p>
+    </MagazineLink>
+  );
+}
+
+export function CategoryCarousel({ slug, name, stories, lead = false }: CategoryLane & { lead?: boolean }) {
   if (stories.length === 0) {
     return null;
   }
 
   return (
-    <section className="min-w-0 pl-4 pr-0 md:px-0">
-      <Link
-        href={`/category/${slug}`}
-        className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]"
-      >
-        {name}
-      </Link>
-      <div className="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-2 [scrollbar-width:thin] snap-x snap-mandatory">
+    <section className={cn("min-w-0 pl-4 pr-0 md:px-0", lead && "pt-1 md:pt-2")}>
+      <div className="flex min-w-0 items-baseline justify-between gap-3 pr-4 md:pr-0">
+        <MagazineLink
+          href={`/category/${slug}`}
+          className={HOMEPAGE_COMPOSITION.sectionTitle}
+        >
+          {name}
+        </MagazineLink>
+        <MagazineLink
+          href={`/category/${slug}`}
+          className="shrink-0 font-display text-xs font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55 underline-offset-2 hover:underline"
+        >
+          View all
+        </MagazineLink>
+      </div>
+      <div className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2">
         {stories.map((story) => (
-          <Link
-            key={`${slug}-${story.id}`}
-            href={`/story/${story.id}`}
-            className="w-[240px] shrink-0 snap-start"
-          >
-            <div className="relative h-[280px] overflow-hidden rounded-[12px] bg-[#1b1d1f]">
-              <StoryImage src={story.imageUrl} alt="" eager />
-              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
-              <p className="absolute bottom-4 left-4 right-4 font-display text-[11px] font-bold uppercase leading-none tracking-[-0.02em] text-white">
-                {story.source.name}
-              </p>
-            </div>
-            <p className="mt-2 line-clamp-3 font-display text-[18px] font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f]">
-              {story.title}
-            </p>
-          </Link>
+          <CarouselStoryCard key={`${slug}-${story.id}`} story={story} />
         ))}
       </div>
     </section>

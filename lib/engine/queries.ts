@@ -12,19 +12,57 @@ import {
   demoUserInterests,
   demoUsers,
   demoVehicles,
+  deskPicks,
   ingestionRuns,
   mediaSources,
   type Article,
 } from "@/lib/db/schema";
-import { loadRankWeights, recencyBonus, scoreArticle, scoreForYou, type GarageVehicle } from "./rank";
+import {
+  diversifyByVehicle,
+  explainArticle,
+  loadRankWeights,
+  preferUsableImages,
+  scoreArticle,
+  scoreForYou,
+  type EntityHit,
+  type GarageVehicle,
+  type RankSignal,
+  type VehicleTier,
+} from "./rank";
 import { classifyPrimary, isContentPrimary } from "./taxonomy";
+import { displayImageUrls, parseImagePayload } from "./images";
 import { loadArticlePrimaries } from "./article-primary";
+import {
+  parseClassificationSnapshot,
+  type ClassificationSnapshot,
+} from "./classify";
+import { relatedForArticle } from "./related";
 import {
   articleMatchesForYouTest,
   buildForYouTestCatalog,
   forYouTestIsActive,
   type ForYouTestProfile,
 } from "./for-you-test";
+import {
+  contextFromDemoUser,
+  contextFromTestProfile,
+} from "./personalize";
+import {
+  evaluateRelevanceEngine,
+  type RelevanceEngineWeights,
+} from "./relevance-engine";
+import {
+  evaluateQualityFilter,
+  type QualityBand,
+  type QualityFilterWeights,
+} from "./quality-filter";
+import {
+  liveDeskByArticle,
+  selectHomepagePicks,
+  type DeskPublic,
+} from "./desk";
+import { evaluateEditorialEligibility } from "./editorial-eligibility";
+import type { EditorialExclusionReason } from "./editorial-eligibility";
 
 export type EditorialDto = {
   id: number;
@@ -36,6 +74,9 @@ export type EditorialDto = {
   author: string | null;
   publishedAt: string;
   imageUrl: string | null;
+  imageSources: string[];
+  imageStatus: string | null;
+  imageSourceType: string | null;
   excerpt: string;
   editorialScore: number;
   vehicleRelevanceScore: number;
@@ -51,6 +92,23 @@ export type EditorialDto = {
   locations: string[];
   duplicateGroupId: string | null;
   primaryCategory: string;
+  primaryConfidence: number | null;
+  classification: ClassificationSnapshot | null;
+  related: { id: number; title: string; publication: string; reason: string; score: number }[];
+  why: string[];
+  rankSignals: RankSignal[];
+  vehicleTier: VehicleTier;
+  desk: DeskPublic | null;
+  drvRelevance: number;
+  userRelevance: number;
+  passedQualityGate: boolean;
+  relevanceGateNote: string;
+  qualityBand: QualityBand;
+  qualityReason: string;
+  showInPrimaryFeed: boolean;
+  qualityAutomotiveScore: number;
+  editorialEligible: boolean;
+  editorialExclusionReason: EditorialExclusionReason | null;
 };
 
 type FeedArticle = Pick<
@@ -69,6 +127,7 @@ type FeedArticle = Pick<
   | "ingestionMethod"
   | "aiSummary"
   | "duplicateGroupId"
+  | "metadata"
 >;
 
 const ARTICLE_FEED_COLUMNS = {
@@ -86,6 +145,7 @@ const ARTICLE_FEED_COLUMNS = {
   ingestionMethod: articles.ingestionMethod,
   aiSummary: articles.aiSummary,
   duplicateGroupId: articles.duplicateGroupId,
+  metadata: articles.metadata,
 };
 
 type ArticleGraph = {
@@ -111,6 +171,11 @@ export const loadArticleGraph = cache(async (): Promise<ArticleGraph> => {
   return { entities, categories, interests, locations, primaries, sources };
 });
 
+export const loadDeskPickRows = cache(async () => {
+  const db = await getDb();
+  return db.select().from(deskPicks);
+});
+
 function emptyExtras() {
   return {
     makes: [] as string[],
@@ -120,6 +185,7 @@ function emptyExtras() {
     categories: [] as string[],
     interests: [] as string[],
     locations: [] as string[],
+    entityHits: [] as EntityHit[],
   };
 }
 
@@ -131,6 +197,13 @@ function extrasFromGraph(graph: ArticleGraph, articleIds: number[]) {
     if (!wanted.has(row.articleId)) continue;
     const extras = map.get(row.articleId);
     if (!extras) continue;
+    extras.entityHits.push({
+      kind: row.kind,
+      name: row.name,
+      make: row.make,
+      model: row.model,
+      relevance: row.relevance,
+    });
     if (row.kind === "make") extras.makes.push(row.name);
     if (row.kind === "model") extras.models.push(row.name);
     if (row.kind === "generation") extras.generations.push(row.name);
@@ -164,8 +237,27 @@ function toDto(
     locations: string[];
     rankScore: number;
     primaryCategory: string;
+    primaryConfidence?: number | null;
+    classification?: ClassificationSnapshot | null;
+    related?: EditorialDto["related"];
+    why?: string[];
+    rankSignals?: RankSignal[];
+    vehicleTier?: VehicleTier;
+    desk?: DeskPublic | null;
+    drvRelevance?: number;
+    userRelevance?: number;
+    passedQualityGate?: boolean;
+    relevanceGateNote?: string;
+    qualityBand?: QualityBand;
+    qualityReason?: string;
+    showInPrimaryFeed?: boolean;
+    qualityAutomotiveScore?: number;
+    editorialEligible?: boolean;
+    editorialExclusionReason?: EditorialExclusionReason | null;
   },
 ): EditorialDto {
+  const image = parseImagePayload(article.metadata);
+  const imageUrls = displayImageUrls(article.imageUrl, image);
   return {
     id: article.id,
     sourceId: article.sourceId,
@@ -175,7 +267,10 @@ function toDto(
     canonicalUrl: article.canonicalUrl,
     author: article.author,
     publishedAt: new Date(article.publishedAt).toISOString(),
-    imageUrl: article.imageUrl,
+    imageUrl: imageUrls[0] ?? null,
+    imageSources: imageUrls.slice(1),
+    imageStatus: image?.status ?? (imageUrls[0] ? "ok" : "missing"),
+    imageSourceType: image?.sourceType ?? null,
     excerpt: article.excerpt,
     editorialScore: article.editorialScore,
     vehicleRelevanceScore: extras.rankScore,
@@ -191,6 +286,23 @@ function toDto(
     locations: extras.locations,
     duplicateGroupId: article.duplicateGroupId,
     primaryCategory: extras.primaryCategory,
+    primaryConfidence: extras.primaryConfidence ?? parseClassificationSnapshot(article.metadata)?.primaryConfidence ?? null,
+    classification: extras.classification ?? parseClassificationSnapshot(article.metadata),
+    related: extras.related ?? [],
+    why: extras.why ?? [],
+    rankSignals: extras.rankSignals ?? [],
+    vehicleTier: extras.vehicleTier ?? "none",
+    desk: extras.desk ?? null,
+    drvRelevance: extras.drvRelevance ?? extras.rankScore,
+    userRelevance: extras.userRelevance ?? 0,
+    passedQualityGate: extras.passedQualityGate ?? true,
+    relevanceGateNote: extras.relevanceGateNote ?? "pass",
+    qualityBand: extras.qualityBand ?? "eligible",
+    qualityReason: extras.qualityReason ?? "eligible DRV relevance",
+    showInPrimaryFeed: extras.showInPrimaryFeed ?? true,
+    qualityAutomotiveScore: extras.qualityAutomotiveScore ?? 0,
+    editorialEligible: extras.editorialEligible ?? true,
+    editorialExclusionReason: extras.editorialExclusionReason ?? null,
   };
 }
 
@@ -212,6 +324,13 @@ async function extrasByArticleIds(articleIds: number[]) {
       if (!wanted.has(row.articleId)) continue;
       const extras = map.get(row.articleId);
       if (!extras) continue;
+      extras.entityHits.push({
+        kind: row.kind,
+        name: row.name,
+        make: row.make,
+        model: row.model,
+        relevance: row.relevance,
+      });
       if (row.kind === "make") extras.makes.push(row.name);
       if (row.kind === "model") extras.models.push(row.name);
       if (row.kind === "generation") extras.generations.push(row.name);
@@ -259,13 +378,16 @@ export async function listEditorial(options?: {
   q?: string;
   section?: string;
   testProfile?: ForYouTestProfile;
+  hardFilter?: boolean;
   limit?: number;
 }): Promise<EditorialDto[]> {
   const db = await getDb();
-  const [selected, graph] = await Promise.all([
+  const [selected, graph, deskRows] = await Promise.all([
     db.select(ARTICLE_FEED_COLUMNS).from(articles).orderBy(desc(articles.publishedAt)),
     loadArticleGraph(),
+    loadDeskPickRows(),
   ]);
+  const deskMap = liveDeskByArticle(deskRows);
   let rows = selected;
   if (options?.sourceId) rows = rows.filter((row) => row.sourceId === options.sourceId);
   if (options?.q) {
@@ -281,31 +403,42 @@ export async function listEditorial(options?: {
   const extrasMap = extrasFromGraph(graph, rows.map((row) => row.id));
   const primaryMap = primariesFromGraph(graph);
   const sourceMap = new Map(graph.sources.map((source) => [source.id, source]));
+  rows = rows.filter((row) =>
+    evaluateEditorialEligibility({
+      url: row.url,
+      canonicalUrl: row.canonicalUrl,
+      title: row.title,
+      excerpt: row.excerpt,
+      sourceId: row.sourceId,
+      sourceUrl: sourceMap.get(row.sourceId)?.url,
+      deskPick: Boolean(deskMap.get(row.id)),
+    }).editorialEligible,
+  );
   const testProfile = options?.testProfile;
   const useTestProfile = Boolean(testProfile && forYouTestIsActive(testProfile));
   const curated = options?.section === "for-you" || (!options?.userId && !options?.vehicleId);
+  const applyHardFilter = Boolean(
+    useTestProfile &&
+      testProfile &&
+      (options?.hardFilter === true ||
+        (options?.hardFilter !== false &&
+          Boolean(options?.section && isContentPrimary(options.section)))),
+  );
   let vehicles: GarageVehicle[] = [];
   let userInterests: string[] = [];
   let userLocation: string | null = null;
   if (useTestProfile && testProfile) {
-    if (testProfile.make || testProfile.model) {
-      vehicles = [
-        {
-          make: testProfile.make ?? "",
-          model: testProfile.model ?? "",
-          generation: testProfile.generation,
-          variant: testProfile.variant,
-        },
-      ];
-    }
-    userInterests = testProfile.interests;
-    userLocation = testProfile.location ?? null;
+    const personal = contextFromTestProfile(testProfile);
+    vehicles = personal.vehicles;
+    userInterests = personal.interests;
+    userLocation = personal.location ?? null;
   } else if (options?.userId) {
     const user = await getDemoUser(options.userId);
     if (user) {
-      vehicles = user.vehicles;
-      userInterests = user.interests;
-      userLocation = user.location;
+      const personal = contextFromDemoUser(user);
+      vehicles = personal.vehicles;
+      userInterests = personal.interests;
+      userLocation = personal.location ?? null;
     }
   }
   if (!useTestProfile && options?.vehicleId) {
@@ -313,24 +446,23 @@ export async function listEditorial(options?: {
       await db.select().from(demoVehicles).where(eq(demoVehicles.id, options.vehicleId)).limit(1)
     )[0];
     if (vehicle) {
-      vehicles = [vehicle];
       const user = await getDemoUser(vehicle.userId);
-      userInterests = user?.interests ?? [];
-      userLocation = user?.location ?? null;
+      const personal = contextFromDemoUser({
+        vehicles: [vehicle],
+        interests: user?.interests ?? [],
+        location: user?.location ?? null,
+      });
+      vehicles = personal.vehicles;
+      userInterests = personal.interests;
+      userLocation = personal.location ?? null;
     }
   }
 
-  const weights = loadRankWeights();
+  const weights = loadRankWeights() as QualityFilterWeights;
+  const applyQualityGate = personalizedForYou(useTestProfile, curated);
   const ranked = rows.map((article) => {
-    const extras = extrasMap.get(article.id) ?? {
-      makes: [] as string[],
-      models: [] as string[],
-      generations: [] as string[],
-      variants: [] as string[],
-      categories: [] as string[],
-      interests: [] as string[],
-      locations: [] as string[],
-    };
+    const extras = extrasMap.get(article.id) ?? emptyExtras();
+    const snap = parseClassificationSnapshot(article.metadata);
     const primaryCategory =
       (primaryMap.get(article.id) as EditorialDto["primaryCategory"] | undefined) ??
       classifyPrimary({
@@ -343,7 +475,7 @@ export async function listEditorial(options?: {
     if (options?.section && isContentPrimary(options.section) && primaryCategory !== options.section) {
       return null;
     }
-    if (useTestProfile && testProfile && !articleMatchesForYouTest(extras, testProfile)) {
+    if (applyHardFilter && testProfile && !articleMatchesForYouTest(extras, testProfile)) {
       return null;
     }
     if (!useTestProfile) {
@@ -364,41 +496,73 @@ export async function listEditorial(options?: {
     if (!useTestProfile && options?.interest && !extras.interests.includes(options.interest)) return null;
     const source = sourceMap.get(article.sourceId);
     const relevance = source?.relevance ?? "";
-    const rankScore =
-      useTestProfile || (curated && vehicles.length)
-        ? scoreArticle(
-            {
-              ...extras,
-              excerpt: article.excerpt,
-              relevance,
-              vehicles,
-              userInterests,
-              userLocation,
-            },
-            weights,
-          ) + recencyBonus(article.publishedAt)
-        : curated
-          ? scoreForYou({
-              relevance,
-              publishedAt: article.publishedAt,
-              excerptLength: article.excerpt.length,
-            })
-          : scoreArticle(
-              {
-                ...extras,
-                excerpt: article.excerpt,
-                relevance,
-                vehicles,
-                userInterests,
-                userLocation,
-              },
-              weights,
-            );
-    return toDto(article, { ...extras, rankScore, primaryCategory });
+    const desk = deskMap.get(article.id) ?? null;
+    const rankInput = {
+      ...extras,
+      excerpt: article.excerpt,
+      relevance,
+      vehicles,
+      userInterests,
+      userLocation,
+      entityHits: extras.entityHits,
+      scenes: snap?.scenes,
+      contentTypes: snap?.contentTypes,
+      geography: (snap?.geography ?? []).map((place) => place.name),
+      publishedAt: article.publishedAt,
+      primaryCategory,
+      deskPick: Boolean(desk),
+    };
+    const personalized = useTestProfile || (curated && vehicles.length > 0);
+    const breakdown = personalized
+      ? explainArticle(rankInput, weights)
+      : {
+          score:
+            (curated
+              ? scoreForYou({
+                  relevance,
+                  publishedAt: article.publishedAt,
+                  excerptLength: article.excerpt.length,
+                })
+              : scoreArticle(rankInput, weights)) + (desk ? weights.deskPick : 0),
+          reasons: desk ? (["From the DRV247 Desk"] as string[]) : ([] as string[]),
+          signals: desk
+            ? [{ kind: "desk", points: weights.deskPick, detail: "DRV247 Desk" }]
+            : ([] as EditorialDto["rankSignals"]),
+          vehicleTier: "none" as const,
+        };
+    const engine = evaluateRelevanceEngine(breakdown, rankInput, weights);
+    const quality = evaluateQualityFilter(engine, rankInput, weights);
+    if (applyQualityGate && quality.band === "excluded") return null;
+    return toDto(article, {
+      ...extras,
+      rankScore: Math.max(0, breakdown.score - quality.sortPenalty),
+      primaryCategory,
+      classification: snap,
+      why: breakdown.reasons,
+      rankSignals: breakdown.signals,
+      vehicleTier: breakdown.vehicleTier,
+      desk,
+      drvRelevance: engine.drvRelevance,
+      userRelevance: engine.userRelevance,
+      passedQualityGate: engine.passedQualityGate,
+      relevanceGateNote: engine.gateNote,
+      qualityBand: quality.band,
+      qualityReason: quality.reason,
+      showInPrimaryFeed: quality.showInPrimaryFeed,
+      qualityAutomotiveScore: quality.automotiveScore,
+      editorialEligible: true,
+      editorialExclusionReason: null,
+    });
   });
 
   const list = ranked.filter((row): row is EditorialDto => Boolean(row));
-  list.sort((a, b) => b.rankScore - a.rankScore || Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+  list.sort((a, b) => {
+    const bandRank = (band: QualityBand) =>
+      band === "featured" ? 3 : band === "eligible" ? 2 : band === "deprioritised" ? 1 : 0;
+    const bandDelta = bandRank(b.qualityBand) - bandRank(a.qualityBand);
+    if (bandDelta !== 0) return bandDelta;
+    return b.rankScore - a.rankScore || Date.parse(b.publishedAt) - Date.parse(a.publishedAt);
+  });
 
   const seenGroups = new Set<string>();
   const deduped: EditorialDto[] = [];
@@ -407,7 +571,21 @@ export async function listEditorial(options?: {
     if (item.duplicateGroupId) seenGroups.add(item.duplicateGroupId);
     deduped.push(item);
   }
-  return deduped.slice(0, options?.limit ?? 40);
+  const shaped =
+    personalizedForYou(useTestProfile, curated)
+      ? preferUsableImages(
+          diversifyByVehicle(
+            deduped,
+            (item) => item.variants[0] || item.models[0] || item.makes[0] || "",
+          ),
+          6,
+        )
+      : deduped;
+  return shaped.slice(0, options?.limit ?? 40);
+}
+
+function personalizedForYou(useTestProfile: boolean, curated: boolean) {
+  return useTestProfile && curated;
 }
 
 export async function getEditorial(id: number): Promise<EditorialDto | null> {
@@ -416,18 +594,32 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
     await db.select(ARTICLE_FEED_COLUMNS).from(articles).where(eq(articles.id, id)).limit(1)
   )[0];
   if (!article) return null;
-  const [extrasMap, primaryMap, source] = await Promise.all([
+  const [sourceRows, extrasMap, primaryMap, related, deskRows] = await Promise.all([
+    db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1),
     extrasByArticleIds([article.id]),
     loadArticlePrimaries([article.id]),
-    db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1),
+    relatedForArticle(article.id),
+    loadDeskPickRows(),
   ]);
+  const desk = liveDeskByArticle(deskRows).get(article.id) ?? null;
+  const eligibility = evaluateEditorialEligibility({
+    url: article.url,
+    canonicalUrl: article.canonicalUrl,
+    title: article.title,
+    excerpt: article.excerpt,
+    sourceId: article.sourceId,
+    sourceUrl: sourceRows[0]?.url,
+    deskPick: Boolean(desk),
+  });
+  if (!eligibility.editorialEligible) return null;
   const extras = extrasMap.get(article.id)!;
   const rankScore = scoreArticle({
     ...extras,
     excerpt: article.excerpt,
-    relevance: source[0]?.relevance ?? "",
+    relevance: sourceRows[0]?.relevance ?? "",
     vehicles: [],
     userInterests: [],
+    deskPick: Boolean(desk),
   });
   const primaryCategory =
     primaryMap.get(article.id) ??
@@ -438,7 +630,65 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
       categories: extras.categories,
       interests: extras.interests,
     });
-  return toDto(article, { ...extras, rankScore, primaryCategory });
+  const snap = parseClassificationSnapshot(article.metadata);
+  return toDto(article, {
+    ...extras,
+    rankScore,
+    primaryCategory,
+    primaryConfidence: snap?.primaryConfidence ?? null,
+    classification: snap,
+    related,
+    desk,
+    editorialEligible: eligibility.editorialEligible,
+    editorialExclusionReason: eligibility.editorialExclusionReason,
+  });
+}
+
+export async function listDeskHomepage(limit = 3): Promise<EditorialDto[]> {
+  const picks = selectHomepagePicks(
+    [...liveDeskByArticle(await loadDeskPickRows()).values()],
+    limit,
+  );
+  if (!picks.length) return [];
+  const byId = new Map(picks.map((pick) => [pick.articleId, pick]));
+  const rows: EditorialDto[] = [];
+  for (const pick of picks) {
+    const article = await getEditorial(pick.articleId);
+    if (!article) continue;
+    rows.push({ ...article, desk: byId.get(pick.articleId) ?? article.desk });
+  }
+  return rows;
+}
+
+export type ClassificationDebugRow = {
+  id: number;
+  title: string;
+  publication: string;
+  excerpt: string;
+  classification: ClassificationSnapshot | null;
+};
+
+export async function listClassificationDebug(limit = 40): Promise<ClassificationDebugRow[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({
+      id: articles.id,
+      title: articles.title,
+      publication: articles.publication,
+      excerpt: articles.excerpt,
+      metadata: articles.metadata,
+      lastProcessed: articles.lastProcessed,
+    })
+    .from(articles)
+    .orderBy(desc(articles.lastProcessed), desc(articles.publishedAt))
+    .limit(limit);
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    publication: row.publication,
+    excerpt: row.excerpt,
+    classification: parseClassificationSnapshot(row.metadata),
+  }));
 }
 
 async function loadForYouTestCatalogFresh() {

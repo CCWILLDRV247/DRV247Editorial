@@ -64,15 +64,34 @@ export function canonicalizeUrl(raw: string): string | null {
   }
 }
 
-export function isUsableArticleImage(raw: string | null | undefined): boolean {
+export function isUsableArticleImage(raw: string | null | undefined): raw is string {
   if (!raw?.trim()) return false;
   const value = decodeXmlEntities(raw.trim());
   const lower = value.toLowerCase();
   if (lower.startsWith("data:") || lower.startsWith("javascript:")) return false;
+  if (!/^(?:https?:)?\/\//i.test(lower) && !lower.startsWith("/")) return false;
   if (/\.svg(\?|#|$)/i.test(lower)) return false;
   if (/[?&]w=undefined(?:&|$)/i.test(lower)) return false;
   if (/(?:^|\/)[^/?#]*logo[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
   if (/\/(?:logo|logos)\//i.test(lower)) return false;
+  // RaceFans (and similar WP themes) put Amazon merch buttons in the first <img>.
+  if (/\/wp-content\/themes\//i.test(lower)) return false;
+  if (/\/buttons\/[^/?#]*amazon[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
+  // Curves ProcessWire chrome: back-to-top, branding, /site/images header art.
+  // Editorial photos live in /site/assets/files/{id}/.
+  if (/\/site\/assets\/images\//i.test(lower)) return false;
+  if (/\/site\/images\//i.test(lower)) return false;
+  if (/(?:^|\/)[^/?#]*arrow-up[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
+  if (/(?:^|\/)[^/?#]*branding[^/?#]*\.(?:jpe?g|png|gif|webp)/i.test(lower)) return false;
+  if (/(?:^|\/)(?:favicon|apple-touch-icon|sprite)[^/?#]*\.(?:jpe?g|png|gif|webp|ico)/i.test(lower)) {
+    return false;
+  }
+  if (/\.(?:woff2?|ttf|otf|eot|css|js)(\?|#|$)/i.test(lower)) return false;
+  if (/\/(?:fonts?|font-files)\//i.test(lower)) return false;
+  // Time Attack (and similar) put a season holding/header PNG ahead of the lead photo.
+  if (/(?:^|\/)ta-\d{4}(?:-[^/?#]+)?\.(?:jpe?g|png|gif|webp)(?:\?|#|$)/i.test(lower)) return false;
+  if (/(?:\/|_)(?:1x1|pixel|spacer|tracking)(?:[._/-]|$)/i.test(lower)) return false;
+  if (/[?&](?:w|width|h|height)=1(?:&|$)/i.test(lower)) return false;
   return true;
 }
 
@@ -82,9 +101,11 @@ function usableImage(raw: string | null | undefined): string | null {
   return isUsableArticleImage(value) ? value : null;
 }
 
-export function firstImageFromHtml(html: string | undefined | null): string | null {
-  if (!html) return null;
+export function htmlImageUrls(html: string | undefined | null): string[] {
+  if (!html) return [];
   const decoded = decodeXmlEntities(html);
+  const urls: string[] = [];
+  const seen = new Set<string>();
   for (const match of decoded.matchAll(/<img\b[^>]*>/gi)) {
     const tag = match[0];
     const candidates = [
@@ -94,13 +115,21 @@ export function firstImageFromHtml(html: string | undefined | null): string | nu
     ];
     for (const candidate of candidates) {
       const usable = usableImage(candidate);
-      if (usable) return usable;
+      if (!usable || seen.has(usable)) continue;
+      seen.add(usable);
+      urls.push(usable);
+      break;
     }
   }
-  return null;
+  return urls;
 }
 
-function enclosureUrl(xml: string): string | null {
+export function firstImageFromHtml(html: string | undefined | null): string | null {
+  return htmlImageUrls(html)[0] ?? null;
+}
+
+function enclosureUrls(xml: string): string[] {
+  const urls: string[] = [];
   const tags = xml.match(/<enclosure\b[^>]*>/gi) ?? [];
   for (const tag of tags) {
     const url = tag.match(/\burl=["']([^"']+)["']/i)?.[1];
@@ -108,34 +137,55 @@ function enclosureUrl(xml: string): string | null {
     const medium = tag.match(/\bmedium=["']([^"']+)["']/i)?.[1] ?? "";
     if (!url) continue;
     if (type.toLowerCase().startsWith("image/") || medium.toLowerCase() === "image") {
-      return usableImage(url);
+      const usable = usableImage(url);
+      if (usable) urls.push(usable);
+      continue;
     }
     const usable = usableImage(url);
-    if (usable && /\.(jpe?g|png|webp|gif)(\?|#|$)/i.test(usable)) return usable;
+    if (usable && /\.(jpe?g|png|webp|gif)(\?|#|$)/i.test(usable)) urls.push(usable);
   }
-  return null;
+  return urls;
+}
+
+export type FeedImageCandidate = {
+  url: string;
+  sourceType: "rss_media" | "rss_enclosure" | "article" | "publication";
+};
+
+export function feedImageCandidates(xml: string | undefined | null): FeedImageCandidate[] {
+  if (!xml) return [];
+  const decoded = decodeXmlEntities(xml);
+  const candidates: FeedImageCandidate[] = [];
+  const push = (url: string | null | undefined, sourceType: FeedImageCandidate["sourceType"]) => {
+    const usable = usableImage(url);
+    if (usable) candidates.push({ url: usable, sourceType });
+  };
+  for (const match of decoded.matchAll(/<media:(?:content|thumbnail)\b[^>]*\burl=["']([^"']+)["']/gi)) {
+    push(match[1], "rss_media");
+  }
+  for (const match of decoded.matchAll(/<itunes:image[^>]+href=["']([^"']+)["']/gi)) {
+    push(match[1], "publication");
+  }
+  for (const url of enclosureUrls(decoded)) push(url, "rss_enclosure");
+  for (const match of decoded.matchAll(/<link\b[^>]*rel=["']enclosure["'][^>]*href=["']([^"']+)["']/gi)) {
+    push(match[1], "rss_enclosure");
+  }
+  for (const match of decoded.matchAll(/<link\b[^>]*href=["']([^"']+)["'][^>]*rel=["']enclosure["']/gi)) {
+    push(match[1], "rss_enclosure");
+  }
+  for (const url of htmlImageUrls(decoded)) push(url, "article");
+  return candidates;
 }
 
 export function feedImageUrl(xml: string | undefined | null): string | null {
-  if (!xml) return null;
-  const decoded = decodeXmlEntities(xml);
-  const media = decoded.match(/<media:(?:content|thumbnail)\b[^>]*\burl=["']([^"']+)["']/i);
-  const mediaUrl = usableImage(media?.[1]);
-  if (mediaUrl) return mediaUrl;
-  const itunes = decoded.match(/<itunes:image[^>]+href=["']([^"']+)["']/i);
-  const itunesUrl = usableImage(itunes?.[1]);
-  if (itunesUrl) return itunesUrl;
-  const enclosure = enclosureUrl(decoded);
-  if (enclosure) return enclosure;
-  const atomEnclosure = decoded.match(
-    /<link\b[^>]*rel=["']enclosure["'][^>]*href=["']([^"']+)["']/i,
+  const rank: Record<FeedImageCandidate["sourceType"], number> = {
+    rss_media: 1,
+    rss_enclosure: 2,
+    article: 5,
+    publication: 6,
+  };
+  const sorted = [...feedImageCandidates(xml)].sort(
+    (left, right) => rank[left.sourceType] - rank[right.sourceType],
   );
-  const atomUrl = usableImage(atomEnclosure?.[1]);
-  if (atomUrl) return atomUrl;
-  const hrefFirst = decoded.match(
-    /<link\b[^>]*href=["']([^"']+)["'][^>]*rel=["']enclosure["']/i,
-  );
-  const hrefUrl = usableImage(hrefFirst?.[1]);
-  if (hrefUrl) return hrefUrl;
-  return firstImageFromHtml(decoded);
+  return sorted[0]?.url ?? null;
 }

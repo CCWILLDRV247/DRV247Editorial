@@ -1,14 +1,15 @@
+import type { CategoryLane } from "@/components/category-carousel";
 import type { StoryDto } from "@/lib/stories";
-import { unstable_cache } from "next/cache";
+import { unstable_cache, unstable_noStore as noStore } from "next/cache";
 import {
   LEGACY_NAV_TO_PRIMARY,
   MAGAZINE_NAV,
-  MOBILE_MOTORSPORT_MORE_BELOW,
+  MOBILE_NAV_SLUGS,
   PRIMARY_NAV,
   contentPrimaryBySlug,
   type ContentPrimary,
 } from "../../config/magazine-nav";
-import { decodeXmlEntities } from "../text";
+import { decodeXmlEntities, isUsableArticleImage } from "../text";
 import { countArticlesByPrimary } from "./article-primary";
 import {
   forYouTestIsActive,
@@ -16,8 +17,20 @@ import {
   parseForYouTestProfile,
   type ForYouTestProfile,
 } from "./for-you-test";
-import { getEditorial, listEditorial, type EditorialDto } from "./queries";
+import { getEditorial, listEditorial, listDeskHomepage, type EditorialDto } from "./queries";
 import { classifyPrimary } from "./taxonomy";
+import { curateForYouHome } from "./for-you-home";
+import { contextFromTestProfile } from "./personalize";
+import { pickArticleIds } from "./desk";
+import {
+  HOMEPAGE_CATEGORY_SLUGS,
+  HOMEPAGE_CATEGORY_STORY_MAX,
+} from "./homepage-hierarchy";
+import { selectHomepageInterludes } from "./interlude-selection";
+import {
+  pickRelevanceExplanation,
+  type ExplanationLane,
+} from "./relevance-explanation";
 
 export { MAGAZINE_NAV, PRIMARY_NAV } from "../../config/magazine-nav";
 
@@ -51,28 +64,61 @@ export function tagForArticle(article: EditorialDto) {
   return navForArticle(article).name;
 }
 
-export function toMagazineStory(article: EditorialDto): StoryDto {
+export function toMagazineStory(
+  article: EditorialDto,
+  options?: {
+    lane?: ExplanationLane;
+    vehicles?: ReturnType<typeof contextFromTestProfile>["vehicles"];
+    showExplanation?: boolean;
+  },
+): StoryDto {
   const nav = navForArticle(article);
+  const imageUrl = resolveImageUrl(article.imageUrl, article.canonicalUrl);
+  const imageSources = article.imageSources
+    .map((url) => resolveImageUrl(url, article.canonicalUrl))
+    .filter((url): url is string => Boolean(url && url !== imageUrl));
+  const relevanceExplanation =
+    options?.showExplanation === false
+      ? null
+      : pickRelevanceExplanation({
+          why: article.why,
+          rankSignals: article.rankSignals,
+          vehicleTier: article.vehicleTier,
+          lane: options?.lane ?? "none",
+          vehicles: options?.vehicles,
+        });
   return {
     id: article.id,
     title: article.title,
     summary: article.excerpt,
     aiSummary: article.aiSummary,
-    imageUrl: resolveImageUrl(article.imageUrl, article.canonicalUrl),
+    imageUrl,
+    imageSources,
     canonicalUrl: article.canonicalUrl,
     publishedAt: article.publishedAt,
     hidden: false,
+    relevanceExplanation,
     category: { id: 0, slug: nav.slug, name: nav.name },
     source: { id: 0, name: article.publication, type: article.ingestionMethod },
+    desk: article.desk
+      ? {
+          label: article.desk.label,
+          labelName: article.desk.labelName,
+          note: article.desk.note,
+          curator: article.desk.curator,
+          featured: article.desk.featured,
+        }
+      : null,
   };
 }
 
 export function resolveImageUrl(raw: string | null | undefined, baseUrl: string): string | null {
-  if (!raw?.trim()) return null;
+  if (!isUsableArticleImage(raw)) return null;
   try {
     const cleaned = decodeXmlEntities(raw.trim()).trim();
-    if (!cleaned || /^(data|javascript):/i.test(cleaned)) return null;
-    return new URL(cleaned, baseUrl).toString();
+    const url = new URL(cleaned, baseUrl);
+    if (url.protocol === "http:") url.protocol = "https:";
+    return url.toString();
   } catch {
     return null;
   }
@@ -83,13 +129,23 @@ export async function listMagazineStories(options?: {
   testProfile?: ForYouTestProfile;
   limit?: number;
 }): Promise<StoryDto[]> {
+  const navSlug = options?.navSlug ?? "for-you";
+  const limit = options?.limit ?? 24;
+  const testProfile =
+    options?.testProfile && forYouTestIsActive(options.testProfile) ? options.testProfile : undefined;
+  if (testProfile) {
+    noStore();
+    const articles = await listEditorial({
+      section: navSlug && navSlug !== "for-you" ? navSlug : "for-you",
+      testProfile,
+      limit: 80,
+    });
+    return articles.slice(0, limit).map((article) => toMagazineStory(article));
+  }
   const key = JSON.stringify({
-    navSlug: options?.navSlug ?? "for-you",
-    limit: options?.limit ?? 24,
-    profile:
-      options?.testProfile && forYouTestIsActive(options.testProfile)
-        ? forYouTestSearchString(options.testProfile)
-        : "default",
+    navSlug,
+    limit,
+    profile: "default",
   });
   return unstable_cache(
     async (cacheKey: string) => {
@@ -103,7 +159,7 @@ export async function listMagazineStories(options?: {
         testProfile,
         limit: 80,
       });
-      return articles.slice(0, parsed.limit).map(toMagazineStory);
+      return articles.slice(0, parsed.limit).map((article) => toMagazineStory(article));
     },
     ["magazine-stories"],
     { revalidate: 60, tags: ["editorial"] },
@@ -130,37 +186,107 @@ function uniqueStories(stories: StoryDto[]) {
   });
 }
 
-async function getMagazineHomeFresh(testProfile?: ForYouTestProfile) {
+async function getMagazineHomeFresh(testProfile?: ForYouTestProfile, recentIds: readonly string[] = []) {
+  const deskArticles = await listDeskHomepage(3);
+  const picks = uniqueStories(deskArticles.map((article) => toMagazineStory(article)));
+  const pickIds = pickArticleIds(
+    deskArticles.map((article) => article.desk).filter((desk): desk is NonNullable<typeof desk> => Boolean(desk)),
+  );
   const ranked = await listEditorial({
     section: "for-you",
     testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
     limit: 80,
   });
-  const stories = uniqueStories(ranked.map(toMagazineStory)).slice(0, 24);
-  const featuredIds = new Set(stories.slice(0, 6).map((story) => story.id));
-  const carousels = MAGAZINE_NAV.map((nav) => {
+  const plan = curateForYouHome(ranked, testProfile, pickIds);
+  const byId = new Map(ranked.map((article) => [article.id, article]));
+  const personalized = forYouTestIsActive(testProfile ?? { interests: [] });
+  const vehicles =
+    personalized && testProfile ? contextFromTestProfile(testProfile).vehicles : [];
+  const storyOpts = (lane: ExplanationLane) => ({
+    lane,
+    vehicles,
+    showExplanation: personalized,
+  });
+  const toStories = (articles: { id: number }[], lane: ExplanationLane) =>
+    uniqueStories(
+      articles
+        .map((item) => byId.get(item.id))
+        .filter((article): article is EditorialDto => Boolean(article))
+        .map((article) => toMagazineStory(article, storyOpts(lane))),
+    );
+  const forYourCar = { ...plan.forYourCar, stories: toStories(plan.forYourCar.stories, "vehicle") };
+  const yourInterests = {
+    ...plan.yourInterests,
+    stories: toStories(plan.yourInterests.stories, "interests"),
+  };
+  const discover = {
+    ...plan.discover,
+    stories: toStories(plan.discover.stories, "discover").filter((story) => !pickIds.has(story.id)),
+  };
+  const featuredIds = new Set(
+    [...forYourCar.stories, ...yourInterests.stories, ...discover.stories, ...picks].map(
+      (story) => story.id,
+    ),
+  );
+  const carousels: CategoryLane[] = HOMEPAGE_CATEGORY_SLUGS.flatMap((slug) => {
+    const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
+    if (!nav) return [];
     const lane = ranked
       .filter((article) => articleMatchesNav(article, nav.slug))
-      .slice(0, 16)
-      .map(toMagazineStory);
+      .slice(0, 12)
+      .map((article) => toMagazineStory(article, { lane: "carousel", showExplanation: false }));
     const fresh = lane.filter((story) => !featuredIds.has(story.id));
-    return {
-      slug: nav.slug,
-      name: nav.name,
-      stories: uniqueStories([...fresh, ...lane]).slice(0, 8),
-    };
-  }).filter((lane) => lane.stories.length > 0);
-  return { stories, carousels };
+    const stories = uniqueStories([...fresh, ...lane]).slice(0, HOMEPAGE_CATEGORY_STORY_MAX);
+    if (stories.length === 0) return [];
+    return [{ slug: nav.slug, name: nav.name, stories }];
+  });
+  const carouselArticles = HOMEPAGE_CATEGORY_SLUGS.flatMap((slug) => {
+    const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
+    if (!nav) return [];
+    const articles = ranked
+      .filter((article) => articleMatchesNav(article, nav.slug))
+      .slice(0, HOMEPAGE_CATEGORY_STORY_MAX);
+    if (articles.length === 0) return [];
+    return [{ slug: nav.slug, articles }];
+  });
+  const interludes = selectHomepageInterludes({
+    picks: deskArticles,
+    forYourCar: plan.forYourCar.stories
+      .map((item) => byId.get(item.id))
+      .filter((article): article is EditorialDto => Boolean(article)),
+    yourInterests: plan.yourInterests.stories
+      .map((item) => byId.get(item.id))
+      .filter((article): article is EditorialDto => Boolean(article)),
+    carousels: carouselArticles,
+    profile: testProfile,
+    recentIds,
+  });
+  return {
+    copy: plan.copy,
+    forYourCar,
+    yourInterests,
+    discover,
+    picks,
+    carousels,
+    interludes,
+    stories: [...forYourCar.stories, ...yourInterests.stories, ...discover.stories],
+  };
 }
 
-export async function getMagazineHome(testProfile?: ForYouTestProfile) {
-  const key =
-    testProfile && forYouTestIsActive(testProfile) ? forYouTestSearchString(testProfile) : "default";
+export async function getMagazineHome(
+  testProfile?: ForYouTestProfile,
+  recentIds: readonly string[] = [],
+) {
+  if (testProfile && forYouTestIsActive(testProfile)) {
+    noStore();
+    return getMagazineHomeFresh(testProfile, recentIds);
+  }
+  const key = "default";
   return unstable_cache(
     async (cacheKey: string) => {
       const profile =
         cacheKey === "default" ? undefined : parseForYouTestProfile(new URLSearchParams(cacheKey));
-      return getMagazineHomeFresh(profile);
+      return getMagazineHomeFresh(profile, recentIds);
     },
     ["magazine-home"],
     { revalidate: 60, tags: ["editorial"] },
@@ -169,12 +295,12 @@ export async function getMagazineHome(testProfile?: ForYouTestProfile) {
 
 export async function getMagazineNav() {
   const counts = await countArticlesByPrimary();
-  const motorsportCount = counts.motorsport ?? 0;
-  const motorsportInMore = motorsportCount < MOBILE_MOTORSPORT_MORE_BELOW;
   const desktop = PRIMARY_NAV;
-  const mobile = motorsportInMore
-    ? PRIMARY_NAV.filter((item) => item.slug !== "motorsport")
-    : PRIMARY_NAV;
-  const more = motorsportInMore ? PRIMARY_NAV.filter((item) => item.slug === "motorsport") : [];
-  return { desktop, mobile, more, counts, motorsportInMore };
+  const mobile = PRIMARY_NAV.filter((item) =>
+    (MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
+  );
+  const more = PRIMARY_NAV.filter(
+    (item) => !(MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
+  );
+  return { desktop, mobile, more, counts, motorsportInMore: false };
 }
