@@ -8,7 +8,7 @@
       "transmission": "manual",
       "body": "coupe",
       "powerBhp": 260,
-      "specification": "964 Carrera RS; 3.6 air-cooled"
+      "specification": "964 Carrera RS; 3.6 air-cooled; 322mm front discs; 205/50ZR17 F 255/40ZR17 R"
     },
     {
       "id": "veh-355",
@@ -18,7 +18,7 @@
       "transmission": "manual",
       "body": "coupe",
       "powerBhp": 380,
-      "specification": "F355 GTB; 330mm front discs"
+      "specification": "F355 GTB; 330mm front discs; 225/40ZR18 F 265/40ZR18 R"
     },
     {
       "id": "veh-e46",
@@ -28,7 +28,7 @@
       "transmission": "manual",
       "body": "coupe",
       "powerBhp": 338,
-      "specification": "E46 M3; 325mm front discs"
+      "specification": "E46 M3; 325mm front discs; 225/45ZR18 F 255/40ZR18 R"
     }
   ],
   "sources": [
@@ -41,6 +41,11 @@
     { "id": "src-bilstein", "name": "Bilstein", "kind": "manual", "identifier": "manual:bilstein", "priority": 88 },
     { "id": "src-pagid", "name": "Pagid", "kind": "manual", "identifier": "manual:pagid", "priority": 90 },
     { "id": "src-ferrari", "name": "Ferrari", "kind": "manual", "identifier": "manual:ferrari", "priority": 93 },
+    { "id": "src-porsche", "name": "Porsche", "kind": "manual", "identifier": "manual:porsche", "priority": 93 },
+    { "id": "src-bmw", "name": "BMW", "kind": "manual", "identifier": "manual:bmw", "priority": 93 },
+    { "id": "src-michelin", "name": "Michelin", "kind": "manual", "identifier": "manual:michelin", "priority": 88 },
+    { "id": "src-pirelli", "name": "Pirelli", "kind": "manual", "identifier": "manual:pirelli", "priority": 88 },
+    { "id": "src-bridgestone", "name": "Bridgestone", "kind": "manual", "identifier": "manual:bridgestone", "priority": 88 },
     { "id": "src-design911", "name": "Design 911", "kind": "csv", "identifier": "config/intelligence/seed-products.csv", "priority": 70 },
     { "id": "src-manual", "name": "DRV247 curated research", "kind": "manual", "identifier": "manual:drv247", "priority": 45 }
   ],
@@ -51,6 +56,12 @@
     { "id": "mfr-kw", "name": "KW", "slug": "kw", "aliases": ["KW Automotive", "KW Variant"], "url": "https://www.kwsuspensions.com" },
     { "id": "mfr-brembo", "name": "Brembo", "slug": "brembo", "aliases": [], "url": "https://www.brembo.com" },
     { "id": "mfr-ferrari", "name": "Ferrari", "slug": "ferrari", "aliases": ["Ferrari S.p.A."], "url": "https://www.ferrari.com" },
+    { "id": "mfr-porsche", "name": "Porsche", "slug": "porsche", "aliases": ["Dr. Ing. h.c. F. Porsche AG"], "url": "https://www.porsche.com" },
+    { "id": "mfr-bmw", "name": "BMW", "slug": "bmw", "aliases": ["Bayerische Motoren Werke"], "url": "https://www.bmw.com" },
+    { "id": "mfr-michelin", "name": "Michelin", "slug": "michelin", "aliases": [], "url": "https://www.michelin.co.uk" },
+    { "id": "mfr-pirelli", "name": "Pirelli", "slug": "pirelli", "aliases": [], "url": "https://www.pirelli.com" },
+    { "id": "mfr-bridgestone", "name": "Bridgestone", "slug": "bridgestone", "aliases": [], "url": "https://www.bridgestone.co.uk" },
+    { "id": "mfr-evolve", "name": "Evolve Automotive", "slug": "evolve", "aliases": ["Evolve"], "url": "https://www.evolveautomotive.com" },
     { "id": "mfr-bmc", "name": "BMC", "slug": "bmc", "aliases": ["BMC Air Filters"], "url": "https://www.bmcairfilters.com" },
     { "id": "mfr-dansk", "name": "Dansk", "slug": "dansk", "aliases": ["JP Group Dansk"], "url": "https://www.jpgroup.dk" },
     { "id": "mfr-bilstein", "name": "Bilstein", "slug": "bilstein", "aliases": ["BILSTEIN"], "url": "https://www.bilstein.com" },
@@ -661,7 +672,10 @@
       "part_number": "T1164",
       "attributes": [
         { "attribute": "safety_class", "value": "critical" },
-        { "attribute": "road_use", "value": "yes" }
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "replacement_grade", "value": "oem-plus" }
       ],
       "fitments": [
         {
@@ -690,7 +704,10 @@
       "attributes": [
         { "attribute": "spec", "value": "322mm" },
         { "attribute": "safety_class", "value": "critical" },
-        { "attribute": "road_use", "value": "yes" }
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "replacement_grade", "value": "oem-plus" }
       ],
       "fitments": [
         {
@@ -877,14 +894,20 @@
       "attributes": [
         { "attribute": "spec", "value": "325mm" },
         { "attribute": "safety_class", "value": "critical" },
-        { "attribute": "road_use", "value": "yes" }
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "replacement_grade", "value": "oem-plus" }
       ],
       "fitments": [
         {
           "make": "BMW",
           "model": "M3",
           "generation": "E46",
-          "confidence": "generation",
+          "year_from": 2001,
+          "year_to": 2006,
+          "engine": "3.2 S54",
+          "confidence": "exact",
           "source": "manufacturer"
         }
       ]
@@ -905,7 +928,10 @@
       "part_number": "P06033",
       "attributes": [
         { "attribute": "safety_class", "value": "critical" },
-        { "attribute": "road_use", "value": "yes" }
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "replacement_grade", "value": "oem-plus" }
       ],
       "fitments": [
         {
@@ -941,6 +967,474 @@
           "generation": "996",
           "confidence": "generation",
           "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-porsche-964-discs",
+      "source_id": "src-porsche",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-porsche",
+      "product_name": "Porsche genuine 322mm 964 front discs",
+      "description": "Factory-spec 322mm front discs for 911 (964) 1989–1994 3.6.",
+      "category": "brake-discs",
+      "subcategory": "front",
+      "price": 780,
+      "currency": "GBP",
+      "url": "https://www.design911.co.uk",
+      "availability": "in_stock",
+      "sku": "964.351.401.51",
+      "part_number": "964.351.401.51",
+      "attributes": [
+        { "attribute": "spec", "value": "322mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "year_from": 1989,
+          "year_to": 1994,
+          "engine": "3.6",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-porsche-964-pads",
+      "source_id": "src-porsche",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-porsche",
+      "product_name": "Porsche genuine 964 front brake pads",
+      "description": "Factory-spec front pads for 964 322mm discs.",
+      "category": "brake-pads",
+      "subcategory": "front",
+      "price": 195,
+      "currency": "GBP",
+      "url": "https://www.design911.co.uk",
+      "availability": "in_stock",
+      "sku": "964.351.939.06",
+      "part_number": "964.351.939.06",
+      "attributes": [
+        { "attribute": "spec", "value": "322mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "year_from": 1989,
+          "year_to": 1994,
+          "engine": "3.6",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-pagid-964-rs14",
+      "source_id": "src-pagid",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-pagid",
+      "product_name": "Pagid RS14 964 brake pads",
+      "description": "Track-oriented pad compound for 964 322mm discs. Still the factory diameter.",
+      "category": "brake-pads",
+      "subcategory": "front",
+      "price": 310,
+      "currency": "GBP",
+      "url": "https://www.pagid.com",
+      "availability": "in_stock",
+      "sku": "PAGID-RS14-964",
+      "part_number": "RS14-964",
+      "attributes": [
+        { "attribute": "spec", "value": "322mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "aftermarket" },
+        { "attribute": "replacement_grade", "value": "upgrade" },
+        { "attribute": "oem_plus", "value": "no" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "road_use", "value": "caution" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "year_from": 1989,
+          "year_to": 1994,
+          "engine": "3.6",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-porsche-964-early-298",
+      "source_id": "src-porsche",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-porsche",
+      "product_name": "Porsche 298mm early 964 discs",
+      "description": "Early 964 Carrera 298mm discs listed 1989–1990. Year range misses a 1992 RS.",
+      "category": "brake-discs",
+      "subcategory": "front",
+      "price": 520,
+      "currency": "GBP",
+      "url": "https://www.design911.co.uk",
+      "availability": "in_stock",
+      "sku": "964-298-EARLY",
+      "part_number": "964-298-EARLY",
+      "attributes": [
+        { "attribute": "spec", "value": "298mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "year_from": 1989,
+          "year_to": 1990,
+          "engine": "3.6",
+          "confidence": "exact",
+          "source": "manufacturer",
+          "notes": "Early Carrera 298mm. Not the 1992 RS 322mm application."
+        }
+      ]
+    },
+    {
+      "id": "prd-bmc-964-intake",
+      "source_id": "src-bmc",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-bmc",
+      "product_name": "BMC 964 air filter",
+      "description": "Less restrictive panel filter for the 964 3.6. Road-focused throttle response.",
+      "category": "intake",
+      "price": 86,
+      "currency": "GBP",
+      "url": "https://www.bmcairfilters.com",
+      "availability": "in_stock",
+      "sku": "FB157/01",
+      "part_number": "FB157/01",
+      "attributes": [
+        { "attribute": "performance_gain", "value": "modest" },
+        { "attribute": "sound", "value": "character" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "classic", "value": "yes" },
+        { "attribute": "installation_difficulty", "value": "bolt-on" },
+        { "attribute": "safety_class", "value": "caution" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "year_from": 1989,
+          "year_to": 1994,
+          "engine": "3.6",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-bridgestone-964-tyres",
+      "source_id": "src-bridgestone",
+      "supplier_id": "sup-design911",
+      "manufacturer_id": "mfr-bridgestone",
+      "product_name": "Bridgestone Potenza 964 RS sizes",
+      "description": "205/50ZR17 front and 255/40ZR17 rear — the 964 Carrera RS factory sizes.",
+      "category": "tyres",
+      "price": 920,
+      "currency": "GBP",
+      "url": "https://www.bridgestone.co.uk",
+      "availability": "in_stock",
+      "sku": "POTENZA-964-RS",
+      "part_number": "POTENZA-964-RS",
+      "attributes": [
+        { "attribute": "spec", "value": "205/50ZR17 F 255/40ZR17 R" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "classic", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Porsche",
+          "model": "911",
+          "generation": "964",
+          "variant": "Carrera RS",
+          "year_from": 1992,
+          "year_to": 1992,
+          "engine": "3.6",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-pirelli-355-tyres",
+      "source_id": "src-pirelli",
+      "supplier_id": "sup-foskers",
+      "manufacturer_id": "mfr-pirelli",
+      "product_name": "Pirelli P Zero F355 sizes",
+      "description": "225/40ZR18 front and 265/40ZR18 rear — the F355 GTB factory sizes.",
+      "category": "tyres",
+      "price": 1100,
+      "currency": "GBP",
+      "url": "https://www.pirelli.com",
+      "availability": "in_stock",
+      "sku": "PZERO-F355",
+      "part_number": "PZERO-F355",
+      "attributes": [
+        { "attribute": "spec", "value": "225/40ZR18 F 265/40ZR18 R" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "Ferrari",
+          "model": "F355",
+          "generation": "F355",
+          "year_from": 1994,
+          "year_to": 1999,
+          "engine": "3.5 V8",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-bmw-e46-discs",
+      "source_id": "src-bmw",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-bmw",
+      "product_name": "BMW genuine 325mm E46 M3 discs",
+      "description": "Factory-spec 325mm front discs for the E46 M3 S54.",
+      "category": "brake-discs",
+      "subcategory": "front",
+      "price": 410,
+      "currency": "GBP",
+      "url": "https://www.birdsauto.com",
+      "availability": "in_stock",
+      "sku": "34112228556",
+      "part_number": "34112228556",
+      "attributes": [
+        { "attribute": "spec", "value": "325mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "year_from": 2001,
+          "year_to": 2006,
+          "engine": "3.2 S54",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-bmw-e46-pads",
+      "source_id": "src-bmw",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-bmw",
+      "product_name": "BMW genuine E46 M3 brake pads",
+      "description": "Factory-spec front pads for E46 M3 325mm discs.",
+      "category": "brake-pads",
+      "subcategory": "front",
+      "price": 120,
+      "currency": "GBP",
+      "url": "https://www.birdsauto.com",
+      "availability": "in_stock",
+      "sku": "34112228216",
+      "part_number": "34112228216",
+      "attributes": [
+        { "attribute": "spec", "value": "325mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "year_from": 2001,
+          "year_to": 2006,
+          "engine": "3.2 S54",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-pagid-e46-rs14",
+      "source_id": "src-pagid",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-pagid",
+      "product_name": "Pagid RS14 E46 M3 brake pads",
+      "description": "Track-oriented pad compound for E46 M3 325mm discs.",
+      "category": "brake-pads",
+      "subcategory": "front",
+      "price": 220,
+      "currency": "GBP",
+      "url": "https://www.pagid.com",
+      "availability": "in_stock",
+      "sku": "PAGID-RS14-E46",
+      "part_number": "RS14-E46",
+      "attributes": [
+        { "attribute": "spec", "value": "325mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "aftermarket" },
+        { "attribute": "replacement_grade", "value": "upgrade" },
+        { "attribute": "oem_plus", "value": "no" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "road_use", "value": "caution" },
+        { "attribute": "warranty", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "year_from": 2001,
+          "year_to": 2006,
+          "engine": "3.2 S54",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-bmw-e46-m54-discs",
+      "source_id": "src-brembo",
+      "supplier_id": "sup-demon",
+      "manufacturer_id": "mfr-brembo",
+      "product_name": "Brembo E46 3.2 M54 discs",
+      "description": "Listed for E46 3.2 M54. Engine does not match the S54 M3, so the matcher must reject it.",
+      "category": "brake-discs",
+      "price": 240,
+      "currency": "GBP",
+      "url": "https://www.brembo.com",
+      "availability": "in_stock",
+      "sku": "09.8933.M54",
+      "part_number": "09.8933.M54",
+      "attributes": [
+        { "attribute": "spec", "value": "300mm" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem-plus" },
+        { "attribute": "replacement_grade", "value": "oem-plus" },
+        { "attribute": "road_use", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "year_from": 2001,
+          "year_to": 2006,
+          "engine": "3.2 M54",
+          "confidence": "exact",
+          "source": "manufacturer",
+          "notes": "M54 application. Not the S54 M3."
+        }
+      ]
+    },
+    {
+      "id": "prd-michelin-e46-tyres",
+      "source_id": "src-michelin",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-michelin",
+      "product_name": "Michelin Pilot Sport E46 M3 sizes",
+      "description": "225/45ZR18 front and 255/40ZR18 rear — the E46 M3 coupe factory sizes.",
+      "category": "tyres",
+      "price": 780,
+      "currency": "GBP",
+      "url": "https://www.michelin.co.uk",
+      "availability": "in_stock",
+      "sku": "PS2-E46-M3",
+      "part_number": "PS2-E46-M3",
+      "attributes": [
+        { "attribute": "spec", "value": "225/45ZR18 F 255/40ZR18 R" },
+        { "attribute": "safety_class", "value": "critical" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "year_from": 2001,
+          "year_to": 2006,
+          "engine": "3.2 S54",
+          "confidence": "exact",
+          "source": "manufacturer"
+        }
+      ]
+    },
+    {
+      "id": "prd-evolve-e46-ecu",
+      "source_id": "src-manual",
+      "supplier_id": "sup-birds",
+      "manufacturer_id": "mfr-evolve",
+      "product_name": "Evolve E46 M3 software",
+      "description": "UK specialist remap for more power and cleaner throttle response on the S54.",
+      "category": "ecu",
+      "price": 595,
+      "currency": "GBP",
+      "url": "https://www.evolveautomotive.com",
+      "availability": "in_stock",
+      "sku": "EVOLVE-E46-M3",
+      "part_number": "EVOLVE-E46-M3",
+      "attributes": [
+        { "attribute": "performance_gain", "value": "significant" },
+        { "attribute": "oem_plus", "value": "yes" },
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "road_use", "value": "yes" },
+        { "attribute": "track_use", "value": "yes" },
+        { "attribute": "installation_difficulty", "value": "specialist" },
+        { "attribute": "safety_class", "value": "caution" }
+      ],
+      "fitments": [
+        {
+          "make": "BMW",
+          "model": "M3",
+          "generation": "E46",
+          "year_from": 2001,
+          "year_to": 2006,
+          "engine": "3.2 S54",
+          "confidence": "generation",
+          "source": "supplier"
         }
       ]
     }
@@ -1015,6 +1509,36 @@
       "notes": "Classic and modern BMW.",
       "source_id": "src-manual",
       "marques": [{ "make": "BMW" }]
+    },
+    {
+      "id": "spc-tuthill",
+      "name": "Tuthill Porsche",
+      "category": "restoration",
+      "location": "Oxfordshire",
+      "url": "https://www.tuthillporsche.com",
+      "notes": "Historic and air-cooled Porsche.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "Porsche", "model": "911" }]
+    },
+    {
+      "id": "spc-barkaways",
+      "name": "Barkaways",
+      "category": "service",
+      "location": "Kent",
+      "url": "https://www.barkaways.com",
+      "notes": "Ferrari specialist.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "Ferrari" }, { "make": "Ferrari", "model": "F355" }]
+    },
+    {
+      "id": "spc-regal",
+      "name": "Regal Autosport",
+      "category": "performance",
+      "location": "Hampshire",
+      "url": "https://www.regalautosport.com",
+      "notes": "BMW performance specialist.",
+      "source_id": "src-manual",
+      "marques": [{ "make": "BMW", "model": "M3" }, { "make": "BMW" }]
     }
   ],
   "modifications": [
