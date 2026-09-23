@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { FitmentConfidence } from "../types";
 import type { AdapterResult, NormalisedAttribute, NormalisedProduct, ProductSourceRow } from "./types";
 
@@ -159,13 +160,22 @@ export function parseProductCsv(text: string, source: ProductSourceRow): Adapter
   return { products, errors };
 }
 
+const SEED_PRODUCTS_CSV = "config/intelligence/seed-products.csv";
+const BUNDLED_SEED_PRODUCTS_CSV = fileURLToPath(new URL(`../../../${SEED_PRODUCTS_CSV}`, import.meta.url));
+
+function resolveCsvFile(identifier: string, cwd: string): string {
+  if (path.isAbsolute(identifier)) return identifier;
+  if (identifier.replace(/\\/g, "/") === SEED_PRODUCTS_CSV && fs.existsSync(BUNDLED_SEED_PRODUCTS_CSV)) {
+    return BUNDLED_SEED_PRODUCTS_CSV;
+  }
+  return path.join(cwd, identifier);
+}
+
 export function loadCsvProducts(source: ProductSourceRow, cwd = process.cwd()): AdapterResult {
   if (!source.identifier) {
     return { products: [], errors: [{ sourceId: source.id, kind: "validation", message: "No CSV path" }] };
   }
-  const file = path.isAbsolute(source.identifier)
-    ? source.identifier
-    : path.join(cwd, source.identifier);
+  const file = resolveCsvFile(source.identifier, cwd);
   try {
     return parseProductCsv(fs.readFileSync(file, "utf8"), source);
   } catch (error) {

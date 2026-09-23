@@ -1,5 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
+import maintainRanking from "@/config/intelligence/maintain-ranking.json";
 import type {
   FitmentMatch,
   GarageVehicle,
@@ -81,9 +80,8 @@ function gradeReason(productGrade: ReplacementGrade): Reason {
   return { code: "upgrade_replacement", label: "Upgrade replacement", sortOrder: 28 };
 }
 
-export function loadMaintainConfig(cwd = process.cwd()): MaintainConfig {
-  const raw = fs.readFileSync(path.join(cwd, "config/intelligence/maintain-ranking.json"), "utf8");
-  return JSON.parse(raw) as MaintainConfig;
+export function loadMaintainConfig(_cwd = process.cwd()): MaintainConfig {
+  return maintainRanking as MaintainConfig;
 }
 
 export function matchingComponentSlugs(component: string, config: MaintainConfig): string[] {

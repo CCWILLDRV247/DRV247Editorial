@@ -15,7 +15,7 @@ import {
 } from "./eurospares";
 import type { ProductSourceRow } from "./types";
 
-const config = loadEurosparesConfig("/home/ubuntu/worktrees/drv247-intelligence-eurospares");
+const config = loadEurosparesConfig();
 const source: ProductSourceRow = {
   id: "src-eurospares-live",
   name: "Eurospares catalogue",
@@ -117,7 +117,7 @@ describe("Eurospares adapter", () => {
   });
 
   it("loads the F355 snapshot without Chrome and keeps generation fitment", () => {
-    const snapshot = loadEurosparesSnapshot("/home/ubuntu/worktrees/drv247-intelligence-oem-brakes");
+    const snapshot = loadEurosparesSnapshot();
     assert.ok(snapshot.length >= 8);
     assert.ok(snapshot.every((row) => row.url?.includes("/parts/") && row.url.includes("/ferrari")));
     assert.ok(snapshot.some((row) => row.category === "brake-discs"));

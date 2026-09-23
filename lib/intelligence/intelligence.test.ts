@@ -3,8 +3,9 @@ import { describe, it } from "node:test";
 import { bestFitment, capConfidence, fitmentLabel, matchFitmentRow } from "./fitment";
 import { applySafetyGate } from "./safety";
 import type { FitmentMatch, GarageVehicle, ProductCandidate, VehicleFitmentRow } from "./types";
-import { runBuildPipeline, type BuildConfig, type BuildContext } from "./build";
-import { productReplacementGrade, runMaintainPipeline, type MaintainConfig } from "./maintain";
+import { loadBuildConfig, runBuildPipeline, type BuildConfig, type BuildContext } from "./build";
+import { loadMaintainConfig, productReplacementGrade, runMaintainPipeline, type MaintainConfig } from "./maintain";
+import { loadCsvProducts } from "./adapters/csv";
 
 const vehicle: GarageVehicle = {
   id: "veh-355",
@@ -497,5 +498,30 @@ describe("MAINTAIN pipeline", () => {
     });
     assert.equal(results.length, 0);
     assert.ok(trace.dropped.some((event) => event.productId === "prd-996"));
+  });
+});
+
+describe("bundled intelligence config", () => {
+  it("loads ranking JSON from the module graph, not cwd", () => {
+    const build = loadBuildConfig("/tmp/does-not-exist");
+    assert.ok(build.weights.fitment_exact > 0);
+    const maintain = loadMaintainConfig("/tmp/does-not-exist");
+    assert.deepEqual(maintain.componentAliases.brakes, ["brake-discs", "brake-pads"]);
+  });
+
+  it("loads the seed CSV without a project cwd", () => {
+    const result = loadCsvProducts(
+      {
+        id: "src-design911",
+        name: "Design 911",
+        kind: "csv",
+        identifier: "config/intelligence/seed-products.csv",
+        enabled: true,
+        priority: 70,
+      },
+      "/tmp/does-not-exist",
+    );
+    assert.ok(result.products.length > 0);
+    assert.equal(result.errors.length, 0);
   });
 });

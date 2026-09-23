@@ -1,5 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
+import design911File from "@/config/intelligence/design911.json";
 import type { AdapterContext, AdapterResult, NormalisedAttribute, NormalisedFitment, NormalisedProduct, ProductSourceRow } from "./types";
 
 export type Design911Config = {
@@ -85,13 +84,8 @@ export function isDesign911Source(source: ProductSourceRow): boolean {
   return haystack.includes("design911") || haystack.includes("design-911") || haystack.includes("design 911");
 }
 
-export function loadDesign911Config(cwd = process.cwd()): Design911Config {
-  const file = path.join(cwd, "config/intelligence/design911.json");
-  try {
-    return { ...DEFAULT_CONFIG, ...(JSON.parse(fs.readFileSync(file, "utf8")) as Partial<Design911Config>) };
-  } catch {
-    return DEFAULT_CONFIG;
-  }
+export function loadDesign911Config(_cwd = process.cwd()): Design911Config {
+  return { ...DEFAULT_CONFIG, ...(design911File as Partial<Design911Config>) };
 }
 
 function slugify(value: string): string {
