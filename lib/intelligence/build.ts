@@ -1,5 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
+import buildRanking from "@/config/intelligence/build-ranking.json";
 import type {
   FitmentMatch,
   GarageVehicle,
@@ -37,9 +36,8 @@ export type BuildContext = {
   modifications: ModificationRow[];
 };
 
-export function loadBuildConfig(cwd = process.cwd()): BuildConfig {
-  const raw = fs.readFileSync(path.join(cwd, "config/intelligence/build-ranking.json"), "utf8");
-  return JSON.parse(raw) as BuildConfig;
+export function loadBuildConfig(_cwd = process.cwd()): BuildConfig {
+  return buildRanking as BuildConfig;
 }
 
 function attr(product: ProductCandidate, key: string): string | undefined {

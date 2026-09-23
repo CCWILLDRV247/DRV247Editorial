@@ -1,7 +1,7 @@
-import fs from "node:fs";
-import path from "node:path";
 import { eq } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
+import taxonomiesFile from "@/config/intelligence/taxonomies.json";
+import seedFile from "@/config/intelligence/seed.json";
 import { demoVehicles } from "@/lib/db/schema";
 import {
   budgetBands,
@@ -83,10 +83,6 @@ type SeedFile = {
   }[];
 };
 
-function readJson<T>(cwd: string, relative: string): T {
-  return JSON.parse(fs.readFileSync(path.join(cwd, relative), "utf8")) as T;
-}
-
 async function upsertBySlug<T extends { slug: string }>(
   existing: { slug: string }[],
   incoming: T[],
@@ -101,8 +97,8 @@ async function upsertBySlug<T extends { slug: string }>(
 }
 
 export async function seedIntelligence(db: Db, cwd = process.cwd()) {
-  const taxonomies = readJson<TaxonomyFile>(cwd, "config/intelligence/taxonomies.json");
-  const seed = readJson<SeedFile>(cwd, "config/intelligence/seed.json");
+  const taxonomies = taxonomiesFile as TaxonomyFile;
+  const seed = seedFile as SeedFile;
   const now = Date.now();
 
   const existingSafety = await db.select().from(safetyClasses);

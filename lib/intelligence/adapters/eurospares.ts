@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import zlib from "node:zlib";
+import eurosparesFile from "@/config/intelligence/eurospares.json";
+import eurosparesSnapshot from "@/config/intelligence/eurospares-snapshot.json";
 import type {
   AdapterContext,
   AdapterResult,
@@ -63,13 +65,8 @@ export function isEurosparesSource(source: ProductSourceRow): boolean {
   return haystack.includes("eurospares");
 }
 
-export function loadEurosparesConfig(cwd = process.cwd()): EurosparesConfig {
-  const file = path.join(cwd, "config/intelligence/eurospares.json");
-  try {
-    return { ...DEFAULT_CONFIG, ...(JSON.parse(fs.readFileSync(file, "utf8")) as Partial<EurosparesConfig>) };
-  } catch {
-    return DEFAULT_CONFIG;
-  }
+export function loadEurosparesConfig(_cwd = process.cwd()): EurosparesConfig {
+  return { ...DEFAULT_CONFIG, ...(eurosparesFile as Partial<EurosparesConfig>) };
 }
 
 function slugify(value: string): string {
@@ -306,14 +303,8 @@ export function eurosparesChromeAllowed(): boolean {
   );
 }
 
-export function loadEurosparesSnapshot(cwd = process.cwd()): NormalisedProduct[] {
-  const file = path.join(cwd, "config/intelligence/eurospares-snapshot.json");
-  try {
-    const rows = JSON.parse(fs.readFileSync(file, "utf8")) as NormalisedProduct[];
-    return Array.isArray(rows) ? rows : [];
-  } catch {
-    return [];
-  }
+export function loadEurosparesSnapshot(_cwd = process.cwd()): NormalisedProduct[] {
+  return Array.isArray(eurosparesSnapshot) ? (eurosparesSnapshot as NormalisedProduct[]) : [];
 }
 
 async function fetchHtmlWithChrome(url: string): Promise<string> {

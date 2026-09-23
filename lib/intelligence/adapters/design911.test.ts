@@ -13,7 +13,7 @@ import {
 } from "./design911";
 import type { ProductSourceRow } from "./types";
 
-const config = loadDesign911Config("/home/ubuntu/worktrees/drv247-intelligence-design911");
+const config = loadDesign911Config();
 const source: ProductSourceRow = {
   id: "src-design911-live",
   name: "Design 911 catalogue",
