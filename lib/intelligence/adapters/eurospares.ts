@@ -325,7 +325,11 @@ async function fetchHtmlWithChrome(url: string): Promise<string> {
     }
     return stdout;
   } finally {
-    fs.rmSync(profile, { recursive: true, force: true });
+    try {
+      fs.rmSync(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
+    } catch {
+      // Chrome may still be releasing the profile; never fail the extract for cleanup.
+    }
   }
 }
 
