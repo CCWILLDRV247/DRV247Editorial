@@ -27,6 +27,7 @@ function PickImageFrame({
         category={story.category.name}
         alt=""
         eager={eager}
+        video={isVideoStory(story)}
       />
       <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
         <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">

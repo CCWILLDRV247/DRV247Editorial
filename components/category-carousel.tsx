@@ -19,7 +19,7 @@ export function CarouselStoryCard({ story }: { story: StoryDto }) {
       className="w-[200px] shrink-0 snap-start md:w-[220px]"
     >
       <div className="relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px]">
-        <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" eager />
+        <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" eager video={isVideoStory(story)} />
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
         <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1.5">
           {isVideoStory(story) ? <VideoMark /> : null}
