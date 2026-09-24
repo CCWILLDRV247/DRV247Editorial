@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  inferDesign911Attributes,
   inferDesign911Fitment,
   isAllowedDesign911Url,
   loadDesign911Config,
@@ -141,6 +142,23 @@ describe("Design 911 adapter", () => {
       isAllowedDesign911Url("https://www.design911.co.uk/fr/p/brake-pads-rear-porsche-964-96435294903/", config),
       false,
     );
+  });
+
+  it("treats factory-spec Pagid pads as OEM and RS14 as upgrade", () => {
+    const oem = inferDesign911Attributes({
+      category: "brake-pads",
+      name: "Brake pads, Front. Porsche 964",
+      description: "Pagid replacement pads for 911 (964)",
+      sourceCategory: "Brakes > Brake Pads Standard",
+    });
+    const upgrade = inferDesign911Attributes({
+      category: "brake-pads",
+      name: "Pagid RS14 brake pads Porsche 964",
+      description: "Track compound",
+      sourceCategory: "Brakes > Brake Pads",
+    });
+    assert.equal(oem.find((row) => row.attribute === "replacement_grade")?.value, "oem");
+    assert.equal(upgrade.find((row) => row.attribute === "replacement_grade")?.value, "upgrade");
   });
 
   it("caps discovery to 964-relevant product URLs", () => {

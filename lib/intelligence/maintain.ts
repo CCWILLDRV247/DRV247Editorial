@@ -42,26 +42,50 @@ export function normaliseReplacementGrade(value?: string | null): ReplacementGra
   return "oem";
 }
 
+const LIKE_FOR_LIKE_CATEGORIES = new Set(["brake-discs", "brake-pads", "filters", "tyres", "service"]);
+
+const UPGRADE_SHAPE =
+  /\brs14\b|\bgt\b|slotted|drilled|track-oriented|clubsport|\brace\b|competition|red stuff|yellow stuff|blue stuff/;
+
+function productHaystack(product: ProductCandidate): string {
+  return `${product.productName} ${product.description ?? ""}`.toLowerCase();
+}
+
+export function isUpgradeReplacement(product: ProductCandidate): boolean {
+  if (attr(product, "replacement_grade") === "upgrade") return true;
+  if (attr(product, "competition") === "yes") return true;
+  if (attr(product, "appearance") === "show" || attr(product, "appearance") === "aftermarket") return true;
+  if (attr(product, "track_use") === "yes") return true;
+  if (attr(product, "oem_plus") === "no") return true;
+  return UPGRADE_SHAPE.test(productHaystack(product));
+}
+
+export function isFactorySpecLikeForLike(product: ProductCandidate): boolean {
+  if (isUpgradeReplacement(product)) return false;
+  if (attr(product, "replacement_grade") === "oem") return true;
+  if (attr(product, "appearance") === "oem") return true;
+  if (/\bgenuine\b|factory[- ]spec|oem[- ]spec|like[- ]for[- ]like/.test(productHaystack(product))) {
+    return true;
+  }
+  return LIKE_FOR_LIKE_CATEGORIES.has(product.category ?? "");
+}
+
 export function productReplacementGrade(product: ProductCandidate): ReplacementGrade {
+  if (isUpgradeReplacement(product)) return "upgrade";
+  if (isFactorySpecLikeForLike(product)) return "oem";
   const explicit = attr(product, "replacement_grade");
   if (explicit && (REPLACEMENT_GRADES as readonly string[]).includes(explicit)) {
     return explicit as ReplacementGrade;
   }
-  const appearance = attr(product, "appearance");
-  const oemPlus = attr(product, "oem_plus");
-  const competition = attr(product, "competition");
-  const trackUse = attr(product, "track_use");
-  if (
-    competition === "yes" ||
-    appearance === "show" ||
-    appearance === "aftermarket" ||
-    trackUse === "yes" ||
-    oemPlus === "no"
-  ) {
-    return "upgrade";
+  if (attr(product, "oem_plus") === "yes" || attr(product, "appearance") === "oem-plus") {
+    return "oem-plus";
   }
-  if (oemPlus === "yes" || appearance === "oem-plus") return "oem-plus";
   return "oem";
+}
+
+export function isDesign911Product(product: ProductCandidate): boolean {
+  const haystack = `${product.supplierName ?? ""} ${product.sourceName ?? ""} ${product.sourceId} ${product.url ?? ""}`.toLowerCase();
+  return haystack.includes("design 911") || haystack.includes("design911") || haystack.includes("design-911");
 }
 
 function gradePermitted(job: ReplacementGrade, product: ReplacementGrade): boolean {
@@ -212,6 +236,18 @@ export function runMaintainPipeline(input: {
       }
       if (product.sourcePriority >= 80 || match.row.source === "manufacturer") {
         score += weights.authoritative_source;
+      }
+      if (
+        identityEquals(canonicalMake(input.context.vehicle.make), "Porsche") &&
+        isDesign911Product(product) &&
+        (weights.partner_source ?? 0) > 0
+      ) {
+        score += weights.partner_source;
+        reasons.push({
+          code: "porsche_partner",
+          label: "Design 911 — Porsche partner source",
+          sortOrder: 32,
+        });
       }
       if (product.availability === "in_stock") {
         score += weights.in_stock;

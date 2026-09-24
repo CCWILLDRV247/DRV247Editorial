@@ -3,8 +3,21 @@ import { describe, it } from "node:test";
 import { bestFitment, capConfidence, fitmentLabel, matchFitmentRow } from "./fitment";
 import { applySafetyGate } from "./safety";
 import type { FitmentMatch, GarageVehicle, ProductCandidate, VehicleFitmentRow } from "./types";
-import { loadBuildConfig, runBuildPipeline, type BuildConfig, type BuildContext } from "./build";
-import { loadMaintainConfig, productReplacementGrade, runMaintainPipeline, type MaintainConfig } from "./maintain";
+import {
+  briefAsksBrakingOrHandling,
+  isFactoryServicePart,
+  loadBuildConfig,
+  runBuildPipeline,
+  type BuildConfig,
+  type BuildContext,
+} from "./build";
+import {
+  isDesign911Product,
+  loadMaintainConfig,
+  productReplacementGrade,
+  runMaintainPipeline,
+  type MaintainConfig,
+} from "./maintain";
 import { loadCsvProducts } from "./adapters/csv";
 
 const vehicle: GarageVehicle = {
@@ -233,7 +246,7 @@ const buildConfig: BuildConfig = {
     already_fitted_category: -40,
   },
   buildTypeCategories: {
-    "fast-street": ["exhaust", "intake", "ecu", "suspension"],
+    "fast-street": ["exhaust", "intake", "ecu", "suspension", "wheels"],
   },
   objectiveAttributes: {
     "more-character": { sound: ["character", "loud"] },
@@ -332,6 +345,7 @@ describe("MAINTAIN pipeline", () => {
       spec_match: 20,
       authoritative_source: 15,
       grade_match: 18,
+      partner_source: 16,
       in_stock: 10,
       price_lower_among_ok: 5,
     },
@@ -396,10 +410,16 @@ describe("MAINTAIN pipeline", () => {
     productName: "Ferrari genuine discs",
     attributes: { safety_class: "critical", spec: "330mm", replacement_grade: "oem" },
   });
-  const oemPlus = product({
-    id: "prd-oem-plus",
-    productName: "Brembo OEM+ discs",
+  const oemSupplier = product({
+    id: "prd-oem-supplier",
+    productName: "Brembo 330mm factory-spec discs",
     attributes: { safety_class: "critical", spec: "330mm", oem_plus: "yes", replacement_grade: "oem-plus" },
+  });
+  const quietlyBetter = product({
+    id: "prd-oem-plus",
+    productName: "BMC CDA intake",
+    category: "intake",
+    attributes: { safety_class: "caution", oem_plus: "yes", appearance: "oem-plus", sound: "character" },
   });
   const upgrade = product({
     id: "prd-upgrade",
@@ -420,21 +440,23 @@ describe("MAINTAIN pipeline", () => {
   };
   const fitments = new Map([
     [oem.id, gen],
-    [oemPlus.id, gen],
+    [oemSupplier.id, gen],
+    [quietlyBetter.id, gen],
     [upgrade.id, gen],
   ]);
   const classes = [{ slug: "critical" as const, withholdBelowFitment: "generation" as const }];
   const components = [{ slug: "brake-discs" as const, safetyClass: "critical" as const }];
 
-  it("classifies OEM, OEM+, and upgrade from attributes", () => {
+  it("classifies genuine, OEM-supplier like-for-like, quietly better, and upgrade", () => {
     assert.equal(productReplacementGrade(oem), "oem");
-    assert.equal(productReplacementGrade(oemPlus), "oem-plus");
+    assert.equal(productReplacementGrade(oemSupplier), "oem");
+    assert.equal(productReplacementGrade(quietlyBetter), "oem-plus");
     assert.equal(productReplacementGrade(upgrade), "upgrade");
   });
 
-  it("OEM drops OEM+ and upgrade, keeps factory-spec", () => {
+  it("OEM keeps genuine and OEM-supplier factory-spec, drops upgrade", () => {
     const { results, trace } = runMaintainPipeline({
-      products: [oem, oemPlus, upgrade],
+      products: [oem, oemSupplier, upgrade],
       fitmentsByProduct: fitments,
       specialists: [],
       context: { vehicle, type: "replace", component: "brake-discs", grade: "oem", specification: vehicle.specification },
@@ -442,15 +464,16 @@ describe("MAINTAIN pipeline", () => {
       classes,
       components,
     });
-    assert.deepEqual(results.map((card) => card.id), ["prd-oem"]);
-    assert.ok(results[0]?.reasons.some((reason) => reason.code === "oem_replacement"));
-    assert.ok(trace.dropped.some((event) => event.productId === "prd-oem-plus"));
+    assert.ok(results.some((card) => card.id === "prd-oem"));
+    assert.ok(results.some((card) => card.id === "prd-oem-supplier"));
+    assert.ok(results.every((card) => card.reasons.some((reason) => reason.code === "oem_replacement")));
+    assert.ok(!results.some((card) => card.id === "prd-upgrade"));
     assert.ok(trace.dropped.some((event) => event.productId === "prd-upgrade"));
   });
 
-  it("OEM+ keeps OEM and OEM+, drops aftermarket upgrade", () => {
+  it("OEM+ keeps factory-spec and still drops aftermarket upgrade", () => {
     const { results, trace } = runMaintainPipeline({
-      products: [oem, oemPlus, upgrade],
+      products: [oem, oemSupplier, upgrade],
       fitmentsByProduct: fitments,
       specialists: [],
       context: { vehicle, type: "replace", component: "brake-discs", grade: "oem-plus" },
@@ -458,16 +481,15 @@ describe("MAINTAIN pipeline", () => {
       classes,
       components,
     });
-    assert.equal(results[0]?.id, "prd-oem-plus");
     assert.ok(results.some((card) => card.id === "prd-oem"));
+    assert.ok(results.some((card) => card.id === "prd-oem-supplier"));
     assert.ok(!results.some((card) => card.id === "prd-upgrade"));
     assert.ok(trace.dropped.some((event) => event.productId === "prd-upgrade"));
-    assert.ok(results[0]?.reasons.some((reason) => reason.code === "oem_plus_replacement"));
   });
 
   it("upgrade ranks the upgrade part first and still keeps OEM", () => {
     const { results } = runMaintainPipeline({
-      products: [oem, oemPlus, upgrade],
+      products: [oem, oemSupplier, upgrade],
       fitmentsByProduct: fitments,
       specialists: [],
       context: { vehicle, type: "replace", component: "brake-discs", grade: "upgrade" },
@@ -537,5 +559,243 @@ describe("bundled intelligence config", () => {
     );
     assert.equal(missing.products.length, 0);
     assert.ok(missing.errors.length > 0);
+  });
+});
+
+describe("964 mode contract", () => {
+  const rs: GarageVehicle = {
+    ...vehicle,
+    id: "veh-964",
+    userId: "demo-chris",
+    make: "Porsche",
+    model: "911",
+    generation: "964",
+    variant: "Carrera RS",
+    year: 1992,
+    engine: "3.6",
+    specification: "964 Carrera RS; 3.6 air-cooled; 322mm front discs; 205/50ZR17 F 255/40ZR17 R",
+  };
+  const porscheFit = fitment({
+    make: "Porsche",
+    model: "911",
+    generation: "964",
+    yearFrom: 1989,
+    yearTo: 1994,
+    engine: "3.6",
+    confidence: "exact",
+  });
+  const match: FitmentMatch = {
+    row: porscheFit,
+    storedConfidence: "exact",
+    effectiveConfidence: "exact",
+    label: "Fits your 1992 Porsche 911 Carrera RS",
+  };
+  const genuine = product({
+    id: "prd-porsche-964-discs",
+    productName: "Porsche genuine 322mm 964 front discs",
+    manufacturerName: "Porsche",
+    supplierName: "Design 911",
+    sourceId: "src-porsche",
+    sourceName: "Porsche",
+    attributes: { safety_class: "critical", spec: "322mm", appearance: "oem", replacement_grade: "oem" },
+  });
+  const brembo = product({
+    id: "prd-brembo-964-discs",
+    productName: "Brembo 322mm 964 brake discs",
+    manufacturerName: "Brembo",
+    supplierName: "Design 911",
+    sourceId: "src-brembo",
+    sourceName: "Brembo",
+    attributes: { safety_class: "critical", spec: "322mm", appearance: "oem", replacement_grade: "oem" },
+  });
+  const foskersBrembo = product({
+    id: "prd-brembo-other",
+    productName: "Brembo 322mm 964 brake discs from Foskers",
+    manufacturerName: "Brembo",
+    supplierName: "Foskers",
+    sourceId: "src-brembo",
+    sourceName: "Brembo",
+    url: "https://www.foskers.com",
+    attributes: { safety_class: "critical", spec: "322mm", appearance: "oem", replacement_grade: "oem" },
+  });
+  const rs14 = product({
+    id: "prd-pagid-964-rs14",
+    productName: "Pagid RS14 964 brake pads",
+    category: "brake-pads",
+    manufacturerName: "Pagid",
+    supplierName: "Design 911",
+    attributes: {
+      safety_class: "critical",
+      spec: "322mm",
+      appearance: "aftermarket",
+      replacement_grade: "upgrade",
+      oem_plus: "no",
+    },
+  });
+  const springPad = product({
+    id: "prd-spring-pad",
+    productName: "Rear spring pad",
+    category: "suspension",
+    attributes: { safety_class: "critical", appearance: "oem", replacement_grade: "oem" },
+  });
+  const factoryDuct = product({
+    id: "prd-factory-duct",
+    productName: "Factory brake duct",
+    category: "cooling",
+    attributes: { safety_class: "caution", appearance: "oem", replacement_grade: "oem" },
+  });
+  const dansk = product({
+    id: "prd-dansk-964-exh",
+    productName: "Dansk sports exhaust",
+    category: "exhaust",
+    manufacturerName: "Dansk",
+    supplierName: "Design 911",
+    attributes: {
+      safety_class: "caution",
+      sound: "character",
+      performance_gain: "modest",
+      oem_plus: "yes",
+      appearance: "oem-plus",
+      road_use: "yes",
+    },
+    sourcePriority: 86,
+  });
+
+  const maintainConfig: MaintainConfig = {
+    weights: {
+      fitment_exact: 50,
+      fitment_generation: 30,
+      correct_component: 40,
+      spec_match: 20,
+      authoritative_source: 15,
+      grade_match: 18,
+      partner_source: 16,
+      in_stock: 10,
+      price_lower_among_ok: 5,
+    },
+    componentAliases: { brakes: ["brake-discs", "brake-pads"], "brake-discs": ["brake-discs"] },
+    workshopComponents: [],
+    specialistCategoryForComponent: {},
+  };
+
+  it("MAINTAIN OEM keeps genuine, Brembo OEM-supplier, and Design 911 — not a logo ban", () => {
+    assert.equal(isDesign911Product(genuine), true);
+    assert.equal(isDesign911Product(foskersBrembo), false);
+    const { results, trace } = runMaintainPipeline({
+      products: [genuine, brembo, foskersBrembo, rs14],
+      fitmentsByProduct: new Map([
+        [genuine.id, match],
+        [brembo.id, match],
+        [foskersBrembo.id, match],
+        [rs14.id, match],
+      ]),
+      specialists: [],
+      context: { vehicle: rs, type: "replace", component: "brakes", grade: "oem", specification: rs.specification },
+      config: maintainConfig,
+      classes: [{ slug: "critical", withholdBelowFitment: "generation" }],
+      components: [
+        { slug: "brake-discs", safetyClass: "critical" },
+        { slug: "brake-pads", safetyClass: "critical" },
+      ],
+    });
+    assert.ok(results.some((card) => card.id === "prd-porsche-964-discs"));
+    assert.ok(results.some((card) => card.id === "prd-brembo-964-discs"));
+    assert.ok(results.some((card) => card.id === "prd-brembo-other"));
+    assert.ok(results.some((card) => card.reasons.some((reason) => reason.code === "porsche_partner")));
+    assert.ok(!results.some((card) => card.id === "prd-pagid-964-rs14"));
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-pagid-964-rs14"));
+    const partner = results.find((card) => card.id === "prd-brembo-964-discs");
+    const other = results.find((card) => card.id === "prd-brembo-other");
+    assert.ok(partner && other);
+    assert.ok(results.indexOf(partner) < results.indexOf(other));
+  });
+
+  it("BUILD Fast Street drops genuine discs, spring pads, factory ducts, and unasked brakes", () => {
+    const context: BuildContext = {
+      vehicle: rs,
+      buildType: "fast-street",
+      buildTypeName: "Fast Street",
+      objectives: [
+        { slug: "more-character", name: "More character" },
+        { slug: "more-power", name: "More power" },
+      ],
+      usage: "weekend-road",
+      style: "oem-plus",
+      budgetMax: 10000,
+      budgetName: "£5,000–£10,000",
+      interests: ["Classic"],
+      modifications: [],
+    };
+    assert.equal(isFactoryServicePart(genuine), true);
+    assert.equal(isFactoryServicePart(springPad), true);
+    assert.equal(isFactoryServicePart(factoryDuct), true);
+    assert.equal(
+      briefAsksBrakingOrHandling(context),
+      false,
+    );
+    const { results, trace } = runBuildPipeline({
+      products: [dansk, genuine, rs14, springPad, factoryDuct],
+      fitmentsByProduct: new Map([
+        [dansk.id, match],
+        [genuine.id, match],
+        [rs14.id, match],
+        [springPad.id, match],
+        [factoryDuct.id, match],
+      ]),
+      context,
+      config: buildConfig,
+      classes: [
+        { slug: "critical", withholdBelowFitment: "generation" },
+        { slug: "caution", withholdBelowFitment: "generation" },
+      ],
+      components: [
+        { slug: "exhaust", safetyClass: "caution" },
+        { slug: "brake-discs", safetyClass: "critical" },
+        { slug: "brake-pads", safetyClass: "critical" },
+        { slug: "suspension", safetyClass: "critical" },
+        { slug: "cooling", safetyClass: "caution" },
+      ],
+    });
+    assert.deepEqual(results.map((card) => card.id), ["prd-dansk-964-exh"]);
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-porsche-964-discs"));
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-pagid-964-rs14"));
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-spring-pad"));
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-factory-duct"));
+  });
+
+  it("BUILD admits a brake upgrade only when the brief asks for braking", () => {
+    const context: BuildContext = {
+      vehicle: rs,
+      buildType: "fast-street",
+      buildTypeName: "Fast Street",
+      objectives: [{ slug: "better-braking", name: "Better braking" }],
+      usage: "weekend-road",
+      style: "aftermarket",
+      budgetMax: 10000,
+      interests: [],
+      modifications: [],
+    };
+    const { results, trace } = runBuildPipeline({
+      products: [genuine, rs14],
+      fitmentsByProduct: new Map([
+        [genuine.id, match],
+        [rs14.id, match],
+      ]),
+      context,
+      config: {
+        ...buildConfig,
+        buildTypeCategories: { "fast-street": ["exhaust", "intake", "ecu", "suspension"] },
+        objectiveCategories: { "better-braking": "brakes" },
+        objectiveAttributes: { "better-braking": {} },
+      },
+      classes: [{ slug: "critical", withholdBelowFitment: "generation" }],
+      components: [
+        { slug: "brake-discs", safetyClass: "critical" },
+        { slug: "brake-pads", safetyClass: "critical" },
+      ],
+    });
+    assert.ok(results.some((card) => card.id === "prd-pagid-964-rs14"));
+    assert.ok(!results.some((card) => card.id === "prd-porsche-964-discs"));
+    assert.ok(trace.dropped.some((event) => event.productId === "prd-porsche-964-discs"));
   });
 });

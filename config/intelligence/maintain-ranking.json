@@ -6,6 +6,7 @@
     "spec_match": 20,
     "authoritative_source": 15,
     "grade_match": 18,
+    "partner_source": 16,
     "in_stock": 10,
     "price_lower_among_ok": 5
   },

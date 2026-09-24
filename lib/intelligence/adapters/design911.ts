@@ -279,7 +279,7 @@ export function inferDesign911Attributes(input: {
     pushAttribute(rows, "road_use", "yes");
   }
   if (input.category === "brake-discs" || input.category === "brake-pads") {
-    if (/ebc|pagid|rs14|red stuff|sport|race|track/.test(haystack)) {
+    if (/\brs14\b|red stuff|yellow stuff|blue stuff|\bebc\b|race|track|sport compound|slotted|drilled/.test(haystack)) {
       pushAttribute(rows, "appearance", "aftermarket");
       pushAttribute(rows, "replacement_grade", "upgrade");
     } else {

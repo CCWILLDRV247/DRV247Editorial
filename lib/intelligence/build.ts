@@ -11,6 +11,7 @@ import type {
 import { applySafetyGate, type ComponentSafety, type SafetyClassRow } from "./safety";
 import { fitmentReasons, isStrongReason, publicReasons } from "./reasons";
 import { usableFitment } from "./fitment";
+import { productReplacementGrade } from "./maintain";
 
 export type BuildConfig = {
   weights: Record<string, number>;
@@ -44,13 +45,49 @@ function attr(product: ProductCandidate, key: string): string | undefined {
   return product.attributes[key];
 }
 
+const BRAKE_CATEGORIES = new Set(["brakes", "brake-discs", "brake-pads"]);
+const SERVICE_CATEGORIES = new Set(["brake-discs", "brake-pads", "filters", "service"]);
+const BRAKING_OR_HANDLING = new Set([
+  "better-braking",
+  "track-braking",
+  "brake-feel",
+  "sharper-handling",
+  "better-cornering",
+]);
+
+export function isBrakeCategory(category: string | null | undefined): boolean {
+  return BRAKE_CATEGORIES.has(category ?? "");
+}
+
+export function briefAsksBrakingOrHandling(context: BuildContext): boolean {
+  if (context.objectives.some((objective) => BRAKING_OR_HANDLING.has(objective.slug))) return true;
+  return /\b(brak|handl|corner)/i.test(context.notes ?? "");
+}
+
+export function isFactoryServicePart(product: ProductCandidate): boolean {
+  const haystack = `${product.productName} ${product.description ?? ""}`.toLowerCase();
+  if (/\bspring pad\b|spring-pad|bump stop/.test(haystack)) return true;
+  if (/factory.{0,20}duct|oem duct/.test(haystack)) return true;
+  if (/\bgenuine\b/.test(haystack) && /disc|pad|filter/.test(haystack)) return true;
+  return productReplacementGrade(product) === "oem" && SERVICE_CATEGORIES.has(product.category ?? "");
+}
+
+function categoryMatchesObjective(product: ProductCandidate, slug: string, config: BuildConfig): boolean {
+  const wanted = config.objectiveCategories[slug];
+  if (!wanted) return false;
+  if (product.category === wanted) return true;
+  return wanted === "brakes" && isBrakeCategory(product.category);
+}
+
 function supportsObjective(product: ProductCandidate, slug: string, config: BuildConfig): boolean {
   const mapping = config.objectiveAttributes[slug];
   if (!mapping || !Object.keys(mapping).length) {
-    const category = config.objectiveCategories[slug];
-    return Boolean(category && product.category === category);
+    return categoryMatchesObjective(product, slug, config);
   }
-  return Object.entries(mapping).some(([key, values]) => values.includes(attr(product, key) ?? ""));
+  if (Object.entries(mapping).some(([key, values]) => values.includes(attr(product, key) ?? ""))) {
+    return true;
+  }
+  return categoryMatchesObjective(product, slug, config);
 }
 
 function explicitCategoryObjective(
@@ -219,6 +256,24 @@ export function runBuildPipeline(input: {
       trace.withheld.push({ productId: product.id, name: product.productName, reason: safety.reason });
       continue;
     }
+    if (isFactoryServicePart(product)) {
+      trace.dropped.push({
+        productId: product.id,
+        name: product.productName,
+        reason: "Factory service / like-for-like part — BUILD changes the car",
+        code: "factory_service_not_build",
+      });
+      continue;
+    }
+    if (isBrakeCategory(product.category) && !briefAsksBrakingOrHandling(input.context)) {
+      trace.dropped.push({
+        productId: product.id,
+        name: product.productName,
+        reason: "Brake upgrades only when the brief asks for braking or handling",
+        code: "brakes_not_in_brief",
+      });
+      continue;
+    }
     const usage = input.context.usage;
     if (usage && input.config.roadUsages.includes(usage) && product.attributes.road_use === "no") {
       trace.dropped.push({
@@ -261,15 +316,9 @@ export function runBuildPipeline(input: {
     for (const mod of input.context.modifications) {
       for (const extra of input.config.complementaryCategories[mod.category] ?? []) complementary.add(extra);
     }
-    const supportsAny = input.context.objectives.some((objective) => {
-      const mapping = input.config.objectiveAttributes[objective.slug];
-      if (mapping && Object.keys(mapping).length) {
-        return Object.entries(mapping).some(([key, values]) =>
-          values.includes(product.attributes[key] ?? ""),
-        );
-      }
-      return input.config.objectiveCategories[objective.slug] === product.category;
-    });
+    const supportsAny = input.context.objectives.some((objective) =>
+      supportsObjective(product, objective.slug, input.config),
+    );
     const relevant =
       (product.category && affinity.includes(product.category)) ||
       supportsAny ||

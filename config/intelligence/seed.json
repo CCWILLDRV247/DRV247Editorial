@@ -676,9 +676,8 @@
       "attributes": [
         { "attribute": "safety_class", "value": "critical" },
         { "attribute": "road_use", "value": "yes" },
-        { "attribute": "oem_plus", "value": "yes" },
-        { "attribute": "appearance", "value": "oem-plus" },
-        { "attribute": "replacement_grade", "value": "oem-plus" }
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" }
       ],
       "fitments": [
         {
@@ -708,9 +707,8 @@
         { "attribute": "spec", "value": "322mm" },
         { "attribute": "safety_class", "value": "critical" },
         { "attribute": "road_use", "value": "yes" },
-        { "attribute": "oem_plus", "value": "yes" },
-        { "attribute": "appearance", "value": "oem-plus" },
-        { "attribute": "replacement_grade", "value": "oem-plus" }
+        { "attribute": "appearance", "value": "oem" },
+        { "attribute": "replacement_grade", "value": "oem" }
       ],
       "fitments": [
         {

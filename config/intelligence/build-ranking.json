@@ -14,7 +14,7 @@
     "already_fitted_category": -40
   },
   "buildTypeCategories": {
-    "fast-street": ["exhaust", "intake", "ecu", "suspension", "brakes", "brake-discs", "brake-pads", "tyres", "wheels"],
+    "fast-street": ["exhaust", "intake", "ecu", "suspension", "tyres", "wheels"],
     "gt-cruiser": ["exhaust", "seats", "audio", "suspension", "lighting"],
     "show-car": ["wheels", "exterior", "interior", "lighting", "stance"],
     "oem-plus": ["exhaust", "intake", "suspension", "wheels", "lighting"],
@@ -90,8 +90,8 @@
     "oem-specification": "preservation"
   },
   "complementaryCategories": {
-    "exhaust": ["suspension", "brakes", "brake-discs", "brake-pads", "geometry"],
-    "suspension": ["brakes", "brake-discs", "brake-pads", "tyres", "wheels"]
+    "exhaust": ["suspension", "geometry"],
+    "suspension": ["tyres", "wheels"]
   },
   "roadUsages": ["weekend-road", "daily", "tour"],
   "interestCategoryHints": {

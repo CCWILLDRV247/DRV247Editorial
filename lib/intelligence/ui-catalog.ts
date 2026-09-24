@@ -1,5 +1,7 @@
 import taxonomies from "../../config/intelligence/taxonomies.json";
 
+export const DEFAULT_VEHICLE_ID = "veh-964";
+
 export const GARAGE_VEHICLES = [
   {
     id: "veh-964",

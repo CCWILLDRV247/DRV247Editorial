@@ -6,6 +6,7 @@ import {
   BUILD_DEFAULTS,
   BUILD_TYPES,
   BUDGET_BANDS,
+  DEFAULT_VEHICLE_ID,
   GARAGE_VEHICLES,
   MAINTAIN_DEFAULTS,
   MAINTENANCE_COMPONENTS,
@@ -85,7 +86,7 @@ function fitmentTone(confidence: ApiCard["fitmentConfidence"]): "known" | "cauti
 }
 
 export function VehicleEntry() {
-  const [vehicleId, setVehicleId] = useState<(typeof GARAGE_VEHICLES)[number]["id"]>("veh-355");
+  const [vehicleId, setVehicleId] = useState<(typeof GARAGE_VEHICLES)[number]["id"]>(DEFAULT_VEHICLE_ID);
   const [intent, setIntent] = useState<Intent | null>(null);
   const [buildType, setBuildType] = useState(BUILD_DEFAULTS.type);
   const [objectives, setObjectives] = useState<string[]>(BUILD_DEFAULTS.objectives);
@@ -99,7 +100,7 @@ export function VehicleEntry() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
 
-  const vehicle = GARAGE_VEHICLES.find((row) => row.id === vehicleId) ?? GARAGE_VEHICLES[1];
+  const vehicle = GARAGE_VEHICLES.find((row) => row.id === vehicleId) ?? GARAGE_VEHICLES[0];
 
   const selectedObjectiveNames = useMemo(
     () =>
