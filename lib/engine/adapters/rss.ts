@@ -18,7 +18,7 @@ export type EngineItem = {
   imageUrl: string | null;
   imageCandidates?: ImageCandidate[];
   publishedAt: number;
-  method: "rss" | "atom" | "sitemap" | "scrape";
+  method: "rss" | "atom" | "sitemap" | "scrape" | "youtube";
 };
 
 export function parseFeedXml(xml: string, contentType = ""): EngineItem[] {

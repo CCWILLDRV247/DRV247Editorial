@@ -2,6 +2,8 @@ import { cn } from "cn";
 import { MagazineLink } from "@/components/magazine-link";
 import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
+import { isVideoStory } from "@/lib/engine/magazine";
+import { VideoMark } from "./story-card";
 import { StoryImage } from "./story-image";
 
 export type CategoryLane = {
@@ -19,9 +21,12 @@ export function CarouselStoryCard({ story }: { story: StoryDto }) {
       <div className="relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px]">
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" eager />
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
-        <p className="absolute bottom-4 left-4 right-4 font-display text-[11px] font-bold uppercase leading-none tracking-[-0.02em] text-white">
-          {story.source.name}
-        </p>
+        <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1.5">
+          {isVideoStory(story) ? <VideoMark /> : null}
+          <p className="font-display text-[11px] font-bold uppercase leading-none tracking-[-0.02em] text-white">
+            {story.source.name}
+          </p>
+        </div>
       </div>
       <p className="mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px]">
         {story.title}

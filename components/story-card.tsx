@@ -1,7 +1,22 @@
 import { cn } from "cn";
 import { MagazineLink } from "@/components/magazine-link";
 import type { StoryDto } from "@/lib/stories";
+import { isVideoStory } from "@/lib/engine/magazine";
 import { StoryImage } from "./story-image";
+
+export function VideoMark({ tone = "dark" }: { tone?: "dark" | "light" }) {
+  return (
+    <span
+      className={
+        tone === "dark"
+          ? "font-display text-[11px] font-bold uppercase tracking-[0.14em] text-white/70"
+          : "font-display text-[10px] font-bold uppercase tracking-[0.14em] text-[#1b1d1f]/50"
+      }
+    >
+      Video
+    </span>
+  );
+}
 
 function RelevanceLine({
   text,
@@ -45,7 +60,10 @@ export function StoryCard({ story }: { story: StoryDto }) {
       <div className="absolute inset-x-0 bottom-0 h-[227px] bg-gradient-to-b from-transparent to-[#1b1d1f]" />
       <div className="absolute inset-0 flex flex-col justify-end px-7 pb-7 pr-6">
         <div className="flex flex-col gap-6">
-          <FeatureTag>{tag}</FeatureTag>
+          <div className="flex flex-col items-start gap-2">
+            <FeatureTag>{tag}</FeatureTag>
+            {isVideoStory(story) ? <VideoMark /> : null}
+          </div>
           <RelevanceLine text={story.relevanceExplanation} tone="dark" />
           <h2 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
             {story.title}
@@ -89,7 +107,10 @@ export function StoryHero({
       </div>
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
       <div className="absolute inset-x-5 bottom-6 flex flex-col gap-3 md:inset-x-7 md:bottom-10 md:gap-3">
-        <FeatureTag>{story.desk?.labelName ?? story.category.name}</FeatureTag>
+        <div className="flex flex-col items-start gap-2">
+          <FeatureTag>{story.desk?.labelName ?? story.category.name}</FeatureTag>
+          {isVideoStory(story) ? <VideoMark /> : null}
+        </div>
         <RelevanceLine text={story.relevanceExplanation} tone="dark" />
         <h1
           className={
@@ -114,10 +135,11 @@ export function PickCard({ story }: { story: StoryDto }) {
     <MagazineLink href={`/story/${story.id}`} className="w-[218px] shrink-0">
       <div className="relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf]">
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" eager />
-        <div className="absolute bottom-4 left-5">
+        <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
           <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
             {tag}
           </span>
+          {isVideoStory(story) ? <VideoMark /> : null}
         </div>
       </div>
       <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-[#1b1d1f]">

@@ -1,4 +1,4 @@
-export const ENGINE_BRANCH = "cursor/restore-editorial-intelligence-1b18";
+export const ENGINE_BRANCH = "cursor/youtube-source-debf";
 export const ENGINE_WAVE = "wave-6-99";
 
 export function engineCommit() {

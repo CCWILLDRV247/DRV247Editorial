@@ -393,7 +393,7 @@ function SourceDialog({
               {type === "rss"
                 ? "Feed URL"
                 : type === "youtube"
-                  ? "Channel ID"
+                  ? "Channel URL, @handle, or UC… ID"
                   : "NewsAPI query"}
             </Label>
             <Input

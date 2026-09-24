@@ -49,9 +49,21 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 - **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
 - **Vehicle Intelligence** — `/intelligence` (same Vercel project and Turso database; Design 911 + Eurospares). Not on the magazine nav. Live catalogues refresh on `15 6 * * 1` → `/api/cron/intelligence-ingest`.
 
+## YouTube channels
+
+YouTube is a first-class culture source, not a second CMS. Channels go through the same ingest, taxonomy, ranking, image, cron, desk, and card path as RSS titles. Cards stay magazine cards with a small **Video** mark. There is no All / Articles / Videos nav and no in-app player.
+
+**Add a channel** at `/admin/engine` (password `desk247`): paste a channel URL, `@handle`, or `UC…` ID. The desk stores the canonical channel ID. Ingest pulls channel → uploads playlist → playlist items → video metadata (quota-aware; about 3 units per channel). Videos always link out to `https://www.youtube.com/watch?v=VIDEO_ID`.
+
+A live `YOUTUBE_API_KEY` is **not** required for local preview. Without a key, ingest uses mock automotive videos so the flow still works. Set the key server-side only (Vercel env, never `NEXT_PUBLIC_`) for real uploads. Optional `YOUTUBE_MAX_RESULTS` caps recent videos per channel (1–50; default is the source max, 8).
+
+One demo channel is seeded: **Petrolicious** (`yt_petrolicious`). Run `npm run ingest:youtube` or desk **Run** on that row. A failed YouTube source does not stop RSS or other YouTube channels.
+
+Get a key: Google Cloud → enable **YouTube Data API v3** → create an API key → restrict it to that API → add `YOUTUBE_API_KEY` on the Vercel project (Preview + Production).
+
 ## Ingest
 
-Desk **Ingest now** runs the enabled culture pipeline (74 titles). Non-English items are skipped; shop/product/collection/cart/merch URLs are skipped; auction and subscribe paths, empty or `/undefined` URLs, and off-site magazine-shop canonicals are skipped; mixed-language titles such as ramp stay enabled. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
+Desk **Ingest now** runs the enabled culture pipeline (74 titles plus any YouTube channels). Non-English items are skipped; shop/product/collection/cart/merch URLs are skipped; auction and subscribe paths, empty or `/undefined` URLs, and off-site magazine-shop canonicals are skipped; mixed-language titles such as ramp stay enabled. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds. Magazine pages cache for 60 seconds (`s-maxage=60`, stale-while-revalidate 300).
 

@@ -17,6 +17,7 @@ import type { Article, IngestionRun, MediaSource } from "@/lib/db/schema";
 import type { ClassificationDebugRow } from "@/lib/engine/queries";
 import { FOR_YOU_DEMO_PROFILES, type ForYouDemoId } from "@/lib/engine/for-you-test";
 import { DeskCuration } from "@/components/admin/desk-curation";
+import { YoutubeSourceForm } from "@/components/admin/youtube-source-form";
 
 type Props = {
   sources: MediaSource[];
@@ -56,14 +57,23 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
       body: JSON.stringify(sourceId ? { sourceId } : {}),
     });
     const data = (await response.json()) as {
-      results?: { publication: string; fetched: number; inserted: number; method: string | null; error: string | null }[];
+      results?: {
+        publication: string;
+        fetched: number;
+        inserted: number;
+        method: string | null;
+        error: string | null;
+        usedMock?: boolean;
+      }[];
     };
     setMessage(
       (data.results ?? [])
         .map((result) =>
           result.error
             ? `${result.publication}: ${result.error}`
-            : `${result.publication}: ${result.inserted} new / ${result.fetched} via ${result.method}`,
+            : `${result.publication}: ${result.inserted} new / ${result.fetched} via ${result.method}${
+                result.usedMock ? " (mock)" : ""
+              }`,
         )
         .join(" · "),
     );
@@ -146,6 +156,8 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
         </div>
       </div>
       {message ? <p className="text-sm text-[#1b1d1f]/80">{message}</p> : null}
+
+      <YoutubeSourceForm />
 
       <DeskCuration />
 
@@ -239,8 +251,14 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
                 </div>
               </TableCell>
               <TableCell className="text-xs">
-                <p>{source.lastMethod ?? "—"}</p>
-                <p className={source.lastError ? "text-red-700" : "text-[#1b1d1f]/60"}>
+                <p>{source.lastMethod ?? "—"}{source.channelId ? ` · ${source.channelId}` : ""}</p>
+                <p
+                  className={
+                    source.lastError && !source.lastError.includes("local mock")
+                      ? "text-red-700"
+                      : "text-[#1b1d1f]/60"
+                  }
+                >
                   {source.lastError ?? (source.lastSuccessAt ? "ok" : "not run")}
                 </p>
               </TableCell>

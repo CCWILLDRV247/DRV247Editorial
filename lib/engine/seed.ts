@@ -19,6 +19,7 @@ import { parseCsv } from "./csv";
 import { slugify } from "./normalize";
 import { PRIMARY_META, SECONDARY_TAXONOMY } from "./taxonomy";
 import { seedDeskPicksIfEmpty } from "./desk";
+import { seedYoutubeDemoSource } from "./youtube-sources";
 
 type Db = LibSQLDatabase<typeof schema>;
 
@@ -226,6 +227,7 @@ export async function seedEngine(db: Db) {
   }
 
   await seedDeskPicksIfEmpty(db);
+  await seedYoutubeDemoSource(db);
 }
 
 async function seedTaxonomy(db: Db) {

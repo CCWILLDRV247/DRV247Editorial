@@ -1,0 +1,181 @@
+import assert from "node:assert/strict";
+import { afterEach, describe, it } from "node:test";
+import { classifyArticle } from "./classify";
+import { youtubeVideosToEngineItems } from "./adapters/youtube";
+import { isIngestibleMediaSource } from "./youtube-sources";
+import {
+  canonicalizeYoutubeWatchUrl,
+  ingestYoutubeChannel,
+  isYoutubeMediaSource,
+  isYoutubeWatchUrl,
+  mediaSourceIdForChannel,
+  parseYoutubeChannelInput,
+  parseYoutubeVideoId,
+  youtubeMaxResults,
+  youtubeWatchUrl,
+} from "./youtube";
+import type { MediaSource } from "@/lib/db/schema";
+
+const previousKey = process.env.YOUTUBE_API_KEY;
+const previousMax = process.env.YOUTUBE_MAX_RESULTS;
+
+afterEach(() => {
+  if (previousKey === undefined) delete process.env.YOUTUBE_API_KEY;
+  else process.env.YOUTUBE_API_KEY = previousKey;
+  if (previousMax === undefined) delete process.env.YOUTUBE_MAX_RESULTS;
+  else process.env.YOUTUBE_MAX_RESULTS = previousMax;
+});
+
+function source(partial: Partial<MediaSource>): MediaSource {
+  return {
+    id: "auto_001",
+    publication: "Bonnet",
+    country: "UK",
+    url: "https://readbonnet.com",
+    rssUrl: "https://readbonnet.com/feed",
+    websiteAvailable: true,
+    scrapeDifficulty: "easy",
+    editorialCategory: "Culture",
+    marquesCovered: "various",
+    relevance: "high",
+    csvEnabled: true,
+    enabled: true,
+    sourceType: "rss",
+    rssVerifiedStatus: "ok",
+    rssConfidence: "high",
+    priority: 1,
+    maxArticles: 8,
+    allowExcerpt: true,
+    allowImage: true,
+    lastSuccessAt: null,
+    lastFailureAt: null,
+    failureCount: 0,
+    lastHttpStatus: null,
+    lastError: null,
+    lastMethod: null,
+    lastArticleCount: 0,
+    channelId: null,
+    ...partial,
+  };
+}
+
+describe("youtube channel parse", () => {
+  it("accepts UC channel IDs, @handles, and channel URLs", () => {
+    const id = parseYoutubeChannelInput("UC1234567890123456789012");
+    assert.equal("error" in id ? null : id.kind, "channelId");
+    const handle = parseYoutubeChannelInput("@Petrolicious");
+    assert.equal("error" in handle ? null : handle.value, "@Petrolicious");
+    const url = parseYoutubeChannelInput("https://www.youtube.com/@Petrolicious");
+    assert.equal("error" in url ? null : url.value, "@Petrolicious");
+    const channelUrl = parseYoutubeChannelInput(
+      "https://www.youtube.com/channel/UC1234567890123456789012",
+    );
+    assert.equal("error" in channelUrl ? null : channelUrl.value, "UC1234567890123456789012");
+  });
+
+  it("rejects scrapes, watch URLs, and empty input", () => {
+    assert.equal("error" in parseYoutubeChannelInput(""), true);
+    assert.equal("error" in parseYoutubeChannelInput("https://example.com/cars"), true);
+    assert.equal(
+      "error" in parseYoutubeChannelInput("https://www.youtube.com/watch?v=dQw4w9wgWcQ"),
+      true,
+    );
+  });
+});
+
+describe("youtube watch URLs", () => {
+  it("always canonicalises to youtube.com/watch?v=", () => {
+    assert.equal(youtubeWatchUrl("dQw4w9wgWcQ"), "https://www.youtube.com/watch?v=dQw4w9wgWcQ");
+    assert.equal(
+      canonicalizeYoutubeWatchUrl("https://youtu.be/dQw4w9wgWcQ"),
+      "https://www.youtube.com/watch?v=dQw4w9wgWcQ",
+    );
+    assert.equal(parseYoutubeVideoId("https://www.youtube.com/shorts/dQw4w9wgWcQ"), "dQw4w9wgWcQ");
+    assert.equal(isYoutubeWatchUrl("https://www.youtube.com/watch?v=dQw4w9wgWcQ"), true);
+    assert.equal(isYoutubeWatchUrl("https://readbonnet.com/story"), false);
+  });
+});
+
+describe("youtube ingest mock", () => {
+  it("returns mock videos when YOUTUBE_API_KEY is missing", async () => {
+    delete process.env.YOUTUBE_API_KEY;
+    const result = await ingestYoutubeChannel("@Petrolicious", { titleHint: "Petrolicious" });
+    assert.equal(result.usedMock, true);
+    assert.ok(result.items.length >= 3);
+    assert.match(result.items[0].title, /Ferrari F355|Porsche 964|Skyline|M3|Members/);
+    const items = youtubeVideosToEngineItems(result.items);
+    assert.ok(items.every((item) => item.method === "youtube"));
+    assert.ok(items.every((item) => item.canonicalUrl.startsWith("https://www.youtube.com/watch?v=")));
+  });
+
+  it("keeps mock videos unique per channel so two sources do not collide", async () => {
+    delete process.env.YOUTUBE_API_KEY;
+    const a = await ingestYoutubeChannel("@Petrolicious");
+    const b = await ingestYoutubeChannel("@Hagerty");
+    assert.notEqual(a.items[0].videoId, b.items[0].videoId);
+  });
+});
+
+describe("youtube source filter", () => {
+  it("lets enabled YouTube sources through without adding them to the RSS wave list", () => {
+    const youtube = source({
+      id: "yt_petrolicious",
+      sourceType: "youtube",
+      url: "https://www.youtube.com/@Petrolicious",
+      channelId: "@Petrolicious",
+    });
+    assert.equal(isYoutubeMediaSource(youtube), true);
+    assert.equal(isIngestibleMediaSource(youtube), true);
+    assert.equal(isIngestibleMediaSource({ ...youtube, enabled: false }), false);
+    assert.equal(isIngestibleMediaSource(source({ id: "auto_999_not_enabled" })), false);
+    assert.equal(isIngestibleMediaSource(source({ id: "auto_001" })), true);
+  });
+
+  it("keeps a failed YouTube id from blocking a second YouTube or RSS source", () => {
+    const failed = source({
+      id: "yt_bad",
+      sourceType: "youtube",
+      enabled: true,
+      url: "https://www.youtube.com/@Nope",
+    });
+    const other = source({
+      id: "yt_good",
+      sourceType: "youtube",
+      enabled: true,
+      url: "https://www.youtube.com/@Petrolicious",
+    });
+    const rss = source({ id: "auto_001" });
+    const selected = [failed, other, rss].filter((row) => isIngestibleMediaSource(row));
+    assert.deepEqual(
+      selected.map((row) => row.id),
+      ["yt_bad", "yt_good", "auto_001"],
+    );
+  });
+});
+
+describe("youtube taxonomy", () => {
+  it("tags YouTube items as Video without a new classifier", () => {
+    const classified = classifyArticle(
+      "A Ferrari F355 on the autostrada, filmed properly",
+      "Evening light and the road south of Milan.",
+      "",
+      "Petrolicious",
+      "video",
+    );
+    assert.ok(classified.contentTypes.some((row) => row.name === "Video"));
+    assert.ok(classified.makes.includes("Ferrari"));
+    assert.ok(classified.models.includes("F355"));
+  });
+});
+
+describe("youtube config", () => {
+  it("caps recent count at 50 and prefers the env override", () => {
+    delete process.env.YOUTUBE_MAX_RESULTS;
+    assert.equal(youtubeMaxResults(8), 8);
+    process.env.YOUTUBE_MAX_RESULTS = "12";
+    assert.equal(youtubeMaxResults(8), 12);
+    process.env.YOUTUBE_MAX_RESULTS = "99";
+    assert.equal(youtubeMaxResults(8), 50);
+    assert.equal(mediaSourceIdForChannel("UC1234567890123456789012"), "yt_UC1234567890123456789012");
+  });
+});
