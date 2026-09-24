@@ -2,7 +2,7 @@ import { cn } from "cn";
 import { MagazineLink } from "@/components/magazine-link";
 import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
-import { isVideoStory } from "@/lib/engine/magazine";
+import { isVideoStory } from "@/lib/engine/video-story";
 import { VideoMark } from "./story-card";
 import { StoryImage } from "./story-image";
 

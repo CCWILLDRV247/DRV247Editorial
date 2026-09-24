@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { classifyArticle } from "./classify";
+import { isVideoStory } from "./video-story";
 import { youtubeVideosToEngineItems } from "./adapters/youtube";
 import { isIngestibleMediaSource } from "./youtube-sources";
 import {
@@ -149,6 +150,25 @@ describe("youtube source filter", () => {
     assert.deepEqual(
       selected.map((row) => row.id),
       ["yt_bad", "yt_good", "auto_001"],
+    );
+  });
+});
+
+describe("youtube cards", () => {
+  it("marks watch URLs and youtube sources as video", () => {
+    assert.equal(
+      isVideoStory({
+        source: { type: "youtube" },
+        canonicalUrl: "https://www.youtube.com/watch?v=drvF355mock",
+      }),
+      true,
+    );
+    assert.equal(
+      isVideoStory({
+        source: { type: "rss" },
+        canonicalUrl: "https://readbonnet.com/story",
+      }),
+      false,
     );
   });
 });

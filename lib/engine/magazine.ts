@@ -64,9 +64,7 @@ export function tagForArticle(article: EditorialDto) {
   return navForArticle(article).name;
 }
 
-export function isVideoStory(story: Pick<StoryDto, "source" | "canonicalUrl">) {
-  return story.source.type === "youtube" || /youtube\.com\/watch\?v=/i.test(story.canonicalUrl);
-}
+export { isVideoStory } from "./video-story";
 
 export function toMagazineStory(
   article: EditorialDto,

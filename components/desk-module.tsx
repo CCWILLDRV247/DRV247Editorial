@@ -1,7 +1,7 @@
 import { MagazineLink } from "@/components/magazine-link";
 import { VideoMark } from "@/components/story-card";
 import { StoryImage } from "@/components/story-image";
-import { isVideoStory } from "@/lib/engine/magazine";
+import { isVideoStory } from "@/lib/engine/video-story";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
 import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";

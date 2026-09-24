@@ -3,7 +3,8 @@ import { MagazineLink, MagazineQueryProvider } from "@/components/magazine-link"
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryImage } from "@/components/story-image";
 import { forYouTestSearchString, parseForYouTestProfile, withTestQuery } from "@/lib/engine/for-you-test";
-import { getMagazineStory, isVideoStory } from "@/lib/engine/magazine";
+import { getMagazineStory } from "@/lib/engine/magazine";
+import { isVideoStory } from "@/lib/engine/video-story";
 import { formatStoryDate } from "@/lib/format";
 
 export const runtime = "nodejs";

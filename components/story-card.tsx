@@ -1,7 +1,7 @@
 import { cn } from "cn";
 import { MagazineLink } from "@/components/magazine-link";
 import type { StoryDto } from "@/lib/stories";
-import { isVideoStory } from "@/lib/engine/magazine";
+import { isVideoStory } from "@/lib/engine/video-story";
 import { StoryImage } from "./story-image";
 
 export function VideoMark({ tone = "dark" }: { tone?: "dark" | "light" }) {
