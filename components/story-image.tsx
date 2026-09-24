@@ -9,7 +9,7 @@ function VideoPlayOverlay() {
       className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center"
     >
       <span className="flex size-10 items-center justify-center rounded-full bg-white/90 ring-1 ring-[#1b1d1f]/10 md:size-11">
-        <svg viewBox="0 0 24 24" className="ml-0.5 size-3.5 fill-[#1b1d1f]/70 md:size-4">
+        <svg viewBox="0 0 24 24" className="ml-0.5 size-7 fill-[#1b1d1f]/70 md:size-8">
           <path d="M8.5 6.4v11.2L18.4 12 8.5 6.4z" />
         </svg>
       </span>
