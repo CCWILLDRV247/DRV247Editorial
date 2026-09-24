@@ -51,7 +51,6 @@ export default async function StoryPage({
           ) : null}
           <p className="mt-2 font-display text-lg font-bold uppercase text-[#1b1d1f]/70">
             {formatStoryDate(story.publishedAt)} · {story.category.name}
-            {isVideoStory(story) ? " · Video" : ""}
           </p>
           {story.desk?.note ? (
             <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">

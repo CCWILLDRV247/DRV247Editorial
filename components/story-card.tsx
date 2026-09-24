@@ -4,20 +4,6 @@ import type { StoryDto } from "@/lib/stories";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { StoryImage } from "./story-image";
 
-export function VideoMark({ tone = "dark" }: { tone?: "dark" | "light" }) {
-  return (
-    <span
-      className={
-        tone === "dark"
-          ? "font-display text-[11px] font-bold uppercase tracking-[0.14em] text-white/70"
-          : "font-display text-[10px] font-bold uppercase tracking-[0.14em] text-[#1b1d1f]/50"
-      }
-    >
-      Video
-    </span>
-  );
-}
-
 function RelevanceLine({
   text,
   tone = "dark",
@@ -62,7 +48,6 @@ export function StoryCard({ story }: { story: StoryDto }) {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col items-start gap-2">
             <FeatureTag>{tag}</FeatureTag>
-            {isVideoStory(story) ? <VideoMark /> : null}
           </div>
           <RelevanceLine text={story.relevanceExplanation} tone="dark" />
           <h2 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
@@ -109,7 +94,6 @@ export function StoryHero({
       <div className="absolute inset-x-5 bottom-6 flex flex-col gap-3 md:inset-x-7 md:bottom-10 md:gap-3">
         <div className="flex flex-col items-start gap-2">
           <FeatureTag>{story.desk?.labelName ?? story.category.name}</FeatureTag>
-          {isVideoStory(story) ? <VideoMark /> : null}
         </div>
         <RelevanceLine text={story.relevanceExplanation} tone="dark" />
         <h1
@@ -139,7 +123,6 @@ export function PickCard({ story }: { story: StoryDto }) {
           <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
             {tag}
           </span>
-          {isVideoStory(story) ? <VideoMark /> : null}
         </div>
       </div>
       <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-[#1b1d1f]">

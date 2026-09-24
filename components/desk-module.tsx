@@ -1,5 +1,4 @@
 import { MagazineLink } from "@/components/magazine-link";
-import { VideoMark } from "@/components/story-card";
 import { StoryImage } from "@/components/story-image";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
@@ -33,7 +32,6 @@ function PickImageFrame({
         <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
           {tag}
         </span>
-        {isVideoStory(story) ? <VideoMark /> : null}
       </div>
     </div>
   );
