@@ -246,9 +246,9 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
   let usedMock = false;
   try {
     const raw =
-      source.channelId && !source.channelId.startsWith("mock_")
+      (source.channelId && !source.channelId.startsWith("mock_")
         ? source.channelId
-        : source.url || source.channelId;
+        : source.url || source.channelId) ?? "";
     const fetched = await ingestYoutubeChannel(raw, {
       maxResults: source.maxArticles,
       titleHint: source.publication,
