@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,16 +17,16 @@ import type { Article, IngestionRun, MediaSource } from "@/lib/db/schema";
 import type { ClassificationDebugRow } from "@/lib/engine/queries";
 import { FOR_YOU_DEMO_PROFILES, type ForYouDemoId } from "@/lib/engine/for-you-test";
 import { DeskCuration } from "@/components/admin/desk-curation";
-import { YoutubeSourceForm } from "@/components/admin/youtube-source-form";
 
 type Props = {
   sources: MediaSource[];
   runs: IngestionRun[];
   articles: Article[];
   classified: ClassificationDebugRow[];
+  children?: ReactNode;
 };
 
-export function EngineDesk({ sources, runs, articles, classified }: Props) {
+export function EngineDesk({ sources, runs, articles, classified, children }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [rankProfile, setRankProfile] = useState<ForYouDemoId>("A");
@@ -157,7 +157,7 @@ export function EngineDesk({ sources, runs, articles, classified }: Props) {
       </div>
       {message ? <p className="text-sm text-[#1b1d1f]/80">{message}</p> : null}
 
-      <YoutubeSourceForm />
+      {children}
 
       <DeskCuration />
 
