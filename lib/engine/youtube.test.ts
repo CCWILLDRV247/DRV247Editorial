@@ -6,6 +6,7 @@ import { youtubeVideosToEngineItems } from "./adapters/youtube";
 import { isIngestibleMediaSource } from "./youtube-sources";
 import {
   canonicalizeYoutubeWatchUrl,
+  editorialSourceRelevance,
   ingestYoutubeChannel,
   isMockYoutubeArticle,
   isYoutubeMediaSource,
@@ -16,6 +17,12 @@ import {
   youtubeMaxResults,
   youtubeWatchUrl,
 } from "./youtube";
+import { explainArticle, loadRankWeights } from "./rank";
+import { evaluateRelevanceEngine } from "./relevance-engine";
+import { evaluateQualityFilter } from "./quality-filter";
+import { curateForYouHome } from "./for-you-home";
+import { FOR_YOU_DEMO_PROFILES } from "./for-you-test";
+import { contextFromTestProfile } from "./personalize";
 import type { MediaSource } from "@/lib/db/schema";
 
 const previousKey = process.env.YOUTUBE_API_KEY;
@@ -212,6 +219,147 @@ describe("youtube taxonomy", () => {
     assert.ok(classified.contentTypes.some((row) => row.name === "Video"));
     assert.ok(classified.makes.includes("Ferrari"));
     assert.ok(classified.models.includes("F355"));
+  });
+});
+
+describe("youtube For You ranking", () => {
+  const weights = loadRankWeights();
+
+  function videoQuality(input: {
+    makes: string[];
+    models: string[];
+    excerpt: string;
+    relevance: string;
+    profile: (typeof FOR_YOU_DEMO_PROFILES)[keyof typeof FOR_YOU_DEMO_PROFILES];
+    contentTypes?: string[];
+  }) {
+    const personal = contextFromTestProfile(input.profile);
+    const meta = {
+      makes: input.makes,
+      models: input.models,
+      generations: [] as string[],
+      variants: [] as string[],
+      interests: ["Classic"],
+      categories: ["Classic"],
+      locations: [] as string[],
+      excerpt: input.excerpt,
+      relevance: editorialSourceRelevance({
+        relevance: input.relevance,
+        sourceType: "youtube",
+      }),
+      vehicles: personal.vehicles,
+      userInterests: personal.interests,
+      publishedAt: Date.now() - 1000 * 60 * 60 * 8,
+      primaryCategory: "culture",
+      contentTypes: input.contentTypes ?? ["Video"],
+      deskPick: false,
+    };
+    const breakdown = explainArticle(meta, weights);
+    const engine = evaluateRelevanceEngine(breakdown, meta, weights);
+    const quality = evaluateQualityFilter(engine, meta, weights);
+    return { breakdown, engine, quality, meta };
+  }
+
+  it("maps desk-added high relevance onto the Good RSS band, not base 8", () => {
+    assert.equal(
+      editorialSourceRelevance({ relevance: "high", sourceType: "youtube" }),
+      "Good",
+    );
+    assert.equal(
+      editorialSourceRelevance({ relevance: "Excellent: culture", sourceType: "youtube" }),
+      "Excellent: culture",
+    );
+    assert.equal(
+      editorialSourceRelevance({ relevance: "high", sourceType: "rss", url: "https://readbonnet.com" }),
+      "high",
+    );
+  });
+
+  it("lets a vehicle-tagged YouTube film into the For You primary mix", () => {
+    const ferrari = videoQuality({
+      makes: ["Ferrari"],
+      models: ["F355"],
+      excerpt: "No roof. No windscreen. A long-stroke Jaguar six, filmed on the coast.",
+      relevance: "high",
+      profile: FOR_YOU_DEMO_PROFILES.A,
+    });
+    assert.equal(ferrari.engine.passedQualityGate, true);
+    assert.notEqual(ferrari.quality.band, "excluded");
+    assert.equal(ferrari.quality.showInPrimaryFeed, true);
+
+    const rssHigh = videoQuality({
+      makes: ["Ferrari"],
+      models: ["F355"],
+      excerpt: "No roof. No windscreen. A long-stroke Jaguar six, filmed on the coast.",
+      relevance: "high",
+      profile: FOR_YOU_DEMO_PROFILES.A,
+    });
+    // editorialSourceRelevance already mapped; compare raw RSS high via engine with unmapped relevance
+    const rawRss = explainArticle(
+      { ...ferrari.meta, relevance: "high", contentTypes: ["Feature"] },
+      weights,
+    );
+    const rawEngine = evaluateRelevanceEngine(rawRss, { ...ferrari.meta, relevance: "high" }, weights);
+    assert.ok(ferrari.engine.drvRelevance > rawEngine.drvRelevance);
+  });
+
+  it("keeps A–D different: Ferrari video is for-your-car on A, not on C", () => {
+    const ferrari = videoQuality({
+      makes: ["Ferrari"],
+      models: ["F355"],
+      excerpt: "Pacific Coast Highway. Proteus Jaguar D-Type and a Ferrari in the cut.",
+      relevance: "high",
+      profile: FOR_YOU_DEMO_PROFILES.A,
+    });
+    const skyline = videoQuality({
+      makes: ["Nissan"],
+      models: ["Skyline"],
+      excerpt: "An R32 at dusk, Group A history in the background, no narration.",
+      relevance: "high",
+      profile: FOR_YOU_DEMO_PROFILES.C,
+    });
+    const candidate = (
+      id: number,
+      title: string,
+      result: ReturnType<typeof videoQuality>,
+      makes: string[],
+      models: string[],
+    ) => ({
+      id,
+      title,
+      publication: "Petrolicious",
+      makes,
+      models,
+      interests: ["Classic"],
+      categories: ["Classic"],
+      why: result.breakdown.reasons,
+      vehicleTier: result.breakdown.vehicleTier,
+      duplicateGroupId: null,
+      rankScore: result.breakdown.score,
+      imageUrl: "https://i.ytimg.com/vi/example/hqdefault.jpg",
+      showInPrimaryFeed: result.quality.showInPrimaryFeed,
+      qualityBand: result.quality.band,
+    });
+    const a = curateForYouHome(
+      [
+        candidate(1, "The Coastal Road: Ferrari F355", ferrari, ["Ferrari"], ["F355"]),
+        candidate(2, "Nissan Skyline GT-R R32", skyline, ["Nissan"], ["Skyline"]),
+      ],
+      FOR_YOU_DEMO_PROFILES.A,
+    );
+    const c = curateForYouHome(
+      [
+        candidate(1, "The Coastal Road: Ferrari F355", ferrari, ["Ferrari"], ["F355"]),
+        candidate(2, "Nissan Skyline GT-R R32", skyline, ["Nissan"], ["Skyline"]),
+      ],
+      FOR_YOU_DEMO_PROFILES.C,
+    );
+    assert.ok(a.forYourCar.stories.some((row) => row.id === 1));
+    assert.ok(c.forYourCar.stories.some((row) => row.id === 2));
+    assert.notDeepEqual(
+      a.forYourCar.stories.map((row) => row.id),
+      c.forYourCar.stories.map((row) => row.id),
+    );
   });
 });
 

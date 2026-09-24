@@ -167,6 +167,21 @@ export function isYoutubeMediaSource(source: {
   return Boolean(source.url && isYoutubeHost(source.url));
 }
 
+/** Desk-added YouTube rows store `relevance: "high"`, which the ranker treats as base (8). Map them onto the same Good band as culture RSS so videos can pass the For You quality gate without changing RSS scoring. */
+export function editorialSourceRelevance(source?: {
+  relevance?: string | null;
+  sourceType?: string | null;
+  url?: string | null;
+  channelId?: string | null;
+} | null) {
+  const raw = source?.relevance?.trim() ?? "";
+  if (!source || !isYoutubeMediaSource(source)) return raw;
+  const token = raw.toLowerCase();
+  if (token.startsWith("excellent")) return raw;
+  if (token.startsWith("good")) return raw;
+  return "Good";
+}
+
 export async function ingestYoutubeChannel(
   raw: string,
   options?: { maxResults?: number; titleHint?: string },

@@ -44,6 +44,7 @@ function isGenericIndustryNews(
 ) {
   const types = (meta.contentTypes ?? []).map((value) => value.toLowerCase());
   const thinMetadata = !meta.makes.length && !meta.models.length;
+  if (types.includes("video")) return false;
   const newsy =
     meta.primaryCategory === "news" ||
     types.includes("news") ||

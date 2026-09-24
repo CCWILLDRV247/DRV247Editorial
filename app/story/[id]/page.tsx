@@ -31,7 +31,7 @@ export default async function StoryPage({
         <SiteHeader title={story.category.name} backHref="/" testQuery={testQuery} />
       <article className="mx-auto max-w-3xl pb-20">
         <div className="relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl">
-          <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority />
+          <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority video={isVideoStory(story)} />
         </div>
         <div className="px-7 pt-10 md:px-8">
           <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">
@@ -51,7 +51,6 @@ export default async function StoryPage({
           ) : null}
           <p className="mt-2 font-display text-lg font-bold uppercase text-[#1b1d1f]/70">
             {formatStoryDate(story.publishedAt)} · {story.category.name}
-            {isVideoStory(story) ? " · Video" : ""}
           </p>
           {story.desk?.note ? (
             <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
