@@ -21,6 +21,7 @@
     "purge:non-english": "tsx scripts/purge-non-english.ts",
     "purge:merch": "tsx scripts/purge-merch.ts",
     "purge:junk": "tsx scripts/purge-junk.ts",
+    "purge:youtube-mocks": "tsx scripts/purge-youtube-mocks.ts",
     "reprocess:entities": "tsx scripts/reprocess-entities.ts",
     "backfill:metadata": "tsx scripts/backfill-metadata.ts"
   },

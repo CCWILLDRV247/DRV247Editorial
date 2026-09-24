@@ -47,7 +47,12 @@ import {
 import { rebuildRelatedStories } from "./related";
 import { youtubeVideosToEngineItems } from "./adapters/youtube";
 import { isIngestibleMediaSource } from "./youtube-sources";
-import { ingestYoutubeChannel, isYoutubeMediaSource, youtubeChannelUrl } from "./youtube";
+import {
+  ingestYoutubeChannel,
+  isMockYoutubeArticle,
+  isYoutubeMediaSource,
+  youtubeChannelUrl,
+} from "./youtube";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -249,6 +254,44 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
       titleHint: source.publication,
     });
     usedMock = fetched.usedMock;
+    if (usedMock) {
+      const note =
+        "Skipped mock YouTube persist. Set YOUTUBE_API_KEY to ingest live uploads.";
+      await db.insert(ingestionRuns).values({
+        sourceId: source.id,
+        startedAt,
+        finishedAt: Date.now(),
+        method: "youtube",
+        status: "error",
+        httpStatus: null,
+        errorMessage: note,
+        fetched: 0,
+        inserted: 0,
+      });
+      await db
+        .update(mediaSources)
+        .set({
+          lastMethod: "youtube",
+          lastHttpStatus: null,
+          lastError: note,
+          lastArticleCount: 0,
+        })
+        .where(eq(mediaSources.id, source.id));
+      return {
+        sourceId: source.id,
+        publication: source.publication,
+        method: "youtube",
+        fetched: 0,
+        inserted: 0,
+        summarized: 0,
+        skippedNonEnglish: 0,
+        skippedMerch: 0,
+        skippedNonEditorial: 0,
+        error: note,
+        httpStatus: null,
+        usedMock: true,
+      };
+    }
     const nextChannelId = fetched.channel.channelId;
     if (nextChannelId && !nextChannelId.startsWith("mock_") && nextChannelId !== source.channelId) {
       await db
@@ -265,17 +308,14 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
     const { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial } =
       await persistItems(source, items, "youtube");
     const ok = items.length > 0;
-    const note = usedMock
-      ? "Used local mock (no YOUTUBE_API_KEY). Add a server-side key for live channel ingest."
-      : null;
     await db.insert(ingestionRuns).values({
       sourceId: source.id,
       startedAt,
       finishedAt: Date.now(),
       method: "youtube",
       status: ok ? "ok" : "error",
-      httpStatus: usedMock ? null : 200,
-      errorMessage: ok ? note : "No videos found",
+      httpStatus: 200,
+      errorMessage: ok ? null : "No videos found",
       fetched: items.length,
       inserted,
     });
@@ -286,15 +326,15 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
           ? {
               lastSuccessAt: Date.now(),
               lastMethod: "youtube",
-              lastHttpStatus: usedMock ? null : 200,
-              lastError: note,
+              lastHttpStatus: 200,
+              lastError: null,
               failureCount: 0,
               lastArticleCount: items.length,
             }
           : {
               lastFailureAt: Date.now(),
               lastMethod: "youtube",
-              lastHttpStatus: usedMock ? null : 200,
+              lastHttpStatus: 200,
               lastError: "No videos found",
               failureCount: source.failureCount + 1,
               lastArticleCount: 0,
@@ -312,7 +352,7 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
       skippedMerch,
       skippedNonEditorial,
       error: ok ? null : "No videos found",
-      httpStatus: usedMock ? null : 200,
+      httpStatus: 200,
       usedMock,
     };
   } catch (caught) {
@@ -516,6 +556,7 @@ async function persistItems(
       skippedNonEnglish += 1;
       continue;
     }
+    if (isMockYoutubeArticle(item)) continue;
     const seen = (
       await db.select().from(articles).where(eq(articles.canonicalUrl, item.canonicalUrl)).limit(1)
     )[0];

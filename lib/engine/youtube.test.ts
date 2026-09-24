@@ -7,6 +7,7 @@ import { isIngestibleMediaSource } from "./youtube-sources";
 import {
   canonicalizeYoutubeWatchUrl,
   ingestYoutubeChannel,
+  isMockYoutubeArticle,
   isYoutubeMediaSource,
   isYoutubeWatchUrl,
   mediaSourceIdForChannel,
@@ -117,6 +118,29 @@ describe("youtube ingest mock", () => {
     const ids = a.items.map((item) => item.videoId);
     assert.equal(new Set(ids).size, ids.length);
     assert.ok(ids.every((id) => id.length === 11));
+  });
+
+  it("flags placeholder mock videos so they can be purged from the feed", async () => {
+    delete process.env.YOUTUBE_API_KEY;
+    const result = await ingestYoutubeChannel("@Petrolicious");
+    const item = youtubeVideosToEngineItems(result.items)[0];
+    assert.equal(isMockYoutubeArticle(item), true);
+    assert.equal(
+      isMockYoutubeArticle({
+        title: "A Ferrari F355 on the autostrada, filmed properly",
+        excerpt: "Mock local fallback while YOUTUBE_API_KEY is unset.",
+        canonicalUrl: "https://www.youtube.com/watch?v=aqdrvF355mo",
+      }),
+      true,
+    );
+    assert.equal(
+      isMockYoutubeArticle({
+        title: "The Coastal Road: Proteus Jaguar D-Type",
+        excerpt: "No roof. No windscreen on the passenger side.",
+        canonicalUrl: "https://www.youtube.com/watch?v=poDVIycl7SU",
+      }),
+      false,
+    );
   });
 });
 

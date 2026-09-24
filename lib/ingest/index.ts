@@ -85,9 +85,12 @@ export async function ingestSource(sourceId: number): Promise<IngestResult> {
 
   try {
     const { items, usedMock } = await itemsForSource(source);
-    const inserted = await insertItems(source, items);
+    const persistable = usedMock && source.type === "youtube" ? [] : items;
+    const inserted = await insertItems(source, persistable);
     const note = usedMock
-      ? "Used local mock (no API key). Add YOUTUBE_API_KEY or NEWSAPI_KEY for live data."
+      ? source.type === "youtube"
+        ? "Skipped mock YouTube persist. Set YOUTUBE_API_KEY to ingest live uploads."
+        : "Used local mock (no API key). Add NEWSAPI_KEY for live data."
       : null;
     await db
       .update(sources)

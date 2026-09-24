@@ -298,6 +298,8 @@ async function youtubeJson<T>(url: URL): Promise<T> {
   return data;
 }
 
+export const YOUTUBE_MOCK_MARKER = "Mock local fallback while YOUTUBE_API_KEY is unset";
+
 function uploadsPlaylistId(channelId: string) {
   return channelId.replace(/^UC/, "UU");
 }
@@ -346,8 +348,7 @@ const MOCK_VIDEOS: Omit<YoutubeVideo, "channelId" | "channelTitle">[] = [
   {
     videoId: "drvF355mock",
     title: "A Ferrari F355 on the autostrada, filmed properly",
-    description:
-      "Mock local fallback while YOUTUBE_API_KEY is unset. A 355 GTB, evening light, and the road south of Milan.",
+    description: `${YOUTUBE_MOCK_MARKER}. A 355 GTB, evening light, and the road south of Milan.`,
     publishedAt: Date.now() - 1000 * 60 * 60 * 8,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1600&q=80",
@@ -355,8 +356,7 @@ const MOCK_VIDEOS: Omit<YoutubeVideo, "channelId" | "channelTitle">[] = [
   {
     videoId: "drv964C2mock",
     title: "Porsche 964 Carrera 2: air-cooled, unassisted, enough",
-    description:
-      "Mock local fallback while YOUTUBE_API_KEY is unset. A 964 C2 on a wet B-road, no narration over the flat-six.",
+    description: `${YOUTUBE_MOCK_MARKER}. A 964 C2 on a wet B-road, no narration over the flat-six.`,
     publishedAt: Date.now() - 1000 * 60 * 60 * 26,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80",
@@ -364,8 +364,7 @@ const MOCK_VIDEOS: Omit<YoutubeVideo, "channelId" | "channelTitle">[] = [
   {
     videoId: "drvR32mock1",
     title: "Nissan Skyline GT-R R32: the one that started the legend",
-    description:
-      "Mock local fallback while YOUTUBE_API_KEY is unset. An R32 at dusk, Group A history in the background.",
+    description: `${YOUTUBE_MOCK_MARKER}. An R32 at dusk, Group A history in the background.`,
     publishedAt: Date.now() - 1000 * 60 * 60 * 40,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1600&q=80",
@@ -373,8 +372,7 @@ const MOCK_VIDEOS: Omit<YoutubeVideo, "channelId" | "channelTitle">[] = [
   {
     videoId: "drvE46M3mok",
     title: "BMW E46 M3: the last analogue one, still the one",
-    description:
-      "Mock local fallback while YOUTUBE_API_KEY is unset. An E46 M3 through a set of English lanes.",
+    description: `${YOUTUBE_MOCK_MARKER}. An E46 M3 through a set of English lanes.`,
     publishedAt: Date.now() - 1000 * 60 * 60 * 54,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1600&q=80",
@@ -382,10 +380,34 @@ const MOCK_VIDEOS: Omit<YoutubeVideo, "channelId" | "channelTitle">[] = [
   {
     videoId: "drvGoodwood",
     title: "Members' Meeting: the lawn, the noise, the tweed",
-    description:
-      "Mock local fallback while YOUTUBE_API_KEY is unset. Concourse metal and race-bred specials share the same weekend.",
+    description: `${YOUTUBE_MOCK_MARKER}. Concourse metal and race-bred specials share the same weekend.`,
     publishedAt: Date.now() - 1000 * 60 * 60 * 72,
     thumbnailUrl:
       "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=80",
   },
 ];
+
+export function isMockYoutubeVideoId(videoId: string) {
+  if (!videoId) return false;
+  return MOCK_VIDEOS.some((item) => {
+    if (item.videoId === videoId) return true;
+    const stem = item.videoId.replace(/x+$/i, "").slice(0, 8);
+    return stem.length >= 6 && videoId.includes(stem);
+  });
+}
+
+export function isMockYoutubeArticle(row: {
+  excerpt?: string | null;
+  aiSummary?: string | null;
+  summary?: string | null;
+  title?: string | null;
+  canonicalUrl?: string | null;
+  url?: string | null;
+}) {
+  const blob = `${row.excerpt ?? ""} ${row.aiSummary ?? ""} ${row.summary ?? ""}`;
+  if (blob.includes(YOUTUBE_MOCK_MARKER)) return true;
+  if (row.title && MOCK_VIDEOS.some((item) => item.title === row.title)) return true;
+  const videoId =
+    parseYoutubeVideoId(row.canonicalUrl ?? "") || parseYoutubeVideoId(row.url ?? "");
+  return Boolean(videoId && isMockYoutubeVideoId(videoId));
+}

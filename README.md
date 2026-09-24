@@ -55,9 +55,9 @@ YouTube is a first-class culture source, not a second CMS. Channels go through t
 
 **Add a channel** at `/admin/engine` (password `desk247`): paste a channel URL, `@handle`, or `UC…` ID. The desk stores the canonical channel ID. Ingest pulls channel → uploads playlist → playlist items → video metadata (quota-aware; about 3 units per channel). Videos always link out to `https://www.youtube.com/watch?v=VIDEO_ID`.
 
-A live `YOUTUBE_API_KEY` is **not** required for local preview. Without a key, ingest uses mock automotive videos so the flow still works. Set the key server-side only (Vercel env, never `NEXT_PUBLIC_`) for real uploads. Optional `YOUTUBE_MAX_RESULTS` caps recent videos per channel (1–50; default is the source max, 8).
+A live `YOUTUBE_API_KEY` is required to ingest real uploads. Without a key, the pipeline does **not** write placeholder videos into the consumer feed. Set the key server-side only (Vercel env or `.env.local`, never `NEXT_PUBLIC_`). Optional `YOUTUBE_MAX_RESULTS` caps recent videos per channel (1–50; default is the source max, 8).
 
-One demo channel is seeded: **Petrolicious** (`yt_petrolicious`). Run `npm run ingest:youtube` or desk **Run** on that row. A failed YouTube source does not stop RSS or other YouTube channels.
+Channels are added from the desk, not seeded. Run `npm run ingest:youtube` or desk **Run** on a YouTube row. A failed YouTube source does not stop RSS or other YouTube channels.
 
 Get a key: Google Cloud → enable **YouTube Data API v3** → create an API key → restrict it to that API → add `YOUTUBE_API_KEY` on the Vercel project (Preview + Production).
 
