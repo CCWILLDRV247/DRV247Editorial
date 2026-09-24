@@ -91,7 +91,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
   let httpStatus: number | null = null;
   let items: EngineItem[] = [];
   let error: string | null = null;
-  let usedMock = false;
+  const usedMock = false;
 
   if (isYoutubeMediaSource(source)) {
     return ingestYoutubeMediaSource(source);

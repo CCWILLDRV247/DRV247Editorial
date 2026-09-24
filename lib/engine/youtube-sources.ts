@@ -1,5 +1,7 @@
 import { eq } from "drizzle-orm";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { mediaSources, type MediaSource } from "@/lib/db/schema";
+import * as schema from "@/lib/db/schema";
 import { DISABLED_SOURCE_SET, ENABLED_SOURCE_SET } from "@/config/wave1-sources";
 import {
   ingestYoutubeChannel,
@@ -22,7 +24,7 @@ export const DEMO_YOUTUBE_SOURCE = {
   maxArticles: 8,
 } as const;
 
-export async function seedYoutubeDemoSource(db: any) {
+export async function seedYoutubeDemoSource(db: LibSQLDatabase<typeof schema>) {
   const existing = (
     await db.select().from(mediaSources).where(eq(mediaSources.id, DEMO_YOUTUBE_SOURCE_ID)).limit(1)
   )[0];
