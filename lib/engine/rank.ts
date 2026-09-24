@@ -443,6 +443,56 @@ export function recencyBonus(
   return Math.round(weights.freshnessMax * decay);
 }
 
+/** Unfiltered lists: keep videos in the mix without letting them take the magazine. A–D ranking does not use this. */
+export function spreadMediaMix<T>(
+  items: T[],
+  isVideo: (item: T) => boolean,
+  options?: { maxShare?: number; maxConsecutive?: number },
+): T[] {
+  const maxShare = options?.maxShare ?? 0.25;
+  const maxConsecutive = options?.maxConsecutive ?? 1;
+  const picked: T[] = [];
+  const deferred: T[] = [];
+  let videos = 0;
+
+  const consecutiveVideos = () => {
+    let count = 0;
+    for (let index = picked.length - 1; index >= 0; index -= 1) {
+      if (!isVideo(picked[index]!)) break;
+      count += 1;
+    }
+    return count;
+  };
+
+  const canTakeVideo = () => {
+    const nextShare = (videos + 1) / (picked.length + 1);
+    return nextShare <= maxShare + 1e-9 && consecutiveVideos() < maxConsecutive;
+  };
+
+  const flushDeferred = () => {
+    while (deferred.length && canTakeVideo()) {
+      picked.push(deferred.shift()!);
+      videos += 1;
+    }
+  };
+
+  for (const item of items) {
+    if (isVideo(item)) {
+      if (canTakeVideo()) {
+        picked.push(item);
+        videos += 1;
+      } else {
+        deferred.push(item);
+      }
+      continue;
+    }
+    picked.push(item);
+    flushDeferred();
+  }
+  picked.push(...deferred);
+  return picked;
+}
+
 export function diversifyByVehicle<T>(
   items: T[],
   keyFor: (item: T) => string,

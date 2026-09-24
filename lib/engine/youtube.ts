@@ -167,7 +167,7 @@ export function isYoutubeMediaSource(source: {
   return Boolean(source.url && isYoutubeHost(source.url));
 }
 
-/** Desk-added YouTube rows store `relevance: "high"`, which the ranker treats as base (8). Map them onto the same Good band as culture RSS so videos can pass the For You quality gate without changing RSS scoring. */
+/** Desk-added YouTube rows store `relevance: "high"`, which the ranker treats as base (8). Map them onto the same Excellent band as culture magazines so unfiltered For You / section lists can include films. RSS scoring is unchanged. */
 export function editorialSourceRelevance(source?: {
   relevance?: string | null;
   sourceType?: string | null;
@@ -178,8 +178,7 @@ export function editorialSourceRelevance(source?: {
   if (!source || !isYoutubeMediaSource(source)) return raw;
   const token = raw.toLowerCase();
   if (token.startsWith("excellent")) return raw;
-  if (token.startsWith("good")) return raw;
-  return "Good";
+  return "Excellent";
 }
 
 export async function ingestYoutubeChannel(

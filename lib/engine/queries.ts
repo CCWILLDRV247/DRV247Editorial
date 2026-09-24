@@ -24,6 +24,7 @@ import {
   preferUsableImages,
   scoreArticle,
   scoreForYou,
+  spreadMediaMix,
   type EntityHit,
   type GarageVehicle,
   type RankSignal,
@@ -577,16 +578,18 @@ export async function listEditorial(options?: {
     if (item.duplicateGroupId) seenGroups.add(item.duplicateGroupId);
     deduped.push(item);
   }
-  const shaped =
-    personalizedForYou(useTestProfile, curated)
-      ? preferUsableImages(
-          diversifyByVehicle(
-            deduped,
-            (item) => item.variants[0] || item.models[0] || item.makes[0] || "",
-          ),
-          6,
-        )
-      : deduped;
+  const shaped = personalizedForYou(useTestProfile, curated)
+    ? preferUsableImages(
+        diversifyByVehicle(
+          deduped,
+          (item) => item.variants[0] || item.models[0] || item.makes[0] || "",
+        ),
+        6,
+      )
+    : spreadMediaMix(
+        deduped,
+        (item) => item.ingestionMethod === "youtube" || item.canonicalUrl.includes("youtube.com/watch"),
+      );
   return shaped.slice(0, options?.limit ?? 40);
 }
 
