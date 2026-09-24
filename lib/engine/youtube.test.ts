@@ -17,7 +17,7 @@ import {
   youtubeMaxResults,
   youtubeWatchUrl,
 } from "./youtube";
-import { explainArticle, loadRankWeights } from "./rank";
+import { explainArticle, loadRankWeights, scoreForYou, spreadMediaMix } from "./rank";
 import { evaluateRelevanceEngine } from "./relevance-engine";
 import { evaluateQualityFilter } from "./quality-filter";
 import { curateForYouHome } from "./for-you-home";
@@ -260,10 +260,14 @@ describe("youtube For You ranking", () => {
     return { breakdown, engine, quality, meta };
   }
 
-  it("maps desk-added high relevance onto the Good RSS band, not base 8", () => {
+  it("maps desk-added high relevance onto the Excellent magazine band, not base 8", () => {
     assert.equal(
       editorialSourceRelevance({ relevance: "high", sourceType: "youtube" }),
-      "Good",
+      "Excellent",
+    );
+    assert.equal(
+      editorialSourceRelevance({ relevance: "Good: first-class video culture", sourceType: "youtube" }),
+      "Excellent",
     );
     assert.equal(
       editorialSourceRelevance({ relevance: "Excellent: culture", sourceType: "youtube" }),
@@ -273,6 +277,24 @@ describe("youtube For You ranking", () => {
       editorialSourceRelevance({ relevance: "high", sourceType: "rss", url: "https://readbonnet.com" }),
       "high",
     );
+    const now = Date.now();
+    assert.equal(
+      scoreForYou({ relevance: editorialSourceRelevance({ relevance: "high", sourceType: "youtube" }), publishedAt: now, excerptLength: 200 }),
+      scoreForYou({ relevance: "Excellent: culture", publishedAt: now, excerptLength: 200 }),
+    );
+  });
+
+  it("spreads videos through an unfiltered list instead of letting them take the head", () => {
+    const items = [
+      ...Array.from({ length: 8 }, (_, index) => ({ id: `yt-${index}`, video: true })),
+      ...Array.from({ length: 8 }, (_, index) => ({ id: `rss-${index}`, video: false })),
+    ];
+    const mixed = spreadMediaMix(items, (item) => item.video);
+    const head = mixed.slice(0, 8);
+    assert.ok(head.some((item) => item.video));
+    assert.ok(head.some((item) => !item.video));
+    assert.ok(head.filter((item) => item.video).length <= 2);
+    assert.equal(mixed.filter((item) => item.video).length, 8);
   });
 
   it("lets a vehicle-tagged YouTube film into the For You primary mix", () => {
