@@ -12,7 +12,7 @@ const PORSCHE_BUILD = {
   style: "oem-plus",
   budget: "5-10k",
   intensity: "moderate",
-} as const;
+};
 
 export async function GET() {
   const build964 = await recommend({
