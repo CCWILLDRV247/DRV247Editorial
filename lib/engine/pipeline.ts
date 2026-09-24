@@ -240,18 +240,22 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
   const startedAt = Date.now();
   let usedMock = false;
   try {
-    const raw = source.channelId || source.url;
+    const raw =
+      source.channelId && !source.channelId.startsWith("mock_")
+        ? source.channelId
+        : source.url || source.channelId;
     const fetched = await ingestYoutubeChannel(raw, {
       maxResults: source.maxArticles,
       titleHint: source.publication,
     });
     usedMock = fetched.usedMock;
-    if (fetched.channel.channelId && fetched.channel.channelId !== source.channelId) {
+    const nextChannelId = fetched.channel.channelId;
+    if (nextChannelId && !nextChannelId.startsWith("mock_") && nextChannelId !== source.channelId) {
       await db
         .update(mediaSources)
         .set({
-          channelId: fetched.channel.channelId,
-          url: youtubeChannelUrl(fetched.channel.channelId),
+          channelId: nextChannelId,
+          url: youtubeChannelUrl(nextChannelId),
           rssUrl: fetched.channel.uploadsPlaylistId ?? source.rssUrl,
           publication: source.publication || fetched.channel.title,
         })

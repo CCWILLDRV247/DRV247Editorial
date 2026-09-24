@@ -114,6 +114,9 @@ describe("youtube ingest mock", () => {
     const a = await ingestYoutubeChannel("@Petrolicious");
     const b = await ingestYoutubeChannel("@Hagerty");
     assert.notEqual(a.items[0].videoId, b.items[0].videoId);
+    const ids = a.items.map((item) => item.videoId);
+    assert.equal(new Set(ids).size, ids.length);
+    assert.ok(ids.every((id) => id.length === 11));
   });
 });
 

@@ -307,8 +307,7 @@ function mockYoutubeFetch(
   maxResults: number,
   titleHint?: string,
 ): YoutubeFetchResult {
-  const channelId =
-    parsed.kind === "channelId" ? parsed.value : `mock_${parsed.value.replace(/^@/, "")}`;
+  const channelId = parsed.value;
   const title = titleHint?.trim() || displayNameFromInput(parsed);
   const items = MOCK_VIDEOS.slice(0, maxResults).map((item, index) => ({
     ...item,
@@ -319,7 +318,7 @@ function mockYoutubeFetch(
   }));
   return {
     channel: {
-      channelId: parsed.kind === "channelId" ? parsed.value : channelId,
+      channelId,
       title,
       uploadsPlaylistId: parsed.kind === "channelId" ? uploadsPlaylistId(parsed.value) : null,
     },
@@ -336,9 +335,11 @@ function displayNameFromInput(parsed: YoutubeChannelInput) {
 }
 
 function mockVideoId(channelId: string, index: number, fallback: string) {
-  const seed = `${channelId}:${index}:${fallback}`.replace(/[^a-zA-Z0-9]/g, "");
-  const padded = `${seed}${fallback}`.replace(/[^a-zA-Z0-9_-]/g, "x");
-  return padded.slice(0, 11).padEnd(11, "x");
+  let hash = 0;
+  for (const char of channelId) hash = (hash * 33 + char.charCodeAt(0)) >>> 0;
+  const prefix = `${(index + 10).toString(36)}${(hash % 36).toString(36)}`;
+  const id = `${prefix}${fallback}`.replace(/[^a-zA-Z0-9_-]/g, "x");
+  return id.slice(0, 11).padEnd(11, "x");
 }
 
 const MOCK_VIDEOS: Omit<YoutubeVideo, "channelId" | "channelTitle">[] = [
