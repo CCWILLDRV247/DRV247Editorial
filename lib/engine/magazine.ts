@@ -64,6 +64,8 @@ export function tagForArticle(article: EditorialDto) {
   return navForArticle(article).name;
 }
 
+export { isVideoStory } from "./video-story";
+
 export function toMagazineStory(
   article: EditorialDto,
   options?: {

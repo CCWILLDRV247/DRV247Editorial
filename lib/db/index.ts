@@ -68,7 +68,8 @@ const SCHEMA_STATEMENTS = [
       last_http_status INTEGER,
       last_error TEXT,
       last_method TEXT,
-      last_article_count INTEGER NOT NULL DEFAULT 0
+      last_article_count INTEGER NOT NULL DEFAULT 0,
+      channel_id TEXT
     )`,
   `CREATE TABLE IF NOT EXISTS articles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -246,6 +247,7 @@ async function ensureSchema(client: Client) {
   await ensureArticleImageColumns(client);
   await ensureMetadataFoundation(client);
   await ensureDeskPicks(client);
+  await ensureYoutubeSourceColumns(client);
 }
 
 const INDEX_STATEMENTS = [
@@ -385,6 +387,21 @@ async function ensureDeskPicks(client: Client) {
       await client.execute(sql);
     } catch {
       // Table/index already exists on live Turso / local sqlite.
+    }
+  }
+}
+
+const YOUTUBE_SOURCE_STATEMENTS = [
+  "ALTER TABLE media_sources ADD COLUMN channel_id TEXT",
+  "CREATE INDEX IF NOT EXISTS media_sources_channel_idx ON media_sources (channel_id)",
+];
+
+async function ensureYoutubeSourceColumns(client: Client) {
+  for (const sql of YOUTUBE_SOURCE_STATEMENTS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Column/index already exists on live Turso / local sqlite.
     }
   }
 }

@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-chrome";
 import { StoryImage } from "@/components/story-image";
 import { forYouTestSearchString, parseForYouTestProfile, withTestQuery } from "@/lib/engine/for-you-test";
 import { getMagazineStory } from "@/lib/engine/magazine";
+import { isVideoStory } from "@/lib/engine/video-story";
 import { formatStoryDate } from "@/lib/format";
 
 export const runtime = "nodejs";
@@ -50,6 +51,7 @@ export default async function StoryPage({
           ) : null}
           <p className="mt-2 font-display text-lg font-bold uppercase text-[#1b1d1f]/70">
             {formatStoryDate(story.publishedAt)} · {story.category.name}
+            {isVideoStory(story) ? " · Video" : ""}
           </p>
           {story.desk?.note ? (
             <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
@@ -72,11 +74,12 @@ export default async function StoryPage({
             rel="noopener noreferrer"
             className="mt-10 flex h-11 w-full items-center justify-center rounded-[5px] bg-[#1b1d1f] font-display text-lg font-extrabold uppercase text-white"
           >
-            Read on {story.source.name}
+            {isVideoStory(story) ? `Watch on ${story.source.name}` : `Read on ${story.source.name}`}
           </a>
           <p className="mt-4 text-[14px] leading-5 text-[#1b1d1f]/70">
             DRV247 is an aggregator. We store a headline, a short feed excerpt, a short extract from
-            the original, and the outbound link — never the full third-party article.
+            the original, and the outbound link — never the full third-party article or the video
+            file.
           </p>
           <MagazineLink
             href={categoryHref}

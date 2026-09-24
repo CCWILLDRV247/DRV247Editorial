@@ -1,12 +1,16 @@
 import { extractPageImage, extractPageImageCandidates, extractPageSummary } from "./article-text";
 import { fetchText } from "./http";
 import type { ImageCandidate } from "./images";
+import { isYoutubeWatchUrl } from "./youtube";
 
 export async function extractOriginalPage(
   canonicalUrl: string,
   title: string,
   teaser?: string | null,
 ): Promise<{ summary: string | null; imageUrl: string | null; imageCandidates: ImageCandidate[] }> {
+  if (isYoutubeWatchUrl(canonicalUrl)) {
+    return { summary: teaser?.trim() || null, imageUrl: null, imageCandidates: [] };
+  }
   const page = await fetchText(canonicalUrl, { timeoutMs: 12_000, accept: "text/html, */*" });
   if (!page.ok) return { summary: null, imageUrl: null, imageCandidates: [] };
   if (page.status === 401 || page.status === 403) {

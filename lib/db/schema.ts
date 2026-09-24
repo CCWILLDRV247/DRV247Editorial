@@ -78,6 +78,7 @@ export const mediaSources = sqliteTable("media_sources", {
   lastError: text("last_error"),
   lastMethod: text("last_method"),
   lastArticleCount: integer("last_article_count").notNull().default(0),
+  channelId: text("channel_id"),
 });
 
 export const articles = sqliteTable("articles", {

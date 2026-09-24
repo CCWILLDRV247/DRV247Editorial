@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 43131",
     "lint": "eslint",
-    "test": "tsx --test lib/engine/engine.test.ts lib/engine/homepage-hierarchy.test.ts lib/engine/editorial-interlude.test.ts lib/engine/editorial-voice-library.test.ts lib/engine/interlude-selection.test.ts lib/engine/editorial-composition.test.ts lib/engine/interlude-typography.test.ts lib/engine/images.test.ts lib/engine/classify.test.ts lib/engine/desk.test.ts",
+    "test": "tsx --test lib/engine/engine.test.ts lib/engine/homepage-hierarchy.test.ts lib/engine/editorial-interlude.test.ts lib/engine/editorial-voice-library.test.ts lib/engine/interlude-selection.test.ts lib/engine/editorial-composition.test.ts lib/engine/interlude-typography.test.ts lib/engine/images.test.ts lib/engine/classify.test.ts lib/engine/desk.test.ts lib/engine/youtube.test.ts",
+    "ingest:youtube": "tsx scripts/ingest-youtube.ts",
     "test:intelligence": "tsx --test lib/intelligence/intelligence.test.ts lib/intelligence/ingest.test.ts lib/intelligence/adapters/design911.test.ts lib/intelligence/adapters/eurospares.test.ts",
     "ingest:intelligence": "tsx scripts/intelligence-ingest.ts",
     "ingest:wave1": "tsx scripts/ingest-wave1.ts",
@@ -20,6 +21,7 @@
     "purge:non-english": "tsx scripts/purge-non-english.ts",
     "purge:merch": "tsx scripts/purge-merch.ts",
     "purge:junk": "tsx scripts/purge-junk.ts",
+    "purge:youtube-mocks": "tsx scripts/purge-youtube-mocks.ts",
     "reprocess:entities": "tsx scripts/reprocess-entities.ts",
     "backfill:metadata": "tsx scripts/backfill-metadata.ts"
   },

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       skippedNonEditorial: result.skippedNonEditorial,
       error: result.error,
       method: result.method,
-      usedMock: false,
+      usedMock: result.usedMock,
     })),
   });
 }

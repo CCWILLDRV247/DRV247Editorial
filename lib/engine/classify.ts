@@ -221,12 +221,16 @@ export function classifyArticle(
   excerpt = "",
   paragraph = "",
   publication = "",
+  mediaKind: "article" | "video" = "article",
 ): ArticleClassification {
   const extracted = extractEntities(title, excerpt, paragraph);
   const titleHay = ` ${title} `;
   const restHay = ` ${excerpt} ${paragraph} `;
   const entities = assignRelevance(extracted.entities, titleHay, restHay);
   const contentTypes = collectTags(titleHay, restHay, CONTENT_TYPE_RULES);
+  if (mediaKind === "video" && !contentTypes.some((row) => row.name === "Video")) {
+    contentTypes.unshift({ name: "Video", confidence: 90, source: "rule" });
+  }
   const scenes = collectTags(titleHay, restHay, SCENE_RULES);
   const motorsport = collectTags(titleHay, restHay, MOTORSPORT_RULES);
   const geography: ClassifiedGeography[] = [];

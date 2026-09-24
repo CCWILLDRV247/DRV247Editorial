@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { sources, type SourceType } from "@/lib/db/schema";
+import { parseYoutubeChannelInput } from "@/lib/engine/youtube";
 import { listAdminSources } from "@/lib/stories";
 
 export const runtime = "nodejs";
@@ -30,6 +31,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Default category is required" }, { status: 400 });
   }
 
+  let identifier = body.identifier.trim();
+  if (body.type === "youtube") {
+    const parsed = parseYoutubeChannelInput(identifier);
+    if ("error" in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+    identifier = parsed.value;
+  }
+
   const db = await getDb();
   const result = (
     await db
@@ -37,7 +47,7 @@ export async function POST(request: Request) {
       .values({
         name: body.name.trim(),
         type: body.type as SourceType,
-        identifier: body.identifier.trim(),
+        identifier,
         defaultCategoryId: body.defaultCategoryId,
         enabled: body.enabled ?? true,
         lastFetchStatus: "idle",
@@ -63,16 +73,32 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Missing source id" }, { status: 400 });
   }
 
+  const db = await getDb();
+  const current = (await db.select().from(sources).where(eq(sources.id, body.id)).limit(1))[0];
+  if (!current) {
+    return NextResponse.json({ error: "Source not found" }, { status: 404 });
+  }
+
   const patch: Record<string, unknown> = {};
   if (typeof body.name === "string") patch.name = body.name.trim();
-  if (typeof body.identifier === "string") patch.identifier = body.identifier.trim();
+  const nextType = body.type && TYPES.has(body.type) ? body.type : current.type;
   if (body.type && TYPES.has(body.type)) patch.type = body.type;
+  if (typeof body.identifier === "string") {
+    let identifier = body.identifier.trim();
+    if (nextType === "youtube") {
+      const parsed = parseYoutubeChannelInput(identifier);
+      if ("error" in parsed) {
+        return NextResponse.json({ error: parsed.error }, { status: 400 });
+      }
+      identifier = parsed.value;
+    }
+    patch.identifier = identifier;
+  }
   if (typeof body.defaultCategoryId === "number") {
     patch.defaultCategoryId = body.defaultCategoryId;
   }
   if (typeof body.enabled === "boolean") patch.enabled = body.enabled;
 
-  const db = await getDb();
   const updated = (
     await db.update(sources).set(patch).where(eq(sources.id, body.id)).returning()
   )[0];

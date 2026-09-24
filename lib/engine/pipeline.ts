@@ -31,9 +31,9 @@ import {
   type ImageCandidate,
 } from "./images";
 import { isUsableArticleImage } from "../text";
-import { isMerchArticle, isMerchUrl } from "./merch";
+import { isMerchArticle } from "./merch";
 import { evaluateEditorialEligibility, isEditorialIneligibleArticle } from "./editorial-eligibility";
-import { isNonEditorialArticle, isNonEditorialUrl } from "./non-editorial";
+import { isNonEditorialArticle } from "./non-editorial";
 import { duplicateKey, publisherScore, sameStoryKey } from "./normalize";
 import { loadRankWeights } from "./rank";
 import { isEnglish } from "./language";
@@ -45,7 +45,14 @@ import {
   mergeClassificationMetadata,
 } from "./classify";
 import { rebuildRelatedStories } from "./related";
-import { DISABLED_SOURCE_SET, ENABLED_SOURCE_SET } from "@/config/wave1-sources";
+import { youtubeVideosToEngineItems } from "./adapters/youtube";
+import { isIngestibleMediaSource } from "./youtube-sources";
+import {
+  ingestYoutubeChannel,
+  isMockYoutubeArticle,
+  isYoutubeMediaSource,
+  youtubeChannelUrl,
+} from "./youtube";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -61,6 +68,7 @@ export type SourceIngestResult = {
   skippedNonEditorial: number;
   error: string | null;
   httpStatus: number | null;
+  usedMock: boolean;
 };
 
 export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngestResult[]> {
@@ -69,13 +77,9 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
   await purgeMerchArticles();
   await purgeNonEditorialArticles();
   await purgeEditorialIneligibleArticles();
-  const sources = (await db.select().from(mediaSources)).filter((source) => {
-    if (!source.enabled) return false;
-    if (DISABLED_SOURCE_SET.has(source.id)) return false;
-    if (!ENABLED_SOURCE_SET.has(source.id)) return false;
-    if (!ids?.length) return true;
-    return ids.includes(source.id);
-  });
+  const sources = (await db.select().from(mediaSources)).filter((source) =>
+    isIngestibleMediaSource(source, ids),
+  );
   const results: SourceIngestResult[] = [];
   for (const source of sources) {
     results.push(await ingestMediaSource(source));
@@ -92,6 +96,11 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
   let httpStatus: number | null = null;
   let items: EngineItem[] = [];
   let error: string | null = null;
+  const usedMock = false;
+
+  if (isYoutubeMediaSource(source)) {
+    return ingestYoutubeMediaSource(source);
+  }
 
   try {
     const rss = await tryRss(source);
@@ -189,6 +198,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       skippedNonEditorial,
       error: ok ? null : error ?? "No articles found",
       httpStatus,
+      usedMock,
     };
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : "Ingest failed";
@@ -225,6 +235,161 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
       skippedNonEditorial: 0,
       error: message,
       httpStatus,
+      usedMock,
+    };
+  }
+}
+
+async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceIngestResult> {
+  const db = await getDb();
+  const startedAt = Date.now();
+  let usedMock = false;
+  try {
+    const raw =
+      (source.channelId && !source.channelId.startsWith("mock_")
+        ? source.channelId
+        : source.url || source.channelId) ?? "";
+    const fetched = await ingestYoutubeChannel(raw, {
+      maxResults: source.maxArticles,
+      titleHint: source.publication,
+    });
+    usedMock = fetched.usedMock;
+    if (usedMock) {
+      const note =
+        "Skipped mock YouTube persist. Set YOUTUBE_API_KEY to ingest live uploads.";
+      await db.insert(ingestionRuns).values({
+        sourceId: source.id,
+        startedAt,
+        finishedAt: Date.now(),
+        method: "youtube",
+        status: "error",
+        httpStatus: null,
+        errorMessage: note,
+        fetched: 0,
+        inserted: 0,
+      });
+      await db
+        .update(mediaSources)
+        .set({
+          lastMethod: "youtube",
+          lastHttpStatus: null,
+          lastError: note,
+          lastArticleCount: 0,
+        })
+        .where(eq(mediaSources.id, source.id));
+      return {
+        sourceId: source.id,
+        publication: source.publication,
+        method: "youtube",
+        fetched: 0,
+        inserted: 0,
+        summarized: 0,
+        skippedNonEnglish: 0,
+        skippedMerch: 0,
+        skippedNonEditorial: 0,
+        error: note,
+        httpStatus: null,
+        usedMock: true,
+      };
+    }
+    const nextChannelId = fetched.channel.channelId;
+    if (nextChannelId && !nextChannelId.startsWith("mock_") && nextChannelId !== source.channelId) {
+      await db
+        .update(mediaSources)
+        .set({
+          channelId: nextChannelId,
+          url: youtubeChannelUrl(nextChannelId),
+          rssUrl: fetched.channel.uploadsPlaylistId ?? source.rssUrl,
+          publication: source.publication || fetched.channel.title,
+        })
+        .where(eq(mediaSources.id, source.id));
+    }
+    const items = youtubeVideosToEngineItems(fetched.items).slice(0, source.maxArticles);
+    const { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial } =
+      await persistItems(source, items, "youtube");
+    const ok = items.length > 0;
+    await db.insert(ingestionRuns).values({
+      sourceId: source.id,
+      startedAt,
+      finishedAt: Date.now(),
+      method: "youtube",
+      status: ok ? "ok" : "error",
+      httpStatus: 200,
+      errorMessage: ok ? null : "No videos found",
+      fetched: items.length,
+      inserted,
+    });
+    await db
+      .update(mediaSources)
+      .set(
+        ok
+          ? {
+              lastSuccessAt: Date.now(),
+              lastMethod: "youtube",
+              lastHttpStatus: 200,
+              lastError: null,
+              failureCount: 0,
+              lastArticleCount: items.length,
+            }
+          : {
+              lastFailureAt: Date.now(),
+              lastMethod: "youtube",
+              lastHttpStatus: 200,
+              lastError: "No videos found",
+              failureCount: source.failureCount + 1,
+              lastArticleCount: 0,
+            },
+      )
+      .where(eq(mediaSources.id, source.id));
+    return {
+      sourceId: source.id,
+      publication: source.publication,
+      method: "youtube",
+      fetched: items.length,
+      inserted,
+      summarized,
+      skippedNonEnglish,
+      skippedMerch,
+      skippedNonEditorial,
+      error: ok ? null : "No videos found",
+      httpStatus: 200,
+      usedMock,
+    };
+  } catch (caught) {
+    const message = caught instanceof Error ? caught.message : "YouTube ingest failed";
+    await db.insert(ingestionRuns).values({
+      sourceId: source.id,
+      startedAt,
+      finishedAt: Date.now(),
+      method: "youtube",
+      status: "error",
+      httpStatus: null,
+      errorMessage: message,
+      fetched: 0,
+      inserted: 0,
+    });
+    await db
+      .update(mediaSources)
+      .set({
+        lastFailureAt: Date.now(),
+        lastError: message,
+        failureCount: source.failureCount + 1,
+        lastMethod: "youtube",
+      })
+      .where(eq(mediaSources.id, source.id));
+    return {
+      sourceId: source.id,
+      publication: source.publication,
+      method: "youtube",
+      fetched: 0,
+      inserted: 0,
+      summarized: 0,
+      skippedNonEnglish: 0,
+      skippedMerch: 0,
+      skippedNonEditorial: 0,
+      error: message,
+      httpStatus: null,
+      usedMock,
     };
   }
 }
@@ -391,6 +556,7 @@ async function persistItems(
       skippedNonEnglish += 1;
       continue;
     }
+    if (isMockYoutubeArticle(item)) continue;
     const seen = (
       await db.select().from(articles).where(eq(articles.canonicalUrl, item.canonicalUrl)).limit(1)
     )[0];
@@ -404,7 +570,10 @@ async function persistItems(
         .update(articles)
         .set({ lastSeen: now, imageUrl })
         .where(eq(articles.id, seen.id));
-      if (!seen.aiSummary?.trim() || (source.allowImage && !isUsableArticleImage(imageUrl))) {
+      if (
+        item.method !== "youtube" &&
+        (!seen.aiSummary?.trim() || (source.allowImage && !isUsableArticleImage(imageUrl)))
+      ) {
         pendingPages.push({
           id: seen.id,
           title: seen.title,
@@ -425,6 +594,7 @@ async function persistItems(
     const feedCandidates = source.allowImage
       ? resolveCandidates(item.imageCandidates ?? imageCandidatesFromUrl(item.imageUrl), item.canonicalUrl)
       : [];
+    const youtubeItem = item.method === "youtube";
     const created = await db
       .insert(articles)
       .values({
@@ -446,7 +616,7 @@ async function persistItems(
         duplicateGroupId: group,
         ingestionMethod: item.method || method,
         whyItMatters: null,
-        aiSummary: null,
+        aiSummary: youtubeItem && source.allowExcerpt ? item.excerpt : null,
         metadata: JSON.stringify({ duplicateKey: duplicateKey(source.publication, item.title) }),
       })
       .onConflictDoNothing({ target: articles.canonicalUrl })
@@ -460,20 +630,24 @@ async function persistItems(
         url: row.imageUrl,
         source: source.publication,
         alt: row.title,
+        sourceType: youtubeItem ? "youtube" : null,
+        isPrimary: true,
       });
     }
-    pendingPages.push({
-      id: row.id,
-      title: row.title,
-      canonicalUrl: row.canonicalUrl,
-      teaser: row.excerpt,
-      imageUrl: row.imageUrl,
-      aiSummary: row.aiSummary,
-      publication: source.publication,
-      allowImage: source.allowImage,
-      metadata: row.metadata,
-      imageCandidates: feedCandidates,
-    });
+    if (!youtubeItem) {
+      pendingPages.push({
+        id: row.id,
+        title: row.title,
+        canonicalUrl: row.canonicalUrl,
+        teaser: row.excerpt,
+        imageUrl: row.imageUrl,
+        aiSummary: row.aiSummary,
+        publication: source.publication,
+        allowImage: source.allowImage,
+        metadata: row.metadata,
+        imageCandidates: feedCandidates,
+      });
+    }
     await persistArticleExtraction(row.id);
   }
   const summarized = await summarizePending(pendingPages);
@@ -771,7 +945,9 @@ export async function extractMissingSummaries(): Promise<{
 }> {
   const db = await getDb();
   const rows = await db.select().from(articles);
-  const missing = rows.filter((row) => !row.aiSummary?.trim());
+  const missing = rows.filter(
+    (row) => !row.aiSummary?.trim() && row.ingestionMethod !== "youtube",
+  );
   const filled = await summarizePending(missing.map((row) => toPendingPage(row)));
   return {
     attempted: missing.length,
@@ -786,7 +962,9 @@ export async function extractMissingImages(options?: {
 }): Promise<{ attempted: number; filled: number }> {
   const db = await getDb();
   const rows = await db.select().from(articles);
-  let missing = rows.filter((row) => !isUsableArticleImage(row.imageUrl));
+  let missing = rows.filter(
+    (row) => !isUsableArticleImage(row.imageUrl) && row.ingestionMethod !== "youtube",
+  );
   if (options?.ids?.length) {
     const wanted = new Set(options.ids);
     missing = missing.filter((row) => wanted.has(row.id));
@@ -824,7 +1002,13 @@ async function persistArticleExtraction(articleId: number, existing?: Article): 
   const row =
     existing ?? (await db.select().from(articles).where(eq(articles.id, articleId)).limit(1))[0];
   if (!row) return;
-  const classified = classifyArticle(row.title, row.excerpt, row.aiSummary ?? "", row.publication);
+  const classified = classifyArticle(
+    row.title,
+    row.excerpt,
+    row.aiSummary ?? "",
+    row.publication,
+    row.ingestionMethod === "youtube" ? "video" : "article",
+  );
   await Promise.all([
     db.delete(articleEntities).where(eq(articleEntities.articleId, articleId)),
     db.delete(articleCategories).where(eq(articleCategories.articleId, articleId)),

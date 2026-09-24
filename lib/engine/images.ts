@@ -4,6 +4,7 @@ import { fetchImageHeaders, type ImageHeaders } from "./http";
 export const IMAGE_SOURCE_TYPES = [
   "rss_media",
   "rss_enclosure",
+  "youtube",
   "og",
   "twitter",
   "article",
@@ -16,6 +17,7 @@ export type ImageSourceType = (typeof IMAGE_SOURCE_TYPES)[number];
 export const IMAGE_SOURCE_RANK: Record<ImageSourceType, number> = {
   rss_media: 1,
   rss_enclosure: 2,
+  youtube: 2,
   og: 3,
   twitter: 4,
   article: 5,
