@@ -47,6 +47,7 @@ import {
   contextFromDemoUser,
   contextFromTestProfile,
 } from "./personalize";
+import { editorialSourceRelevance } from "./youtube";
 import {
   evaluateRelevanceEngine,
   type RelevanceEngineWeights,
@@ -495,7 +496,12 @@ export async function listEditorial(options?: {
     if (options?.category && !extras.categories.includes(options.category)) return null;
     if (!useTestProfile && options?.interest && !extras.interests.includes(options.interest)) return null;
     const source = sourceMap.get(article.sourceId);
-    const relevance = source?.relevance ?? "";
+    const relevance = editorialSourceRelevance({
+      relevance: source?.relevance,
+      sourceType: source?.sourceType ?? (article.ingestionMethod === "youtube" ? "youtube" : null),
+      url: source?.url,
+      channelId: source?.channelId,
+    });
     const desk = deskMap.get(article.id) ?? null;
     const rankInput = {
       ...extras,
@@ -616,7 +622,12 @@ export async function getEditorial(id: number): Promise<EditorialDto | null> {
   const rankScore = scoreArticle({
     ...extras,
     excerpt: article.excerpt,
-    relevance: sourceRows[0]?.relevance ?? "",
+    relevance: editorialSourceRelevance({
+      relevance: sourceRows[0]?.relevance,
+      sourceType: sourceRows[0]?.sourceType ?? (article.ingestionMethod === "youtube" ? "youtube" : null),
+      url: sourceRows[0]?.url,
+      channelId: sourceRows[0]?.channelId,
+    }),
     vehicles: [],
     userInterests: [],
     deskPick: Boolean(desk),
