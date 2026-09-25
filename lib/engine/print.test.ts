@@ -20,6 +20,15 @@ describe("print catalogue", () => {
     assert.ok(publications.every((row) => row.sections.length > 0));
   });
 
+  it("uses official hosted covers and leaves titles without a usable asset empty", () => {
+    const publications = loadPrintPublications();
+    const withImage = publications.filter((row) => row.coverImageUrl);
+    const empty = publications.filter((row) => !row.coverImageUrl);
+    assert.equal(empty.map((row) => row.slug).join(","), "gt-purely-porsche");
+    assert.ok(withImage.length >= 10);
+    assert.ok(withImage.every((row) => row.coverImageUrl?.startsWith("/print/") && row.imageKind === "cover"));
+  });
+
   it("leaves purchase CTAs off when shop or subscribe URLs are empty", () => {
     const christophorus = getPrintPublication("christophorus");
     const ceased = getPrintPublication("gt-purely-porsche");

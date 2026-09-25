@@ -2,6 +2,7 @@ import catalogFile from "@/config/print-publications.json";
 import { forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
 
 export type PrintPublicationStatus = "active" | "ceased";
+export type PrintImageKind = "cover" | "logo";
 
 export type PrintPublication = {
   id: string;
@@ -19,6 +20,7 @@ export type PrintPublication = {
   shopUrl: string | null;
   subscribeUrl: string | null;
   coverImageUrl: string | null;
+  imageKind: PrintImageKind | null;
   marques: string[];
   interests: string[];
   sections: string[];
@@ -69,6 +71,17 @@ function asNullableUrl(value: unknown): string | null {
   return trimmed.startsWith("https://") ? trimmed : null;
 }
 
+function asNullableAsset(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (trimmed.startsWith("https://") || trimmed.startsWith("/print/")) return trimmed;
+  return null;
+}
+
+function asImageKind(value: unknown): PrintImageKind | null {
+  return value === "cover" || value === "logo" ? value : null;
+}
+
 function asStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
@@ -95,7 +108,8 @@ export function parsePrintPublication(raw: unknown): PrintPublication | null {
     websiteUrl: asNullableUrl(row.websiteUrl),
     shopUrl: asNullableUrl(row.shopUrl),
     subscribeUrl: asNullableUrl(row.subscribeUrl),
-    coverImageUrl: asNullableUrl(row.coverImageUrl),
+    coverImageUrl: asNullableAsset(row.coverImageUrl),
+    imageKind: asImageKind(row.imageKind),
     marques: asStringList(row.marques),
     interests: asStringList(row.interests),
     sections: asStringList(row.sections),
