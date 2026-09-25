@@ -201,6 +201,28 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
       });
     }
   }
+  if (models.has("348")) {
+    const threeFortyEight: [string, string[]][] = [
+      ["tb", ["tb", "348 tb"]],
+      ["ts", ["ts", "348 ts"]],
+      ["Spider", ["spider", "348 spider"]],
+      ["Challenge", ["challenge", "348 challenge"]],
+      ["GT Competizione", ["gt competizione", "348 gt competizione", "gtc"]],
+    ];
+    for (const [name, needles] of threeFortyEight) {
+      if (variants.has(name) || !needles.some((needle) => includesToken(text, needle))) continue;
+      variants.add(name);
+      entities.push({
+        kind: "variant",
+        name,
+        slug: slugify(name),
+        make: "Ferrari",
+        model: "348",
+        inTitle: needles.some((needle) => inTitleHay(title, needle)),
+        confidence: 0.84,
+      });
+    }
+  }
 
   return {
     entities,

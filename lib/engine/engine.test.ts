@@ -238,6 +238,43 @@ describe("entities and ranking", () => {
     assert.ok(extracted.makes.includes("Ferrari"));
     assert.ok(extracted.models.includes("F355"));
   });
+  it("extracts Ferrari 348 and Lotus Emira production variants", () => {
+    const tb = extractEntities("Ferrari 348 tb on the autostrada");
+    assert.ok(tb.makes.includes("Ferrari"));
+    assert.ok(tb.models.includes("348"));
+    assert.ok(tb.variants.includes("tb"));
+    const spider = extractEntities("A 348 Spider weekend in the hills");
+    assert.ok(spider.models.includes("348"));
+    assert.ok(spider.variants.includes("Spider"));
+    const gtc = extractEntities("Ferrari 348 GT Competizione at Fiorano");
+    assert.ok(gtc.models.includes("348"));
+    assert.ok(gtc.variants.includes("GT Competizione"));
+    const emira = extractEntities("Lotus Emira First Edition on a B-road");
+    assert.ok(emira.makes.includes("Lotus"));
+    assert.ok(emira.models.includes("Emira"));
+    assert.ok(emira.variants.includes("First Edition"));
+    const i4 = extractEntities("The Lotus Emira i4 is the four-cylinder car");
+    assert.ok(i4.models.includes("Emira"));
+    assert.ok(i4.variants.includes("i4"));
+  });
+  it("lists 348 and Emira variants in the test picker", async () => {
+    const { forYouTestCatalog: picker } = await import("./for-you-test");
+    const catalog = picker();
+    const ferrari348 = catalog.makes
+      .find((item) => item.name === "Ferrari")
+      ?.models.find((item) => item.name === "348");
+    assert.ok(ferrari348);
+    for (const variant of ["tb", "ts", "Spider", "Challenge", "GT Competizione"]) {
+      assert.ok(ferrari348.variants.includes(variant), variant);
+    }
+    const emira = catalog.makes
+      .find((item) => item.name === "Lotus")
+      ?.models.find((item) => item.name === "Emira");
+    assert.ok(emira);
+    for (const variant of ["First Edition", "i4", "V6", "SE"]) {
+      assert.ok(emira.variants.includes(variant), variant);
+    }
+  });
   it("offers every gazetteer marque in the picker, including Honda with no stories", async () => {
     const { VEHICLE_CATALOG } = await import("./catalog");
     const { forYouTestCatalog: picker } = await import("./for-you-test");
@@ -1574,6 +1611,21 @@ describe("page summary extract", () => {
       false,
     );
   });
+  it("skips the DailySportsCar telemetry header and keeps the featured photo", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const html = `<html><head>
+      <meta property="og:image" content="https://www.dailysportscar.com/wp-content/uploads/2030/01/Control-Telemetry-Header-730px.jpeg" />
+      <meta name="twitter:image" content="https://www.dailysportscar.com/wp-content/uploads/2030/01/Control-Telemetry-Header-730px.jpeg" />
+      <script type="application/ld+json">{"@type":"Article","image":{"url":"https://www.dailysportscar.com/wp-content/uploads/2026/09/Nicklas-Nielsen_Ye-Yifei-2026.jpg"}}</script>
+    </head><body>
+      <img class="wp-post-image" src="https://www.dailysportscar.com/wp-content/uploads/2026/09/Nicklas-Nielsen_Ye-Yifei-2026.jpg" />
+      <img src="https://www.dailysportscar.com/wp-content/uploads/2030/01/Control-Telemetry-Header-730px-690x95.jpeg" />
+    </body></html>`;
+    assert.equal(
+      extractPageImage(html),
+      "https://www.dailysportscar.com/wp-content/uploads/2026/09/Nicklas-Nielsen_Ye-Yifei-2026.jpg",
+    );
+  });
 });
 
 describe("source seed writes", () => {
@@ -1705,6 +1757,9 @@ describe("vehicle-aware For You ranking", () => {
     const { variantsMatch } = await import("./personalize");
     assert.equal(variantsMatch("C2", "Carrera 2"), true);
     assert.equal(variantsMatch("GTB", "355 GTB"), true);
+    assert.equal(variantsMatch("tb", "348 tb"), true);
+    assert.equal(variantsMatch("GT Competizione", "348 GTC"), true);
+    assert.equal(variantsMatch("i4", "Emira i4"), true);
     assert.equal(variantsMatch("C2", "GT3"), false);
     assert.equal(variantsMatch("GT3", "C2"), false);
     const gt3 = score(

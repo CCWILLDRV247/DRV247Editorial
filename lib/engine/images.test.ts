@@ -194,6 +194,18 @@ describe("image payload", () => {
       isUsableArticleImage("https://www.timeattack.co.uk/wp-content/uploads/2026/09/Volkov.jpg"),
       true,
     );
+    assert.equal(
+      isUsableArticleImage(
+        "https://www.dailysportscar.com/wp-content/uploads/2030/01/Control-Telemetry-Header-730px.jpeg",
+      ),
+      false,
+    );
+    assert.equal(
+      isUsableArticleImage(
+        "https://www.dailysportscar.com/wp-content/uploads/2026/09/Nicklas-Nielsen_Ye-Yifei-2026.jpg",
+      ),
+      true,
+    );
     assert.equal(isUsableArticleImage("https://cdn.example.com/uploads/964.jpg"), true);
   });
 });

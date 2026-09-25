@@ -40,6 +40,15 @@ const INTEREST_ALIASES: Record<string, string> = {
 
 const VARIANT_ALIASES: Record<string, string[]> = {
   gtb: ["gtb", "355 gtb", "f355 gtb"],
+  tb: ["tb", "348 tb"],
+  ts: ["ts", "348 ts"],
+  spider: ["spider", "348 spider"],
+  challenge: ["challenge", "348 challenge"],
+  "gt competizione": ["gt competizione", "gtc", "348 gtc", "348 gt competizione"],
+  "first edition": ["first edition", "emira first edition"],
+  i4: ["i4", "emira i4"],
+  v6: ["v6", "emira v6"],
+  se: ["se", "emira se"],
   c2: ["c2", "carrera 2", "carrera2", "carrera c2"],
   "carrera 2": ["c2", "carrera 2", "carrera2", "carrera c2"],
   "carrera rs": ["carrera rs", "rs"],

@@ -41,6 +41,12 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
       generations: ["F355"],
       variants: ["GTB"],
     },
+    {
+      name: "348",
+      aliases: ["348", "ferrari 348", "348 tb", "348 ts", "348 spider"],
+      generations: ["348"],
+      variants: ["tb", "ts", "Spider", "Challenge", "GT Competizione"],
+    },
     { name: "F40", aliases: ["f40"] },
     { name: "F50", aliases: ["f50"] },
     { name: "360", aliases: ["360 modena", "360"] },
@@ -101,6 +107,11 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
   marque("Lotus", ["lotus"], [
     { name: "Elise", aliases: ["elise"] },
     { name: "Cortina", aliases: ["cortina"] },
+    {
+      name: "Emira",
+      aliases: ["emira"],
+      variants: ["First Edition", "i4", "V6", "SE"],
+    },
   ]),
   marque("McLaren", ["mclaren"], [
     { name: "F1", aliases: ["mclaren f1"] },

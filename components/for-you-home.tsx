@@ -129,6 +129,11 @@ export function ForYouHome({
   const midCategories = bySlot.get("mid-categories");
   const beforeViewAll = bySlot.get("before-view-all");
   const midCarouselIndex = Math.floor((carousels.length - 1) / 2);
+  const preCategoryInterludes: { slot: "after-picks" | "before-categories"; interlude: EditorialInterlude }[] = [];
+  if (afterPicks) preCategoryInterludes.push({ slot: "after-picks", interlude: afterPicks });
+  if (beforeCategories) preCategoryInterludes.push({ slot: "before-categories", interlude: beforeCategories });
+  const firstInterlude = preCategoryInterludes[0];
+  const remainingInterludes = preCategoryInterludes.slice(1);
 
   return (
     <>
@@ -155,10 +160,6 @@ export function ForYouHome({
         </div>
       </section>
 
-      <DeskModule stories={picks} />
-
-      {afterPicks ? <HomepageInterlude interlude={afterPicks} slot="after-picks" /> : null}
-
       {yourInterests.stories.length > 0 ? (
         <InterestLane
           heading={yourInterests.heading}
@@ -168,9 +169,15 @@ export function ForYouHome({
         />
       ) : null}
 
-      {beforeCategories ? (
-        <HomepageInterlude interlude={beforeCategories} slot="before-categories" />
+      {firstInterlude ? (
+        <HomepageInterlude interlude={firstInterlude.interlude} slot={firstInterlude.slot} />
       ) : null}
+
+      <DeskModule stories={picks} />
+
+      {remainingInterludes.map((item) => (
+        <HomepageInterlude key={item.slot} interlude={item.interlude} slot={item.slot} />
+      ))}
 
       <div className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.railGap}`}>
         {carousels.map((lane, index) => (
