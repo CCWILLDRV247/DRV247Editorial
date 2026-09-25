@@ -1611,6 +1611,21 @@ describe("page summary extract", () => {
       false,
     );
   });
+  it("skips the DailySportsCar telemetry header and keeps the featured photo", async () => {
+    const { extractPageImage } = await import("./article-text");
+    const html = `<html><head>
+      <meta property="og:image" content="https://www.dailysportscar.com/wp-content/uploads/2030/01/Control-Telemetry-Header-730px.jpeg" />
+      <meta name="twitter:image" content="https://www.dailysportscar.com/wp-content/uploads/2030/01/Control-Telemetry-Header-730px.jpeg" />
+      <script type="application/ld+json">{"@type":"Article","image":{"url":"https://www.dailysportscar.com/wp-content/uploads/2026/09/Nicklas-Nielsen_Ye-Yifei-2026.jpg"}}</script>
+    </head><body>
+      <img class="wp-post-image" src="https://www.dailysportscar.com/wp-content/uploads/2026/09/Nicklas-Nielsen_Ye-Yifei-2026.jpg" />
+      <img src="https://www.dailysportscar.com/wp-content/uploads/2030/01/Control-Telemetry-Header-730px-690x95.jpeg" />
+    </body></html>`;
+    assert.equal(
+      extractPageImage(html),
+      "https://www.dailysportscar.com/wp-content/uploads/2026/09/Nicklas-Nielsen_Ye-Yifei-2026.jpg",
+    );
+  });
 });
 
 describe("source seed writes", () => {
