@@ -10,6 +10,8 @@ import {
   CategoryCarousel,
   type CategoryLane,
 } from "@/components/category-carousel";
+import { PrintModuleRail } from "@/components/print-module";
+import type { PrintModule } from "@/lib/engine/print";
 import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
 
 function splitSequential(items: StoryDto[], parts: number) {
@@ -70,12 +72,16 @@ export function StoryFeed({
   categoryName,
   looseHero = false,
   carousels = [],
+  print,
+  testQuery,
 }: {
   stories: StoryDto[];
   copyKey: string;
   categoryName: string;
   looseHero?: boolean;
   carousels?: CategoryLane[];
+  print?: PrintModule | null;
+  testQuery?: string;
 }) {
   const lane = (slug: string) =>
     carousels.find((item) => item.slug === slug && item.stories.length > 0);
@@ -92,6 +98,7 @@ export function StoryFeed({
           homeSpacing={deskVisual}
         />
         <EmptyStories category={categoryName} />
+        {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
         {carousels.map((item) => (
           <CategoryCarousel key={item.slug} {...item} />
         ))}
@@ -214,6 +221,7 @@ export function StoryFeed({
           </div>
         </section>
       ) : null}
+      {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
       <Interstitial
         text={copy.interstitial}
         size={copyKey === "home" ? "home" : "default"}

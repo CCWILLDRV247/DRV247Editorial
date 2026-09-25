@@ -175,13 +175,13 @@ export function ForYouHome({
         />
       ) : null}
 
-      {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
-
       {firstInterlude ? (
         <HomepageInterlude interlude={firstInterlude.interlude} slot={firstInterlude.slot} />
       ) : null}
 
       <DeskModule stories={picks} />
+
+      {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
 
       {remainingInterludes.map((item) => (
         <HomepageInterlude key={item.slot} interlude={item.interlude} slot={item.slot} />

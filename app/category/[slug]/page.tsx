@@ -14,7 +14,6 @@ import {
 import { listMagazineStories } from "@/lib/engine/magazine";
 import { printModuleForSection } from "@/lib/engine/print";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
-import { PrintModuleRail } from "@/components/print-module";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,12 +50,13 @@ export default async function CategoryPage({
         <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
         <ForYouTestFilter initial={testProfile} catalog={catalog} pathname={`/category/${slug}`} />
         <main className="pt-2">
-          {print ? (
-            <div className="mx-auto w-full min-w-0 max-w-3xl pb-8 md:max-w-6xl">
-              <PrintModuleRail module={print} testQuery={testQuery} />
-            </div>
-          ) : null}
-          <StoryFeed stories={stories} copyKey={category.slug} categoryName={category.name} />
+          <StoryFeed
+            stories={stories}
+            copyKey={category.slug}
+            categoryName={category.name}
+            print={print}
+            testQuery={testQuery}
+          />
         </main>
       </div>
     </MagazineQueryProvider>
