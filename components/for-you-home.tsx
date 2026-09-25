@@ -155,10 +155,6 @@ export function ForYouHome({
         </div>
       </section>
 
-      <DeskModule stories={picks} />
-
-      {afterPicks ? <HomepageInterlude interlude={afterPicks} slot="after-picks" /> : null}
-
       {yourInterests.stories.length > 0 ? (
         <InterestLane
           heading={yourInterests.heading}
@@ -167,6 +163,10 @@ export function ForYouHome({
           stories={yourInterests.stories}
         />
       ) : null}
+
+      <DeskModule stories={picks} />
+
+      {afterPicks ? <HomepageInterlude interlude={afterPicks} slot="after-picks" /> : null}
 
       {beforeCategories ? (
         <HomepageInterlude interlude={beforeCategories} slot="before-categories" />
