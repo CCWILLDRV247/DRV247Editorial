@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MagazineQueryProvider } from "@/components/magazine-link";
+import { SiteHeader } from "@/components/site-chrome";
+import { PrintCoverCard } from "@/components/print-cover-card";
 import { forYouTestSearchString, parseForYouTestProfile } from "@/lib/engine/for-you-test";
-import { PRINT_SECTION_LINE, getPrintPublication, printCtas } from "@/lib/intelligence/print";
-import { IntelligenceSectionNav } from "../../section-nav";
+import { PRINT_SECTION_LINE, getPrintPublication, printCtas } from "@/lib/engine/print";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,8 +37,7 @@ export default async function PrintDetailPage({
 }) {
   const publication = getPrintPublication((await params).slug);
   if (!publication) notFound();
-  const testQuery = forYouTestSearchString(parseForYouTestProfile(await searchParams));
-  const backHref = testQuery ? `/intelligence/print?${testQuery}` : "/intelligence/print";
+  const testQuery = forYouTestSearchString(parseForYouTestProfile(await searchParams)) || undefined;
   const ctas = printCtas(publication);
   const buy = ctas.find((cta) => cta.kind === "buy");
   const subscribe = ctas.find((cta) => cta.kind === "subscribe");
@@ -45,33 +45,14 @@ export default async function PrintDetailPage({
   const meta = [publication.country, publication.frequency, publication.publisher].filter(Boolean);
 
   return (
-    <div className="min-h-full overflow-x-clip bg-white">
-      <main className="mx-auto max-w-6xl pb-20 text-[#1b1d1f]">
-        <header className="px-7 pt-8 md:px-6">
-          <IntelligenceSectionNav current="print" query={testQuery} />
-          <p className="mt-8">
-            <Link
-              href={backHref}
-              className="font-display text-lg font-bold uppercase text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
-            >
-              Newsstand
-            </Link>
-          </p>
-        </header>
-
-        <article className="mt-8 grid gap-10 px-7 md:grid-cols-[minmax(0,18rem)_1fr] md:px-6">
-          <div className="flex aspect-[3/4] flex-col justify-between overflow-hidden rounded-xl bg-[#1b1d1f] px-5 py-6 text-white">
-            <p className="font-display text-lg font-bold uppercase leading-none text-white/55">
-              {publication.status === "ceased" ? "Archive" : "Print"}
-            </p>
-            <p className="font-display text-[clamp(2.5rem,8vw,4rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
-              {publication.title}
-            </p>
-          </div>
-
+    <MagazineQueryProvider testQuery={testQuery}>
+      <div className="min-h-full overflow-x-clip bg-white">
+        <SiteHeader title={publication.title} backHref="/" testQuery={testQuery} />
+        <article className="mx-auto grid max-w-3xl gap-10 px-[calc(10px+env(safe-area-inset-left,0px))] pb-20 pt-8 md:max-w-6xl md:grid-cols-[minmax(0,18rem)_1fr] md:px-6">
+          <PrintCoverCard publication={publication} href={`/print/${publication.slug}`} />
           <div>
             <p className="font-display text-lg font-bold uppercase text-[#1b1d1f]/70">A thing worth holding.</p>
-            <h1 className="mt-4 font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
+            <h1 className="mt-4 font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">
               {publication.title}
             </h1>
             {publication.tagline ? (
@@ -132,7 +113,7 @@ export default async function PrintDetailPage({
             ) : null}
           </div>
         </article>
-      </main>
-    </div>
+      </div>
+    </MagazineQueryProvider>
   );
 }

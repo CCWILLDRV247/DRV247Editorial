@@ -16,15 +16,25 @@
       "country": "UK",
       "language": "English",
       "frequency": "Quarterly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://theroadrat.com",
       "shopUrl": "https://theroadrat.com/shop",
       "subscribeUrl": "https://theroadrat.com/shop/subscription",
       "coverImageUrl": null,
       "marques": [],
-      "interests": ["Classic", "Culture", "Performance"],
-      "featured": true
+      "interests": [
+        "Classic",
+        "Culture",
+        "Performance"
+      ],
+      "featured": true,
+      "sections": [
+        "culture",
+        "driving"
+      ]
     },
     {
       "id": "print-magneto",
@@ -36,15 +46,27 @@
       "country": "UK",
       "language": "English",
       "frequency": "Quarterly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://www.magnetomagazine.com",
       "shopUrl": "https://www.magnetomagazine.com/store/",
       "subscribeUrl": "https://www.magnetomagazine.com/subscribe/",
       "coverImageUrl": null,
-      "marques": ["Ferrari"],
-      "interests": ["Classic", "Culture", "Performance"],
-      "featured": true
+      "marques": [
+        "Ferrari"
+      ],
+      "interests": [
+        "Classic",
+        "Culture",
+        "Performance"
+      ],
+      "featured": true,
+      "sections": [
+        "culture",
+        "cars"
+      ]
     },
     {
       "id": "print-copacetic",
@@ -56,15 +78,25 @@
       "country": "UK",
       "language": "English",
       "frequency": "Bimonthly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://copaceticmagazine.co.uk",
       "shopUrl": "https://copaceticmagazine.co.uk/product-category/single-issues/",
       "subscribeUrl": "https://copaceticmagazine.co.uk/product-category/subscriptions/",
       "coverImageUrl": null,
       "marques": [],
-      "interests": ["Modified", "JDM", "Performance"],
-      "featured": true
+      "interests": [
+        "Modified",
+        "JDM",
+        "Performance"
+      ],
+      "featured": true,
+      "sections": [
+        "cars",
+        "culture"
+      ]
     },
     {
       "id": "print-maxers",
@@ -76,55 +108,91 @@
       "country": "UK",
       "language": "English",
       "frequency": "Quarterly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://www.maxers.co.uk",
       "shopUrl": "https://www.maxers.co.uk/store",
       "subscribeUrl": null,
       "coverImageUrl": null,
-      "marques": ["Nissan", "BMW"],
-      "interests": ["Modified", "JDM", "Performance"],
-      "featured": true
+      "marques": [
+        "Nissan",
+        "BMW"
+      ],
+      "interests": [
+        "Modified",
+        "JDM",
+        "Performance"
+      ],
+      "featured": true,
+      "sections": [
+        "cars"
+      ]
     },
     {
       "id": "print-000",
       "slug": "000-magazine",
       "title": "000 Magazine",
       "tagline": "Porsche as a study.",
-      "description": "A thick Porsche journal. Archive, photography, and the cars themselves — closer to a book than a newsstand flip.",
+      "description": "A thick Porsche journal. Archive, photography, and the cars themselves \u2014 closer to a book than a newsstand flip.",
       "publisher": "000 Magazine",
       "country": "USA",
       "language": "English",
       "frequency": "Quarterly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://000magazine.com",
       "shopUrl": "https://000magazine.com/collections/single-issues",
       "subscribeUrl": "https://000magazine.com/products/softcover-subscription",
       "coverImageUrl": null,
-      "marques": ["Porsche"],
-      "interests": ["Air-cooled", "Classic", "Culture"],
-      "featured": true
+      "marques": [
+        "Porsche"
+      ],
+      "interests": [
+        "Air-cooled",
+        "Classic",
+        "Culture"
+      ],
+      "featured": true,
+      "sections": [
+        "culture",
+        "cars"
+      ]
     },
     {
       "id": "print-christophorus",
       "slug": "christophorus",
       "title": "Christophorus",
       "tagline": "The Porsche magazine, since 1952.",
-      "description": "Porsche’s own magazine. People, products, history, and motorsport — four issues a year, in print.",
+      "description": "Porsche\u2019s own magazine. People, products, history, and motorsport \u2014 four issues a year, in print.",
       "publisher": "Porsche AG",
       "country": "Germany",
       "language": "English",
       "frequency": "Quarterly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://www.porsche.com/christophorusmagazine/en-en/home/",
       "shopUrl": null,
       "subscribeUrl": null,
       "coverImageUrl": null,
-      "marques": ["Porsche"],
-      "interests": ["Classic", "Motorsport", "Culture"],
-      "featured": false
+      "marques": [
+        "Porsche"
+      ],
+      "interests": [
+        "Classic",
+        "Motorsport",
+        "Culture"
+      ],
+      "featured": false,
+      "sections": [
+        "cars",
+        "motorsport"
+      ]
     },
     {
       "id": "print-gt-purely-porsche",
@@ -136,35 +204,56 @@
       "country": "UK",
       "language": "English",
       "frequency": null,
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "ceased",
       "websiteUrl": null,
       "shopUrl": null,
       "subscribeUrl": null,
       "coverImageUrl": null,
-      "marques": ["Porsche"],
-      "interests": ["Classic", "Performance"],
-      "featured": false
+      "marques": [
+        "Porsche"
+      ],
+      "interests": [
+        "Classic",
+        "Performance"
+      ],
+      "featured": false,
+      "sections": [
+        "cars"
+      ]
     },
     {
       "id": "print-911-porsche-world",
       "slug": "911-and-porsche-world",
       "title": "911 & Porsche World",
       "tagline": "The monthly Porsche magazine that stayed.",
-      "description": "Kelsey’s independent Porsche monthly. Road cars, race cars, and the ownership in between.",
+      "description": "Kelsey\u2019s independent Porsche monthly. Road cars, race cars, and the ownership in between.",
       "publisher": "Kelsey Media",
       "country": "UK",
       "language": "English",
       "frequency": "Monthly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://shop.kelsey.co.uk/911-and-porsche-world-magazine",
       "shopUrl": "https://shop.kelsey.co.uk/single-issue/911-and-porsche-world-magazine",
       "subscribeUrl": "https://shop.kelsey.co.uk/911-and-porsche-world-magazine",
       "coverImageUrl": null,
-      "marques": ["Porsche"],
-      "interests": ["Classic", "Performance", "Air-cooled"],
-      "featured": false
+      "marques": [
+        "Porsche"
+      ],
+      "interests": [
+        "Classic",
+        "Performance",
+        "Air-cooled"
+      ],
+      "featured": false,
+      "sections": [
+        "cars"
+      ]
     },
     {
       "id": "print-brainfuel",
@@ -176,15 +265,24 @@
       "country": "UK",
       "language": "English",
       "frequency": null,
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://brainfuelmagazine.com",
       "shopUrl": "https://brainfuelmagazine.com/products/brainfuel-magazine-volume-001",
       "subscribeUrl": null,
       "coverImageUrl": null,
       "marques": [],
-      "interests": ["Modified", "JDM", "Culture"],
-      "featured": false
+      "interests": [
+        "Modified",
+        "JDM",
+        "Culture"
+      ],
+      "featured": false,
+      "sections": [
+        "culture"
+      ]
     },
     {
       "id": "print-octane",
@@ -196,55 +294,95 @@
       "country": "UK",
       "language": "English",
       "frequency": "Monthly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://www.octane-magazine.com",
       "shopUrl": "https://www.octane-magazine.com/store/",
       "subscribeUrl": "https://www.octane-magazine.com/subscribe/",
       "coverImageUrl": null,
-      "marques": ["Ferrari"],
-      "interests": ["Classic", "Performance", "Culture"],
-      "featured": false
+      "marques": [
+        "Ferrari"
+      ],
+      "interests": [
+        "Classic",
+        "Performance",
+        "Culture"
+      ],
+      "featured": false,
+      "sections": [
+        "culture",
+        "cars",
+        "driving"
+      ]
     },
     {
       "id": "print-auto-italia",
       "slug": "auto-italia",
       "title": "Auto Italia",
       "tagline": "Italian cars, in English.",
-      "description": "Ferrari, Alfa, Lancia, and the rest of Italy’s road cars, written for people who keep them.",
+      "description": "Ferrari, Alfa, Lancia, and the rest of Italy\u2019s road cars, written for people who keep them.",
       "publisher": "Auto Italia",
       "country": "UK",
       "language": "English",
       "frequency": "Monthly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://www.auto-italia.co.uk",
       "shopUrl": "https://www.auto-italia.co.uk/magazine/issues/",
       "subscribeUrl": "https://www.auto-italia.co.uk/shop/magazine-subscription/",
       "coverImageUrl": null,
-      "marques": ["Ferrari", "Alfa Romeo", "Lancia", "Maserati", "Fiat", "Lamborghini"],
-      "interests": ["Classic", "Performance"],
-      "featured": false
+      "marques": [
+        "Ferrari",
+        "Alfa Romeo",
+        "Lancia",
+        "Maserati",
+        "Fiat",
+        "Lamborghini"
+      ],
+      "interests": [
+        "Classic",
+        "Performance"
+      ],
+      "featured": false,
+      "sections": [
+        "cars"
+      ]
     },
     {
       "id": "print-ferrari-magazine",
       "slug": "ferrari-magazine",
       "title": "Ferrari Magazine",
-      "tagline": "Maranello’s own print.",
+      "tagline": "Maranello\u2019s own print.",
       "description": "Two issues a year, plus the Yearbook. Official, and still a thing you hold.",
       "publisher": "Ferrari S.p.A.",
       "country": "Italy",
       "language": "English",
       "frequency": "Twice yearly",
-      "format": ["print"],
+      "format": [
+        "print"
+      ],
       "status": "active",
       "websiteUrl": "https://www.ferrari.com/en-EN/magazine",
       "shopUrl": null,
       "subscribeUrl": "https://www.ferrari.com/en-EN/magazine/subscription",
       "coverImageUrl": null,
-      "marques": ["Ferrari"],
-      "interests": ["Classic", "Motorsport", "Performance"],
-      "featured": false
+      "marques": [
+        "Ferrari"
+      ],
+      "interests": [
+        "Classic",
+        "Motorsport",
+        "Performance"
+      ],
+      "featured": false,
+      "sections": [
+        "cars",
+        "motorsport"
+      ]
     }
   ]
 }

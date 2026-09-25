@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   // read from disk (adapter identifier), so the serverless trace must include it.
   // Do not load that CSV via import.meta.url — Turbopack rewrites it and crashes.
   outputFileTracingIncludes: {
-    "/*": ["./config/intelligence/**/*"],
+    "/*": ["./config/intelligence/**/*", "./config/print-publications.json"],
   },
   async headers() {
     return [
@@ -81,6 +81,8 @@ const nextConfig: NextConfig = {
       { source: "/category/modified", destination: "/category/cars", permanent: true },
       { source: "/category/concourse", destination: "/category/events", permanent: true },
       { source: "/for-you", destination: "/", permanent: false },
+      { source: "/intelligence/print", destination: "/", permanent: false },
+      { source: "/intelligence/print/:slug", destination: "/print/:slug", permanent: false },
     ];
   },
 };

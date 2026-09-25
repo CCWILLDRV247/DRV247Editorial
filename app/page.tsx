@@ -43,6 +43,8 @@ export default async function HomePage({
             picks={home.picks}
             carousels={home.carousels}
             interludes={home.interludes}
+            print={home.print}
+            testQuery={testQuery}
           />
         </main>
       </div>

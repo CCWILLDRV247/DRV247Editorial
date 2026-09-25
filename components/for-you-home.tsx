@@ -9,6 +9,8 @@ import { StoryCard, StoryHero } from "@/components/story-card";
 import type { EditorialInterlude } from "@/lib/engine/editorial-interlude";
 import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
+import type { PrintModule } from "@/lib/engine/print";
+import { PrintModuleRail } from "@/components/print-module";
 import { HOMEPAGE_LEAD_CARD_MAX } from "@/lib/engine/homepage-hierarchy";
 import type { SelectedHomepageInterlude } from "@/lib/engine/interlude-selection";
 import type { StoryDto } from "@/lib/stories";
@@ -107,6 +109,8 @@ export function ForYouHome({
   picks,
   carousels,
   interludes,
+  print,
+  testQuery,
 }: {
   copy: ForYouCopy;
   forYourCar: ForYouLaneDisplay;
@@ -115,6 +119,8 @@ export function ForYouHome({
   picks: StoryDto[];
   carousels: CategoryLane[];
   interludes: SelectedHomepageInterlude[];
+  print?: PrintModule | null;
+  testQuery?: string;
 }) {
   const pickIds = new Set(picks.map((story) => story.id));
   const vehicleStories = forYourCar.stories.filter((story) => !pickIds.has(story.id));
@@ -168,6 +174,8 @@ export function ForYouHome({
           stories={yourInterests.stories}
         />
       ) : null}
+
+      {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
 
       {firstInterlude ? (
         <HomepageInterlude interlude={firstInterlude.interlude} slot={firstInterlude.slot} />

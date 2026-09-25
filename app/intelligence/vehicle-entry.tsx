@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { FeatureTag } from "@/components/story-card";
-import { IntelligenceSectionNav } from "./section-nav";
 import {
   BUILD_DEFAULTS,
   BUILD_TYPES,
@@ -189,8 +187,7 @@ export function VehicleEntry() {
   return (
     <div className="mx-auto max-w-6xl pb-20 text-[#1b1d1f]">
       <header className="px-7 pt-8 md:px-6">
-        <IntelligenceSectionNav current="home" />
-        <h1 className="mt-8 font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
+        <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
           What do you want to do with your car?
         </h1>
         <p className="mt-8 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
@@ -256,12 +253,12 @@ export function VehicleEntry() {
             id="intent-heading"
             className="font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]"
           >
-            The paths
+            Two paths
           </h2>
           <p className="mt-4 max-w-xl text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
-            Build. Maintain. Print. Never one funnel.
+            Never one funnel.
           </p>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <PathCard
               label="Build"
               dek="Change it. Improve it. Make it yours."
@@ -274,17 +271,6 @@ export function VehicleEntry() {
               selected={intent === "maintain"}
               onClick={() => chooseIntent("maintain")}
             />
-            <Link
-              href="/intelligence/print"
-              className="min-h-[180px] rounded-xl border border-[#1b1d1f] bg-white px-6 py-7 text-left transition hover:bg-[#f3f3f3]"
-            >
-              <p className="font-display text-[clamp(3.5rem,10vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]">
-                Print
-              </p>
-              <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]/70">
-                The magazines worth leaving the screen for.
-              </p>
-            </Link>
           </div>
         </section>
 
