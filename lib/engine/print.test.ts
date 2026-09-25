@@ -43,7 +43,7 @@ describe("print on For You", () => {
     assert.ok(!printEditorialCopy(FOR_YOU_DEMO_PROFILES.B).heading.toLowerCase().includes("porsche 964"));
   });
 
-  it("recommends the brief lists on A–C and featured titles when unfiltered", () => {
+  it("recommends the brief lists on A–D and featured titles when unfiltered", () => {
     assert.deepEqual(
       printModuleForYou(FOR_YOU_DEMO_PROFILES.B)?.publications.map((row) => row.slug),
       ["000-magazine", "christophorus", "gt-purely-porsche", "911-and-porsche-world"],
@@ -55,6 +55,10 @@ describe("print on For You", () => {
     assert.deepEqual(
       printModuleForYou(FOR_YOU_DEMO_PROFILES.A)?.publications.map((row) => row.slug),
       ["magneto", "octane", "auto-italia", "ferrari-magazine"],
+    );
+    assert.deepEqual(
+      printModuleForYou(FOR_YOU_DEMO_PROFILES.D)?.publications.map((row) => row.slug),
+      ["maxers", "copacetic", "brainfuel"],
     );
     const open = printModuleForYou({ interests: [] });
     assert.deepEqual(
