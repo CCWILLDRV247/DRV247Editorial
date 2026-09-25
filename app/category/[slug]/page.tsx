@@ -12,6 +12,7 @@ import {
   withTestQuery,
 } from "@/lib/engine/for-you-test";
 import { listMagazineStories } from "@/lib/engine/magazine";
+import { printModuleForSection } from "@/lib/engine/print";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
@@ -41,6 +42,7 @@ export default async function CategoryPage({
     loadForYouTestCatalog(),
   ]);
   const catalog = withProfileInCatalog(catalogRows, testProfile);
+  const print = printModuleForSection(slug, forYouTestIsActive(testProfile) ? testProfile : undefined);
 
   return (
     <MagazineQueryProvider testQuery={testQuery}>
@@ -48,7 +50,13 @@ export default async function CategoryPage({
         <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
         <ForYouTestFilter initial={testProfile} catalog={catalog} pathname={`/category/${slug}`} />
         <main className="pt-2">
-          <StoryFeed stories={stories} copyKey={category.slug} categoryName={category.name} />
+          <StoryFeed
+            stories={stories}
+            copyKey={category.slug}
+            categoryName={category.name}
+            print={print}
+            testQuery={testQuery}
+          />
         </main>
       </div>
     </MagazineQueryProvider>

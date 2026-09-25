@@ -27,6 +27,7 @@ import {
   HOMEPAGE_CATEGORY_STORY_MAX,
 } from "./homepage-hierarchy";
 import { selectHomepageInterludes } from "./interlude-selection";
+import { printModuleForYou } from "./print";
 import {
   pickRelevanceExplanation,
   type ExplanationLane,
@@ -271,6 +272,7 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile, recentIds: 
     picks,
     carousels,
     interludes,
+    print: printModuleForYou(testProfile),
     stories: [...forYourCar.stories, ...yourInterests.stories, ...discover.stories],
   };
 }

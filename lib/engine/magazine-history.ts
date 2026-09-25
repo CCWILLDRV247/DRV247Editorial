@@ -12,7 +12,12 @@ export function magazineHref(href: string, query?: string) {
 }
 
 export function isMagazinePath(pathname: string) {
-  return pathname === "/" || pathname.startsWith("/category/") || pathname.startsWith("/story/");
+  return (
+    pathname === "/" ||
+    pathname.startsWith("/category/") ||
+    pathname.startsWith("/story/") ||
+    pathname.startsWith("/print/")
+  );
 }
 
 export function magazineLocation(pathname: string, search = "") {

@@ -47,7 +47,8 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 - **Admin** (`/admin/engine`) — ingest now, source health, classification, **Desk curation** (select a teaser, label, optional note, active/featured), For You ranking debug (article / score / why)
 - **JSON** — `GET /api/editorial` (includes `ranking` why/score when a test profile is set), `GET /api/editorial/status`
 - **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
-- **Vehicle Intelligence** — `/intelligence` (same Vercel project and Turso database; Design 911 + Eurospares). Not on the magazine nav. Live catalogues refresh on `15 6 * * 1` → `/api/cron/intelligence-ingest`.
+- **Vehicle Intelligence** — `/intelligence` (Build + Maintain; Design 911 + Eurospares). Not on the magazine nav. Live catalogues refresh on `15 6 * * 1` → `/api/cron/intelligence-ingest`.
+- **Print** — physical-magazine objects inside For You and relevant category pages, not a nav item. Quiet detail URLs at `/print/[slug]`. Structured store, not RSS ingest. Buy/Subscribe only with verified official URLs.
 
 ## YouTube channels
 
