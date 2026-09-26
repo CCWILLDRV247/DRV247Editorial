@@ -201,37 +201,6 @@
       "imageKind": "cover"
     },
     {
-      "id": "print-gt-purely-porsche",
-      "slug": "gt-purely-porsche",
-      "title": "GT Purely Porsche",
-      "tagline": "The independent Porsche monthly that stopped.",
-      "description": "Unity Media, then Kelsey. The last issue was Summer 2021. Still a title worth knowing; there is no live shop to send you to.",
-      "publisher": "Kelsey Media",
-      "country": "UK",
-      "language": "English",
-      "frequency": null,
-      "format": [
-        "print"
-      ],
-      "status": "ceased",
-      "websiteUrl": null,
-      "shopUrl": null,
-      "subscribeUrl": null,
-      "coverImageUrl": null,
-      "marques": [
-        "Porsche"
-      ],
-      "interests": [
-        "Classic",
-        "Performance"
-      ],
-      "featured": false,
-      "sections": [
-        "cars"
-      ],
-      "imageKind": null
-    },
-    {
       "id": "print-911-porsche-world",
       "slug": "911-and-porsche-world",
       "title": "911 & Porsche World",

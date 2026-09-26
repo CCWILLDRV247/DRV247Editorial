@@ -49,7 +49,6 @@ export const SECTION_PRINT_MAX = 3;
 const PORSCHE_FIRST = [
   "000-magazine",
   "christophorus",
-  "gt-purely-porsche",
   "911-and-porsche-world",
 ];
 

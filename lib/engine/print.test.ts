@@ -14,31 +14,27 @@ import {
 } from "./print";
 
 describe("print catalogue", () => {
-  it("loads twelve publication entities from magazine config", () => {
+  it("loads eleven publication entities from magazine config", () => {
     const publications = loadPrintPublications();
-    assert.equal(publications.length, 12);
+    assert.equal(publications.length, 11);
     assert.ok(publications.every((row) => row.sections.length > 0));
+    assert.equal(getPrintPublication("gt-purely-porsche"), null);
+    assert.ok(!publications.some((row) => /gt purely/i.test(row.title)));
   });
 
-  it("uses official hosted covers and leaves titles without a usable asset empty", () => {
+  it("uses official hosted covers for every remaining title", () => {
     const publications = loadPrintPublications();
-    const withImage = publications.filter((row) => row.coverImageUrl);
-    const empty = publications.filter((row) => !row.coverImageUrl);
-    assert.equal(empty.map((row) => row.slug).join(","), "gt-purely-porsche");
-    assert.ok(withImage.length >= 10);
-    assert.ok(withImage.every((row) => row.coverImageUrl?.startsWith("/print/") && row.imageKind === "cover"));
+    assert.ok(publications.every((row) => row.coverImageUrl?.startsWith("/print/") && row.imageKind === "cover"));
   });
 
   it("leaves purchase CTAs off when shop or subscribe URLs are empty", () => {
     const christophorus = getPrintPublication("christophorus");
-    const ceased = getPrintPublication("gt-purely-porsche");
     const maxers = getPrintPublication("maxers");
-    assert.ok(christophorus && ceased && maxers);
+    assert.ok(christophorus && maxers);
     assert.deepEqual(
       printCtas(christophorus).map((cta) => cta.kind),
       ["site"],
     );
-    assert.deepEqual(printCtas(ceased), []);
     assert.ok(!printCtas(maxers).some((cta) => cta.kind === "subscribe"));
   });
 });
@@ -55,7 +51,7 @@ describe("print on For You", () => {
   it("recommends the brief lists on A–D and featured titles when unfiltered", () => {
     assert.deepEqual(
       printModuleForYou(FOR_YOU_DEMO_PROFILES.B)?.publications.map((row) => row.slug),
-      ["000-magazine", "christophorus", "gt-purely-porsche", "911-and-porsche-world"],
+      ["000-magazine", "christophorus", "911-and-porsche-world"],
     );
     assert.deepEqual(
       printModuleForYou(FOR_YOU_DEMO_PROFILES.C)?.publications.map((row) => row.slug),
@@ -85,14 +81,14 @@ describe("print on category pages", () => {
     assert.deepEqual(culture?.publications.map((row) => row.slug), ["the-road-rat", "magneto", "000-magazine"]);
     assert.deepEqual(cars?.publications.map((row) => row.slug), ["911-and-porsche-world", "auto-italia"]);
     assert.equal(events, null);
-    assert.ok((culture?.publications.length ?? 0) < 12);
+    assert.ok((culture?.publications.length ?? 0) < 11);
   });
 
   it("shows Porsche print on Cars for profile B, not the JDM stack", () => {
     const cars = printModuleForSection("cars", FOR_YOU_DEMO_PROFILES.B);
     assert.deepEqual(
       cars?.publications.map((row) => row.slug),
-      ["000-magazine", "christophorus", "gt-purely-porsche"],
+      ["000-magazine", "christophorus", "911-and-porsche-world"],
     );
     assert.ok(!cars?.publications.some((row) => row.slug === "maxers"));
   });
@@ -110,6 +106,7 @@ describe("print stays off magazine chrome", () => {
 
   it("still orders the full catalogue when asked, without making that a page", () => {
     const ordered = orderPrintCatalogue(loadPrintPublications(), FOR_YOU_DEMO_PROFILES.B);
-    assert.equal(ordered.length, 12);
+    assert.equal(ordered.length, 11);
+    assert.ok(!ordered.some((row) => row.slug === "gt-purely-porsche"));
   });
 });

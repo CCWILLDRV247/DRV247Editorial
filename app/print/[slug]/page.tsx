@@ -70,24 +70,6 @@ export default async function PrintDetailPage({
                 {meta.join(" · ")}
               </p>
             ) : null}
-            <div className="mt-6 flex flex-wrap gap-2">
-              {publication.marques.map((marque) => (
-                <span
-                  key={marque}
-                  className="inline-flex w-fit items-center rounded-[4px] border border-[#1b1d1f] px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-[#1b1d1f]"
-                >
-                  {marque}
-                </span>
-              ))}
-              {publication.interests.map((interest) => (
-                <span
-                  key={interest}
-                  className="inline-flex w-fit items-center rounded-[4px] bg-[#1b1d1f] px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-white"
-                >
-                  {interest}
-                </span>
-              ))}
-            </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {buy ? (
                 <a href={buy.href} target="_blank" rel="noreferrer" className={inkButtonClass}>
