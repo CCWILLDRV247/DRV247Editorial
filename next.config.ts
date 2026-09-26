@@ -83,6 +83,7 @@ const nextConfig: NextConfig = {
       { source: "/for-you", destination: "/", permanent: false },
       { source: "/intelligence/print", destination: "/", permanent: false },
       { source: "/intelligence/print/:slug", destination: "/print/:slug", permanent: false },
+      { source: "/print/gt-purely-porsche", destination: "/", permanent: false },
     ];
   },
 };
