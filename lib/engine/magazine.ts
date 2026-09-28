@@ -1,6 +1,6 @@
 import type { CategoryLane } from "@/components/category-carousel";
 import type { StoryDto } from "@/lib/stories";
-import { unstable_cache, unstable_noStore as noStore } from "next/cache";
+import { unstable_cache } from "next/cache";
 import {
   LEGACY_NAV_TO_PRIMARY,
   MAGAZINE_NAV,
@@ -14,7 +14,6 @@ import { countArticlesByPrimary } from "./article-primary";
 import {
   forYouTestIsActive,
   forYouTestSearchString,
-  parseForYouTestProfile,
   type ForYouTestProfile,
 } from "./for-you-test";
 import { getEditorial, listEditorial, listDeskHomepage, type EditorialDto } from "./queries";
@@ -127,6 +126,34 @@ export function resolveImageUrl(raw: string | null | undefined, baseUrl: string)
   }
 }
 
+export function magazineCacheKey(testProfile?: ForYouTestProfile) {
+  if (testProfile && forYouTestIsActive(testProfile)) {
+    return forYouTestSearchString(testProfile) || "default";
+  }
+  return "default";
+}
+
+const MAGAZINE_TTL_MS = 60_000;
+
+const magazineMemo = globalThis as unknown as {
+  drvMagazineHome?: Map<string, { at: number; value: Awaited<ReturnType<typeof getMagazineHomeFresh>> }>;
+  drvMagazineStories?: Map<string, { at: number; value: StoryDto[] }>;
+};
+
+function memoGet<T>(
+  store: Map<string, { at: number; value: T }> | undefined,
+  key: string,
+  ttl: number,
+): T | undefined {
+  const hit = store?.get(key);
+  if (!hit) return undefined;
+  if (Date.now() - hit.at >= ttl) {
+    store?.delete(key);
+    return undefined;
+  }
+  return hit.value;
+}
+
 export async function listMagazineStories(options?: {
   navSlug?: string;
   testProfile?: ForYouTestProfile;
@@ -136,43 +163,27 @@ export async function listMagazineStories(options?: {
   const limit = options?.limit ?? 24;
   const testProfile =
     options?.testProfile && forYouTestIsActive(options.testProfile) ? options.testProfile : undefined;
-  if (testProfile) {
-    noStore();
-    const articles = await listEditorial({
-      section: navSlug && navSlug !== "for-you" ? navSlug : "for-you",
-      testProfile,
-      limit: 80,
-    });
-    return articles.slice(0, limit).map((article) => toMagazineStory(article));
-  }
   const key = JSON.stringify({
     navSlug,
     limit,
-    profile: "default",
+    profile: magazineCacheKey(testProfile),
   });
-  return unstable_cache(
-    async (cacheKey: string) => {
-      const parsed = JSON.parse(cacheKey) as { navSlug: string; limit: number; profile: string };
-      const testProfile =
-        parsed.profile === "default"
-          ? undefined
-          : parseForYouTestProfile(new URLSearchParams(parsed.profile));
-      const articles = await listEditorial({
-        section: parsed.navSlug && parsed.navSlug !== "for-you" ? parsed.navSlug : "for-you",
-        testProfile,
-        limit: 80,
-      });
-      return articles.slice(0, parsed.limit).map((article) => toMagazineStory(article));
-    },
-    ["magazine-stories"],
-    { revalidate: 60, tags: ["editorial"] },
-  )(key);
+  const cached = memoGet(magazineMemo.drvMagazineStories, key, MAGAZINE_TTL_MS);
+  if (cached) return cached;
+  const articles = await listEditorial({
+    section: navSlug && navSlug !== "for-you" ? navSlug : "for-you",
+    testProfile,
+    limit: 80,
+  });
+  const stories = articles.slice(0, limit).map((article) => toMagazineStory(article));
+  (magazineMemo.drvMagazineStories ??= new Map()).set(key, { at: Date.now(), value: stories });
+  return stories;
 }
 
 export async function getMagazineStory(id: number): Promise<StoryDto | null> {
   return unstable_cache(
     async (articleId: number) => {
-      const article = await getEditorial(articleId);
+      const article = await getEditorial(articleId, { related: false });
       return article ? toMagazineStory(article) : null;
     },
     ["magazine-story"],
@@ -190,19 +201,21 @@ function uniqueStories(stories: StoryDto[]) {
 }
 
 async function getMagazineHomeFresh(testProfile?: ForYouTestProfile, recentIds: readonly string[] = []) {
-  const deskArticles = await listDeskHomepage(3);
+  const personalized = forYouTestIsActive(testProfile ?? { interests: [] });
+  const [deskArticles, ranked] = await Promise.all([
+    listDeskHomepage(3),
+    listEditorial({
+      section: "for-you",
+      testProfile: personalized ? testProfile : undefined,
+      limit: 80,
+    }),
+  ]);
   const picks = uniqueStories(deskArticles.map((article) => toMagazineStory(article)));
   const pickIds = pickArticleIds(
     deskArticles.map((article) => article.desk).filter((desk): desk is NonNullable<typeof desk> => Boolean(desk)),
   );
-  const ranked = await listEditorial({
-    section: "for-you",
-    testProfile: forYouTestIsActive(testProfile ?? { interests: [] }) ? testProfile : undefined,
-    limit: 80,
-  });
   const plan = curateForYouHome(ranked, testProfile, pickIds);
   const byId = new Map(ranked.map((article) => [article.id, article]));
-  const personalized = forYouTestIsActive(testProfile ?? { interests: [] });
   const vehicles =
     personalized && testProfile ? contextFromTestProfile(testProfile).vehicles : [];
   const storyOpts = (lane: ExplanationLane) => ({
@@ -281,20 +294,12 @@ export async function getMagazineHome(
   testProfile?: ForYouTestProfile,
   recentIds: readonly string[] = [],
 ) {
-  if (testProfile && forYouTestIsActive(testProfile)) {
-    noStore();
-    return getMagazineHomeFresh(testProfile, recentIds);
-  }
-  const key = "default";
-  return unstable_cache(
-    async (cacheKey: string) => {
-      const profile =
-        cacheKey === "default" ? undefined : parseForYouTestProfile(new URLSearchParams(cacheKey));
-      return getMagazineHomeFresh(profile, recentIds);
-    },
-    ["magazine-home"],
-    { revalidate: 60, tags: ["editorial"] },
-  )(key);
+  const key = magazineCacheKey(testProfile);
+  const cached = memoGet(magazineMemo.drvMagazineHome, key, MAGAZINE_TTL_MS);
+  if (cached) return cached;
+  const value = await getMagazineHomeFresh(testProfile, recentIds);
+  (magazineMemo.drvMagazineHome ??= new Map()).set(key, { at: Date.now(), value });
+  return value;
 }
 
 export async function getMagazineNav() {
