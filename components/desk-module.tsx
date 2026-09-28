@@ -41,7 +41,7 @@ function DeskPickCard({ story }: { story: StoryDto }) {
   return (
     <div className="w-[218px] shrink-0">
       <MagazineLink href={`/story/${story.id}`} className="block">
-        <PickImageFrame story={story} eager />
+        <PickImageFrame story={story} />
         <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
           {story.title}
         </p>

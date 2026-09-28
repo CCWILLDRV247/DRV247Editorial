@@ -178,6 +178,35 @@ export const loadDeskPickRows = cache(async () => {
   return db.select().from(deskPicks);
 });
 
+type EditorialCorpus = {
+  selected: FeedArticle[];
+  graph: ArticleGraph;
+  deskRows: (typeof deskPicks.$inferSelect)[];
+};
+
+async function loadEditorialCorpusFresh(): Promise<EditorialCorpus> {
+  const db = await getDb();
+  const [selected, graph, deskRows] = await Promise.all([
+    db.select(ARTICLE_FEED_COLUMNS).from(articles).orderBy(desc(articles.publishedAt)),
+    loadArticleGraph(),
+    loadDeskPickRows(),
+  ]);
+  return { selected, graph, deskRows };
+}
+
+const corpusMemo = globalThis as unknown as {
+  drvEditorialCorpus?: { at: number; value: EditorialCorpus };
+};
+
+export async function loadEditorialCorpus() {
+  const now = Date.now();
+  const memo = corpusMemo.drvEditorialCorpus;
+  if (memo && now - memo.at < 60_000) return memo.value;
+  const value = await loadEditorialCorpusFresh();
+  corpusMemo.drvEditorialCorpus = { at: now, value };
+  return value;
+}
+
 function emptyExtras() {
   return {
     makes: [] as string[],
@@ -384,11 +413,7 @@ export async function listEditorial(options?: {
   limit?: number;
 }): Promise<EditorialDto[]> {
   const db = await getDb();
-  const [selected, graph, deskRows] = await Promise.all([
-    db.select(ARTICLE_FEED_COLUMNS).from(articles).orderBy(desc(articles.publishedAt)),
-    loadArticleGraph(),
-    loadDeskPickRows(),
-  ]);
+  const { selected, graph, deskRows } = await loadEditorialCorpus();
   const deskMap = liveDeskByArticle(deskRows);
   let rows = selected;
   if (options?.sourceId) rows = rows.filter((row) => row.sourceId === options.sourceId);
@@ -597,17 +622,21 @@ function personalizedForYou(useTestProfile: boolean, curated: boolean) {
   return useTestProfile && curated;
 }
 
-export async function getEditorial(id: number): Promise<EditorialDto | null> {
+export async function getEditorial(
+  id: number,
+  options?: { related?: boolean },
+): Promise<EditorialDto | null> {
   const db = await getDb();
   const article = (
     await db.select(ARTICLE_FEED_COLUMNS).from(articles).where(eq(articles.id, id)).limit(1)
   )[0];
   if (!article) return null;
+  const includeRelated = options?.related !== false;
   const [sourceRows, extrasMap, primaryMap, related, deskRows] = await Promise.all([
     db.select().from(mediaSources).where(eq(mediaSources.id, article.sourceId)).limit(1),
     extrasByArticleIds([article.id]),
     loadArticlePrimaries([article.id]),
-    relatedForArticle(article.id),
+    includeRelated ? relatedForArticle(article.id) : Promise.resolve([]),
     loadDeskPickRows(),
   ]);
   const desk = liveDeskByArticle(deskRows).get(article.id) ?? null;
@@ -664,12 +693,71 @@ export async function listDeskHomepage(limit = 3): Promise<EditorialDto[]> {
     limit,
   );
   if (!picks.length) return [];
-  const byId = new Map(picks.map((pick) => [pick.articleId, pick]));
+  const ids = picks.map((pick) => pick.articleId);
+  const byPick = new Map(picks.map((pick) => [pick.articleId, pick]));
+  const db = await getDb();
+  const [selected, extrasMap, primaryMap] = await Promise.all([
+    db.select(ARTICLE_FEED_COLUMNS).from(articles).where(inArray(articles.id, ids)),
+    extrasByArticleIds(ids),
+    loadArticlePrimaries(ids),
+  ]);
+  const sourceIds = [...new Set(selected.map((row) => row.sourceId))];
+  const sourceRows = sourceIds.length
+    ? await db.select().from(mediaSources).where(inArray(mediaSources.id, sourceIds))
+    : [];
+  const sourceMap = new Map(sourceRows.map((row) => [row.id, row]));
+  const byId = new Map(selected.map((row) => [row.id, row]));
   const rows: EditorialDto[] = [];
   for (const pick of picks) {
-    const article = await getEditorial(pick.articleId);
+    const article = byId.get(pick.articleId);
     if (!article) continue;
-    rows.push({ ...article, desk: byId.get(pick.articleId) ?? article.desk });
+    const desk = byPick.get(pick.articleId) ?? null;
+    const eligibility = evaluateEditorialEligibility({
+      url: article.url,
+      canonicalUrl: article.canonicalUrl,
+      title: article.title,
+      excerpt: article.excerpt,
+      sourceId: article.sourceId,
+      sourceUrl: sourceMap.get(article.sourceId)?.url,
+      deskPick: Boolean(desk),
+    });
+    if (!eligibility.editorialEligible) continue;
+    const extras = extrasMap.get(article.id) ?? emptyExtras();
+    const source = sourceMap.get(article.sourceId);
+    const rankScore = scoreArticle({
+      ...extras,
+      excerpt: article.excerpt,
+      relevance: editorialSourceRelevance({
+        relevance: source?.relevance,
+        sourceType: source?.sourceType ?? (article.ingestionMethod === "youtube" ? "youtube" : null),
+        url: source?.url,
+        channelId: source?.channelId,
+      }),
+      vehicles: [],
+      userInterests: [],
+      deskPick: Boolean(desk),
+    });
+    const snap = parseClassificationSnapshot(article.metadata);
+    const primaryCategory =
+      primaryMap.get(article.id) ??
+      classifyPrimary({
+        title: article.title,
+        excerpt: article.excerpt,
+        publication: article.publication,
+        categories: extras.categories,
+        interests: extras.interests,
+      });
+    rows.push(
+      toDto(article, {
+        ...extras,
+        rankScore,
+        primaryCategory,
+        classification: snap,
+        desk,
+        editorialEligible: eligibility.editorialEligible,
+        editorialExclusionReason: eligibility.editorialExclusionReason,
+      }),
+    );
   }
   return rows;
 }

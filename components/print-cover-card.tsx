@@ -24,6 +24,8 @@ export function PrintCoverCard({
           <img
             src={image}
             alt=""
+            loading="lazy"
+            decoding="async"
             className={
               publication.imageKind === "logo"
                 ? "absolute inset-0 h-full w-full object-contain p-6 md:p-8"
