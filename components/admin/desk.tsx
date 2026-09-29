@@ -140,7 +140,7 @@ export function AdminDesk({ categories, sources, stories }: Props) {
             Editorial desk
           </h1>
           <p className="mt-2 max-w-xl text-sm text-[#1b1d1f]/70">
-            This branch&apos;s ingest is the culture engine (74 live titles: original catalogue minus the dark list, plus 28 underground Priority titles). The leftover v1 RSS
+            This branch&apos;s ingest is the culture engine (75 live titles: original catalogue minus the dark list, plus 28 underground Priority titles and Type 7 stories). The leftover v1 RSS
             sources below (Motorsport, RACER, Jalopnik…) are not that pipeline.
           </p>
         </div>

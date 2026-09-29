@@ -884,6 +884,23 @@
     "rss_confidence": "verified"
   },
   {
+    "id": "auto_055",
+    "publication": "Type 7",
+    "country": "UK",
+    "url": "https://type7.com",
+    "rss_available": "yes",
+    "rss_url": "https://type7.com/blogs/stories.atom",
+    "website_available": "yes",
+    "scrape_difficulty": "low",
+    "editorial_category": "Porsche-adjacent culture; film; fashion; craft; people",
+    "marques_covered": "Porsche; Japanese craft/culture crossovers; broad enthusiast",
+    "drv247_relevance": "Excellent: the Magneto/Bonnet instinct applied to Porsche people, craft and film",
+    "enabled": true,
+    "source_type": "rss",
+    "rss_verified_status": "confirmed",
+    "rss_confidence": "verified"
+  },
+  {
     "id": "auto_057",
     "publication": "Japanese Nostalgic Car",
     "country": "USA",

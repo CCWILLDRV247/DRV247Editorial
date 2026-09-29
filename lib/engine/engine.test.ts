@@ -90,6 +90,16 @@ describe("sitemap", () => {
     assert.equal(looksLikeArticleUrl("https://example.com/cart", "https://example.com"), false);
     assert.equal(looksLikeArticleUrl("https://example.com/merch", "https://example.com"), false);
     assert.equal(looksLikeArticleUrl("https://example.com/checkout", "https://example.com"), false);
+    assert.equal(
+      looksLikeArticleUrl("https://type7.com/products/type-7-guide-to-london", "https://type7.com"),
+      false,
+    );
+    assert.equal(looksLikeArticleUrl("https://type7.com/collections/all", "https://type7.com"), false);
+    assert.equal(looksLikeArticleUrl("https://type7.com/blogs/stories", "https://type7.com"), false);
+    assert.equal(
+      looksLikeArticleUrl("https://type7.com/blogs/stories/once-in-a-lifetime-find", "https://type7.com"),
+      true,
+    );
     assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/undefined", "https://www.pistonheads.com"), false);
     assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/news", "https://www.pistonheads.com"), false);
     assert.equal(looksLikeArticleUrl("https://www.pistonheads.com/buy/auctions", "https://www.pistonheads.com"), false);
@@ -407,8 +417,8 @@ describe("enabled sources", () => {
     assert.equal(WAVE3_SOURCE_IDS.length, 10);
     assert.equal(WAVE4_SOURCE_IDS.length, 10);
     assert.equal(WAVE5_SOURCE_IDS.length, 9);
-    assert.equal(UNDERGROUND_SOURCE_IDS.length, 28);
-    assert.equal(ENABLED_SOURCE_IDS.length, 74);
+    assert.equal(UNDERGROUND_SOURCE_IDS.length, 29);
+    assert.equal(ENABLED_SOURCE_IDS.length, 75);
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
     assert.ok((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_022"));
     assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_022"), false);
@@ -418,6 +428,7 @@ describe("enabled sources", () => {
     assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_048"), false);
     assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_049"), false);
     assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_054"));
+    assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_055"));
     assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_103"));
     assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_131"));
     assert.equal((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_011"), false);
@@ -444,13 +455,17 @@ describe("enabled sources", () => {
     assert.equal(ENABLED_SOURCE_SET.has("auto_035"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_044"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_054"), true);
+    assert.equal(ENABLED_SOURCE_SET.has("auto_055"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_095"), true);
     const csv = loadCsvSources();
-    assert.equal(csv.length, 79);
+    assert.equal(csv.length, 80);
     const byId = new Map(csv.map((row) => [row.id, row]));
     assert.equal(byId.get("auto_022")?.publication, "Fast Car");
     assert.equal(byId.get("auto_054")?.publication, "Petrolicious");
     assert.equal(byId.get("auto_054")?.enabled.toLowerCase(), "true");
+    assert.equal(byId.get("auto_055")?.publication, "Type 7");
+    assert.equal(byId.get("auto_055")?.rss_url, "https://type7.com/blogs/stories.atom");
+    assert.equal(byId.get("auto_055")?.enabled.toLowerCase(), "true");
     assert.equal(byId.get("auto_103")?.publication, "Classic Cars");
     assert.equal(byId.get("auto_111")?.publication, "Engine Swap Depot");
     assert.equal(byId.has("auto_052"), false);
@@ -463,6 +478,31 @@ describe("merch exclusion", () => {
     const { isMerchUrl, isMerchArticle } = await import("./merch");
     const { MERCH_SOURCE_POLICY, MERCH_PATH_SEGMENTS } = await import("../../config/merch");
     assert.equal(MERCH_SOURCE_POLICY.auto_013.action, "disable");
+    assert.equal(MERCH_SOURCE_POLICY.auto_055.action, "editorial-rss");
+    if (MERCH_SOURCE_POLICY.auto_055.action === "editorial-rss") {
+      assert.equal(MERCH_SOURCE_POLICY.auto_055.rssUrl, "https://type7.com/blogs/stories.atom");
+    }
+    assert.equal(isMerchUrl("https://type7.com/products/type-7-guide-to-london"), true);
+    assert.equal(isMerchUrl("https://type7.com/products/type-7-enamel-pin"), true);
+    assert.equal(isMerchUrl("https://type7.com/collections/all"), true);
+    assert.equal(isMerchUrl("https://type7.com/cart"), true);
+    assert.equal(isMerchUrl("https://type7.com/blogs/stories/once-in-a-lifetime-find"), false);
+    assert.equal(
+      isMerchArticle({
+        sourceId: "auto_055",
+        url: "https://type7.com/products/type-7-guide-to-london",
+        canonicalUrl: "https://type7.com/products/type-7-guide-to-london",
+      }),
+      true,
+    );
+    assert.equal(
+      isMerchArticle({
+        sourceId: "auto_055",
+        url: "https://type7.com/blogs/stories/same-car-different-decade",
+        canonicalUrl: "https://type7.com/blogs/stories/same-car-different-decade",
+      }),
+      false,
+    );
     for (const segment of [
       "shop",
       "product",
@@ -613,6 +653,16 @@ describe("non-editorial url skip", () => {
       isNonEditorialUrl("https://engineswapdepot.com/?p=153222", "https://engineswapdepot.com"),
       false,
     );
+    assert.equal(isUnusableArticleUrl("https://type7.com/blogs/stories"), true);
+    assert.equal(isUnusableArticleUrl("https://type7.com/blogs/stories/"), true);
+    assert.equal(isNonEditorialUrl("https://type7.com/blogs/stories", "https://type7.com"), true);
+    assert.equal(
+      isNonEditorialUrl(
+        "https://type7.com/blogs/stories/once-in-a-lifetime-find",
+        "https://type7.com",
+      ),
+      false,
+    );
     assert.equal(isUnusableArticleUrl("https://bonnetmagazine.com/pages/articles"), true);
     assert.equal(isUnusableArticleUrl("https://bonnetmagazine.com/pages/articles/"), true);
     assert.equal(
@@ -759,6 +809,54 @@ describe("editorial eligibility gate", () => {
         excerpt: "We drove the latest Turbo S on track.",
         sourceId: "auto_020",
         sourceUrl: "https://www.pistonheads.com",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://type7.com/products/type-7-guide-to-london",
+        canonicalUrl: "https://type7.com/products/type-7-guide-to-london",
+        title: "Type 7 Guide to London",
+        excerpt: "A printed guide from the Type 7 shop.",
+        sourceId: "auto_055",
+        sourceUrl: "https://type7.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "commerce" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://type7.com/blogs/stories",
+        canonicalUrl: "https://type7.com/blogs/stories",
+        title: "Stories",
+        excerpt: "Type 7 stories.",
+        sourceId: "auto_055",
+        sourceUrl: "https://type7.com",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "category_page" },
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://type7.com/blogs/stories/once-in-a-lifetime-find",
+        canonicalUrl: "https://type7.com/blogs/stories/once-in-a-lifetime-find",
+        title: "Once in a Lifetime Find",
+        excerpt: "A genuine factory-built 935.",
+        sourceId: "auto_055",
+        sourceUrl: "https://type7.com",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://type7.com/blogs/stories/same-car-different-decade",
+        canonicalUrl: "https://type7.com/blogs/stories/same-car-different-decade",
+        title: "Not for sale: same car, different decade",
+        excerpt: "Good cars are those you remember for their performance.",
+        sourceId: "auto_055",
+        sourceUrl: "https://type7.com",
       }).editorialEligible,
       true,
     );
