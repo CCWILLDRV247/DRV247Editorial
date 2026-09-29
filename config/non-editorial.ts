@@ -31,11 +31,13 @@ export const UNUSABLE_PATH_SEGMENTS = ["undefined", "null"] as const;
  * `/cars/dealers` and `/cars/categories` are listing indexes, not teasers.
  * `/calendar` and `/clubs-listings` are Classic & Sports Car directories.
  * `/vans` is a marketplace inventory root (Carwow). `/vans/leasing` is caught as a marketplace leaf.
+ * `/blogs/stories` is Type 7’s Shopify blog index. `/blogs/stories/slug` stays.
  */
 export const NON_ARTICLE_EXACT_PATHS = [
   "/",
   "/news",
   "/blog",
+  "/blogs/stories",
   "/cars",
   "/cars/makes",
   "/cars/dealers",

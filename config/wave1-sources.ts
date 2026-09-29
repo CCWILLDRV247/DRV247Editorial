@@ -70,9 +70,10 @@ export const WAVE5_SOURCE_IDS = [
   "auto_050", // 911 & Porsche World
 ] as const;
 
-/** Underground Priority titles. Research further / Manual only / Reference only stay out. Fast Car is already live. Dark list stays off. */
+/** Underground Priority titles plus Type 7 stories. Research further / Manual only stay out. Type 7 was Reference only until the Shopify stories Atom feed was found. Fast Car is already live. Dark list stays off. */
 export const UNDERGROUND_SOURCE_IDS = [
   "auto_054", // Petrolicious
+  "auto_055", // Type 7 — stories.atom only; shop/products skipped
   "auto_057", // Japanese Nostalgic Car
   "auto_059", // Performance VW
   "auto_061", // Fuel Curve

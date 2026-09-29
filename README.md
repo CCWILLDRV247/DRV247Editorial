@@ -1,6 +1,6 @@
 # DRV247 Editorial
 
-UK/EU automotive culture desk. Seventy-four live culture titles: the original CSV minus the dark list, plus 28 underground Priority titles. Flat 6, AUTOMOBILSPORT, 9WERKS, and EuroStance stay dark — EuroStance is a shop; 9WERKS is paywalled. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled but Cloudflare 403s. Teasers and outbound links only — never full article bodies. Ingest keeps English teasers, skips non-English items, and skips shop URLs. User-facing nav is For You, Cars, Culture, Driving, and Events. Motorsport is taxonomy-only, not on the primary bar. Vehicle Intelligence lives at `/intelligence` and is not linked from the homepage.
+UK/EU automotive culture desk. Seventy-five live culture titles: the original CSV minus the dark list, plus 28 underground Priority titles and Type 7 stories (`https://type7.com/blogs/stories.atom`). Type 7’s Shopify shop (magazines, merch, `/products`, collections) is not ingested. Flat 6, AUTOMOBILSPORT, 9WERKS, and EuroStance stay dark — EuroStance is a shop; 9WERKS is paywalled. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled but Cloudflare 403s. Teasers and outbound links only — never full article bodies. Ingest keeps English teasers, skips non-English items, and skips shop URLs. User-facing nav is For You, Cars, Culture, Driving, and Events. Motorsport is taxonomy-only, not on the primary bar. Vehicle Intelligence lives at `/intelligence` and is not linked from the homepage.
 
 ## Run locally
 
@@ -64,7 +64,7 @@ Get a key: Google Cloud → enable **YouTube Data API v3** → create an API key
 
 ## Ingest
 
-Desk **Ingest now** runs the enabled culture pipeline (74 titles plus any YouTube channels). Non-English items are skipped; shop/product/collection/cart/merch URLs are skipped; auction and subscribe paths, empty or `/undefined` URLs, and off-site magazine-shop canonicals are skipped; mixed-language titles such as ramp stay enabled. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
+Desk **Ingest now** runs the enabled culture pipeline (75 titles plus any YouTube channels). Non-English items are skipped; shop/product/collection/cart/merch URLs are skipped; auction and subscribe paths, empty or `/undefined` URLs, and off-site magazine-shop canonicals are skipped; mixed-language titles such as ramp stay enabled. Type 7 is pinned to the stories Atom feed so shop URLs never become the source. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
 Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds. Magazine pages cache for 60 seconds (`s-maxage=60`, stale-while-revalidate 300).
 

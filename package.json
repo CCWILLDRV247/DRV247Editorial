@@ -17,6 +17,7 @@
     "ingest:wave4": "tsx scripts/ingest-wave4.ts",
     "ingest:wave5": "tsx scripts/ingest-wave5.ts",
     "ingest:wave6": "tsx scripts/ingest-wave6.ts",
+    "ingest:type7": "tsx scripts/ingest-type7.ts",
     "extract:summaries": "tsx scripts/extract-summaries.ts",
     "purge:non-english": "tsx scripts/purge-non-english.ts",
     "purge:merch": "tsx scripts/purge-merch.ts",

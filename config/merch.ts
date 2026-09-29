@@ -8,6 +8,11 @@ export const MERCH_SOURCE_POLICY: Record<string, MerchSourcePolicy> = {
     action: "disable",
     reason: "EuroStance is a Shopify storefront with no editorial RSS",
   },
+  auto_055: {
+    action: "editorial-rss",
+    rssUrl: "https://type7.com/blogs/stories.atom",
+    reason: "Type 7 is a Shopify storefront; ingest the stories blog only, never products or collections",
+  },
 };
 
 export const SHOP_DISABLED_SOURCE_IDS = Object.entries(MERCH_SOURCE_POLICY)
