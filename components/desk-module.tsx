@@ -63,7 +63,6 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
     <section
       className={`${HOMEPAGE_COMPOSITION.picksBand} ${HOMEPAGE_COMPOSITION.picksAboveHeading}`}
     >
-      <div aria-hidden className={HOMEPAGE_COMPOSITION.picksBandFill} />
       <div className={PAGE_GUTTER}>
         <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
           {PICKS_SECTION_HEADING}

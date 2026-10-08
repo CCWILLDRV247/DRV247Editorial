@@ -22,7 +22,7 @@ describe("editorial composition", () => {
   });
 
   it("paints Picks as a full-width light grey band", () => {
-    assert.match(HOMEPAGE_COMPOSITION.picksBandFill, /w-screen/);
-    assert.match(HOMEPAGE_COMPOSITION.picksBandFill, /bg-\[#f6f6f6\]/);
+    assert.match(HOMEPAGE_COMPOSITION.picksBand, /bg-\[#f6f6f6\]/);
+    assert.match(HOMEPAGE_COMPOSITION.picksBand, /shadow-\[100vw_0_0_0_#f6f6f6/);
   });
 });

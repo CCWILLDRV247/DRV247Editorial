@@ -34,9 +34,8 @@ export const HOMEPAGE_COMPOSITION = {
   /** Parent pageGap + this = heroGap before the Picks heading (72px / 88px). */
   picksAboveHeading: "mt-4 md:mt-4",
   /** Full-width Picks band — magazine light grey `#f6f6f6`, not a card tint. */
-  picksBand: "relative z-10 min-w-0 py-8 md:py-10",
-  picksBandFill:
-    "pointer-events-none absolute inset-y-0 left-1/2 z-0 w-screen max-w-[100vw] -translate-x-1/2 bg-[#f6f6f6]",
+  picksBand:
+    "relative z-10 min-w-0 overflow-visible bg-[#f6f6f6] py-8 md:py-10 shadow-[100vw_0_0_0_#f6f6f6,-100vw_0_0_0_#f6f6f6]",
   /** Matches SectionIntro dek — e.g. “Ferrari F355 GTB · Classic · Performance”. */
   sectionTitle:
     "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f]",
