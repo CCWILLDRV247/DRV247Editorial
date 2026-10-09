@@ -22,7 +22,7 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
-import { nameListingForStoryBack } from "@/lib/engine/start-story-view-transition";
+import { armStoryBackTransition, nameListingForStoryBack } from "@/lib/engine/start-story-view-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
 
@@ -126,8 +126,7 @@ export function MagazineBack({
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
     router.prefetch(previous);
-    // Pop the listing. A wrapped back() is ignored in Safari; a push
-    // stacks a second copy. Next.js popstate owns the reverse motion.
+    armStoryBackTransition(previous);
     window.history.back();
   }
 

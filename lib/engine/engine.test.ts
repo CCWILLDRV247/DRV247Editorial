@@ -1483,13 +1483,15 @@ describe("for you test profile", () => {
     assert.match(runtime, /document\.startViewTransition/);
     assert.match(src, /recordMagazineHref/);
     assert.match(back, /window\.history\.back\(\)/);
+    assert.match(back, /armStoryBackTransition/);
     assert.doesNotMatch(back, /document\.startViewTransition/);
     assert.doesNotMatch(back, /runStoryBackTransition/);
     assert.doesNotMatch(back, /router\.push\(previous/);
     assert.doesNotMatch(back, /router\.replace/);
-    assert.match(back, /nameListingForStoryBack/);
+    assert.match(runtime, /armStoryBackTransition/);
+    assert.match(runtime, /history\.back\(\) \*outside\*/);
+    assert.match(runtime, /popstate/);
     assert.match(runtime, /applyLastStoryMediaName/);
-    assert.match(runtime, /nameListingForStoryBack/);
     const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
     const autoSubmit = readFileSync(
       new URL("../../components/for-you-test-auto-submit.tsx", import.meta.url),

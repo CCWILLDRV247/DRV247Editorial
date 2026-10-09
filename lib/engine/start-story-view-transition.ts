@@ -1,4 +1,4 @@
-import { LAST_STORY_MEDIA_KEY, STORY_MEDIA_NAME } from "./story-transition";
+import { LAST_STORY_MEDIA_KEY, STORY_BACK_TRANSITION, STORY_MEDIA_NAME } from "./story-transition";
 
 /** Same-document view transition used by card open and chevron back. */
 
@@ -74,4 +74,40 @@ function setViewTransitionClass(node: Element | null, className: string) {
 export function nameListingForStoryBack() {
   applyLastStoryMediaName();
   setViewTransitionClass(document.querySelector("main"), "story-feed");
+}
+
+let pendingStoryBackPath: string | null = null;
+
+/**
+ * Arm reverse motion, then the caller must history.back() *outside*
+ * startViewTransition. The capture popstate starts the only VT; wrapping
+ * back() inside the update is ignored in Safari.
+ */
+export function armStoryBackTransition(previousHref: string) {
+  pendingStoryBackPath = previousHref.split("?")[0] || previousHref;
+  setViewTransitionClass(document.querySelector("article"), "story-copy");
+}
+
+function onStoryBackPopState() {
+  const destPath = pendingStoryBackPath;
+  if (!destPath) return;
+  pendingStoryBackPath = null;
+  void startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
+    await waitForMagazinePaint(
+      () =>
+        window.location.pathname === destPath &&
+        Boolean(document.querySelector("[data-story-media]")),
+    );
+    nameListingForStoryBack();
+  });
+}
+
+const BACK_POP_FLAG = "__drv247StoryBackPop";
+
+if (typeof window !== "undefined") {
+  const scoped = window as Window & { [BACK_POP_FLAG]?: boolean };
+  if (!scoped[BACK_POP_FLAG]) {
+    scoped[BACK_POP_FLAG] = true;
+    window.addEventListener("popstate", onStoryBackPopState, true);
+  }
 }
