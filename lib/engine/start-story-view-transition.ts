@@ -1,8 +1,4 @@
-import {
-  LAST_STORY_MEDIA_KEY,
-  STORY_BACK_TRANSITION,
-  STORY_MEDIA_NAME,
-} from "./story-transition";
+import { LAST_STORY_MEDIA_KEY, STORY_MEDIA_NAME } from "./story-transition";
 
 /** Same-document view transition used by card open and chevron back. */
 
@@ -74,24 +70,8 @@ function setViewTransitionClass(node: Element | null, className: string) {
   if ("viewTransitionClass" in style) style.viewTransitionClass = className;
 }
 
-/**
- * Reverse morph for the chevron. Call `navigate` synchronously at the start
- * of the update — same as story-open + router.push. Awaiting before navigate
- * lets React start a second view transition; Safari aborts the first and the
- * reverse never plays. Do not wrap history.back() in startViewTransition
- * (ignored, stays on the story) and do not call it after starting one (skips).
- */
-export function runStoryBackTransition(previousHref: string, navigate: () => void) {
-  const destPath = previousHref.split("?")[0] || previousHref;
-  setViewTransitionClass(document.querySelector("article"), "story-copy");
-  return startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
-    navigate();
-    await waitForMagazinePaint(
-      () =>
-        window.location.pathname === destPath &&
-        Boolean(document.querySelector("[data-story-media]")),
-    );
-    applyLastStoryMediaName();
-    setViewTransitionClass(document.querySelector("main"), "story-feed");
-  });
+/** Used by listing layout after a chevron pop so the opened card remorphs. */
+export function nameListingForStoryBack() {
+  applyLastStoryMediaName();
+  setViewTransitionClass(document.querySelector("main"), "story-feed");
 }

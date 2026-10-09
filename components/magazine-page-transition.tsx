@@ -1,15 +1,12 @@
 import type { ReactNode } from "react";
 import { ViewTransition } from "react";
-import {
-  STORY_BACK_TRANSITION,
-  STORY_OPEN_TRANSITION,
-} from "@/lib/engine/story-transition";
+import { STORY_OPEN_TRANSITION } from "@/lib/engine/story-transition";
 
 /** Fade the For You / category feed out on story-open and back in on chevron pop. */
 export function MagazinePageTransition({ children }: { children: ReactNode }) {
   return (
     <ViewTransition
-      enter={{ [STORY_BACK_TRANSITION]: "story-feed", default: "none" }}
+      enter="story-feed"
       exit={{ [STORY_OPEN_TRANSITION]: "story-feed", default: "none" }}
       default="none"
     >

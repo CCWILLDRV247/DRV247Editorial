@@ -1,9 +1,7 @@
 "use client";
 
 import {
-  addTransitionType,
   createContext,
-  startTransition,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -24,8 +22,7 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
-import { applyLastStoryMediaName, runStoryBackTransition } from "@/lib/engine/start-story-view-transition";
-import { STORY_BACK_TRANSITION } from "@/lib/engine/story-transition";
+import { nameListingForStoryBack } from "@/lib/engine/start-story-view-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
 
@@ -55,7 +52,7 @@ function MagazineHistorySync() {
   const pathname = usePathname();
   useLayoutEffect(() => {
     if (pathname === "/" || pathname.startsWith("/category/")) {
-      applyLastStoryMediaName();
+      nameListingForStoryBack();
     }
   }, [pathname]);
   useEffect(() => {
@@ -129,12 +126,9 @@ export function MagazineBack({
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
     router.prefetch(previous);
-    void runStoryBackTransition(previous, () => {
-      startTransition(() => {
-        addTransitionType(STORY_BACK_TRANSITION);
-        router.push(previous, { transitionTypes: [STORY_BACK_TRANSITION] });
-      });
-    });
+    // Pop the listing. A wrapped back() is ignored in Safari; a push
+    // stacks a second copy. Next.js popstate owns the reverse motion.
+    window.history.back();
   }
 
   return (
