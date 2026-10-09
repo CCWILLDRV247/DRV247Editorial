@@ -151,6 +151,8 @@ At ingest, fetch the original URL and persist a short extract (standfirst / meta
 
 Each row records the method actually used, HTTP status, and last error. Ranking weights live in `config/ranking.json` (not hardcoded).
 
+Weekly cron is sequential and resume-based. Mondays still start at 06:00 UTC (`/api/cron/ingest`). Follow-up jobs at 06:06, 06:21, 06:27, and 06:33 hit `/api/cron/ingest-2`…`ingest-5`. Each slot writes `ingestion_runs.status = running` before a source and `ok` / `error` when that source finishes. The next slot skips terminal rows from this Monday window and continues the wave list. A row left `running` past 300s is marked `timeout` and retried. Slots never ingest two sources at once: title-dedup in `persistItems` is in-memory, so parallel is not safe. Intelligence stays at 06:15 UTC, in the gap between editorial slots 2 and 3.
+
 Demo garage users (`demo-chris` Porsche 911 964, `demo-355` Ferrari F355, `demo-m3` BMW M3 E46) stand in until the mobile app user/vehicle models exist.
 
 ## API

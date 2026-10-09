@@ -71,6 +71,55 @@ export type SourceIngestResult = {
   usedMock: boolean;
 };
 
+async function openIngestRun(
+  sourceId: string,
+  startedAt: number,
+  method: string | null = null,
+): Promise<number> {
+  const db = await getDb();
+  const rows = await db
+    .insert(ingestionRuns)
+    .values({
+      sourceId,
+      startedAt,
+      finishedAt: null,
+      method,
+      status: "running",
+      httpStatus: null,
+      errorMessage: null,
+      fetched: 0,
+      inserted: 0,
+    })
+    .returning({ id: ingestionRuns.id });
+  return rows[0].id;
+}
+
+async function closeIngestRun(
+  runId: number,
+  fields: {
+    method: string | null;
+    status: string;
+    httpStatus: number | null;
+    errorMessage: string | null;
+    fetched: number;
+    inserted: number;
+  },
+): Promise<void> {
+  const db = await getDb();
+  await db
+    .update(ingestionRuns)
+    .set({
+      finishedAt: Date.now(),
+      method: fields.method,
+      status: fields.status,
+      httpStatus: fields.httpStatus,
+      errorMessage: fields.errorMessage,
+      fetched: fields.fetched,
+      inserted: fields.inserted,
+    })
+    .where(eq(ingestionRuns.id, runId));
+}
+
 export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngestResult[]> {
   const db = await getDb();
   await purgeNonEnglishArticles();
@@ -102,6 +151,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
     return ingestYoutubeMediaSource(source);
   }
 
+  const runId = await openIngestRun(source.id, startedAt);
   try {
     const rss = await tryRss(source);
     httpStatus = rss.status;
@@ -153,10 +203,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
     const { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial } =
       await persistItems(source, items, method ?? "none");
     const ok = items.length > 0;
-    await db.insert(ingestionRuns).values({
-      sourceId: source.id,
-      startedAt,
-      finishedAt: Date.now(),
+    await closeIngestRun(runId, {
       method,
       status: ok ? "ok" : "error",
       httpStatus,
@@ -202,10 +249,7 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
     };
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : "Ingest failed";
-    await db.insert(ingestionRuns).values({
-      sourceId: source.id,
-      startedAt,
-      finishedAt: Date.now(),
+    await closeIngestRun(runId, {
       method,
       status: "error",
       httpStatus,
@@ -244,6 +288,7 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
   const db = await getDb();
   const startedAt = Date.now();
   let usedMock = false;
+  const runId = await openIngestRun(source.id, startedAt, "youtube");
   try {
     const raw =
       (source.channelId && !source.channelId.startsWith("mock_")
@@ -257,10 +302,7 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
     if (usedMock) {
       const note =
         "Skipped mock YouTube persist. Set YOUTUBE_API_KEY to ingest live uploads.";
-      await db.insert(ingestionRuns).values({
-        sourceId: source.id,
-        startedAt,
-        finishedAt: Date.now(),
+      await closeIngestRun(runId, {
         method: "youtube",
         status: "error",
         httpStatus: null,
@@ -308,10 +350,7 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
     const { inserted, summarized, skippedNonEnglish, skippedMerch, skippedNonEditorial } =
       await persistItems(source, items, "youtube");
     const ok = items.length > 0;
-    await db.insert(ingestionRuns).values({
-      sourceId: source.id,
-      startedAt,
-      finishedAt: Date.now(),
+    await closeIngestRun(runId, {
       method: "youtube",
       status: ok ? "ok" : "error",
       httpStatus: 200,
@@ -357,10 +396,7 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
     };
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : "YouTube ingest failed";
-    await db.insert(ingestionRuns).values({
-      sourceId: source.id,
-      startedAt,
-      finishedAt: Date.now(),
+    await closeIngestRun(runId, {
       method: "youtube",
       status: "error",
       httpStatus: null,
