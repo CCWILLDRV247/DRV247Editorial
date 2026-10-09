@@ -128,15 +128,11 @@ export function MagazineBack({
     if (!shouldPopMagazineHistory(previous)) return;
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
-    if (typeof document.startViewTransition !== "function") {
-      window.history.back();
-      return;
-    }
     router.prefetch(previous);
     void runStoryBackTransition(previous, () => {
       startTransition(() => {
         addTransitionType(STORY_BACK_TRANSITION);
-        router.replace(previous, { transitionTypes: [STORY_BACK_TRANSITION] });
+        router.push(previous, { transitionTypes: [STORY_BACK_TRANSITION] });
       });
     });
   }

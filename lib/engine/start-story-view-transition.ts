@@ -75,19 +75,17 @@ function setViewTransitionClass(node: Element | null, className: string) {
 }
 
 /**
- * Reverse morph for the chevron. Navigate inside `update` with router.replace
- * (same as story-open + router.push). Wrapping history.back() inside
- * startViewTransition is ignored and stays on the story. Calling
- * history.back() *outside* after startViewTransition skips the animation.
+ * Reverse morph for the chevron. Call `navigate` synchronously at the start
+ * of the update — same as story-open + router.push. Awaiting before navigate
+ * lets React start a second view transition; Safari aborts the first and the
+ * reverse never plays. Do not wrap history.back() in startViewTransition
+ * (ignored, stays on the story) and do not call it after starting one (skips).
  */
-export function runStoryBackTransition(
-  previousHref: string,
-  update: () => void | Promise<void>,
-) {
+export function runStoryBackTransition(previousHref: string, navigate: () => void) {
   const destPath = previousHref.split("?")[0] || previousHref;
   setViewTransitionClass(document.querySelector("article"), "story-copy");
   return startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
-    await Promise.resolve(update());
+    navigate();
     await waitForMagazinePaint(
       () =>
         window.location.pathname === destPath &&
