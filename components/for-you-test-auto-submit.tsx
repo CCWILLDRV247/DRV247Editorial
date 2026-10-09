@@ -9,13 +9,12 @@ export function ForYouTestAutoSubmit() {
   useEffect(() => {
     const form = document.getElementById(FORM_ID);
     if (!(form instanceof HTMLFormElement)) return;
-    const submit = () => {
-      form.requestSubmit();
+    const onChange = (event: Event) => {
+      if (event.target instanceof HTMLSelectElement) form.requestSubmit();
     };
-    const selects = [...form.querySelectorAll("select")];
-    for (const select of selects) select.addEventListener("change", submit);
+    form.addEventListener("change", onChange);
     return () => {
-      for (const select of selects) select.removeEventListener("change", submit);
+      form.removeEventListener("change", onChange);
     };
   }, []);
   return null;

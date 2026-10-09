@@ -6,11 +6,12 @@ import {
   startTransition,
   useContext,
   useEffect,
+  useLayoutEffect,
   type AnchorHTMLAttributes,
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   MAGAZINE_HISTORY_KEY,
   isMagazinePath,
@@ -23,7 +24,7 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
-import { runStoryBackTransition } from "@/lib/engine/start-story-view-transition";
+import { applyLastStoryMediaName, runStoryBackTransition } from "@/lib/engine/start-story-view-transition";
 import { STORY_BACK_TRANSITION } from "@/lib/engine/story-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
@@ -52,6 +53,11 @@ export function recordMagazineHref(href: string) {
 
 function MagazineHistorySync() {
   const pathname = usePathname();
+  useLayoutEffect(() => {
+    if (pathname === "/" || pathname.startsWith("/category/")) {
+      applyLastStoryMediaName();
+    }
+  }, [pathname]);
   useEffect(() => {
     if (!isMagazinePath(pathname)) return;
     saveStack(
@@ -110,6 +116,7 @@ export function MagazineBack({
   children: ReactNode;
 }) {
   const ctx = useMagazineQuery();
+  const router = useRouter();
   const fallback = magazineHref(href, query ?? ctx);
 
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
@@ -121,11 +128,17 @@ export function MagazineBack({
     if (!shouldPopMagazineHistory(previous)) return;
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
-    void runStoryBackTransition(previous);
-    startTransition(() => {
-      addTransitionType(STORY_BACK_TRANSITION);
+    if (typeof document.startViewTransition !== "function") {
+      window.history.back();
+      return;
+    }
+    router.prefetch(previous);
+    void runStoryBackTransition(previous, () => {
+      startTransition(() => {
+        addTransitionType(STORY_BACK_TRANSITION);
+        router.replace(previous, { transitionTypes: [STORY_BACK_TRANSITION] });
+      });
     });
-    window.history.back();
   }
 
   return (

@@ -14,6 +14,5 @@ export const STORY_MEDIA_BOOT_SCRIPT = `(function(){
       }
     }catch(e){}
   }
-  apply();
   window.addEventListener("pagereveal",apply);
 })();`;

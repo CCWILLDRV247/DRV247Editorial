@@ -75,14 +75,19 @@ function setViewTransitionClass(node: Element | null, className: string) {
 }
 
 /**
- * Start the reverse morph in the click (user gesture). The caller must then
- * call history.back() *outside* this update — wrapping back() inside
- * startViewTransition is ignored and stays on the story.
+ * Reverse morph for the chevron. Navigate inside `update` with router.replace
+ * (same as story-open + router.push). Wrapping history.back() inside
+ * startViewTransition is ignored and stays on the story. Calling
+ * history.back() *outside* after startViewTransition skips the animation.
  */
-export function runStoryBackTransition(previousHref: string) {
+export function runStoryBackTransition(
+  previousHref: string,
+  update: () => void | Promise<void>,
+) {
   const destPath = previousHref.split("?")[0] || previousHref;
   setViewTransitionClass(document.querySelector("article"), "story-copy");
   return startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
+    await Promise.resolve(update());
     await waitForMagazinePaint(
       () =>
         window.location.pathname === destPath &&
