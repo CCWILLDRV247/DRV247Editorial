@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Alumni_Sans } from "next/font/google";
+import Script from "next/script";
+import { STORY_MEDIA_BOOT_SCRIPT } from "@/lib/engine/story-media-boot";
 import "./globals.css";
 
 const alumni = Alumni_Sans({
@@ -33,6 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${alumni.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-white font-sans text-[#1b1d1f]">
+        <Script id="story-media-vt" strategy="beforeInteractive">
+          {STORY_MEDIA_BOOT_SCRIPT}
+        </Script>
         {children}
       </body>
     </html>

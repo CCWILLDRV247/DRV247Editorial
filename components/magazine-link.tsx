@@ -4,10 +4,12 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   type AnchorHTMLAttributes,
   type MouseEvent,
   type ReactNode,
 } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   MAGAZINE_HISTORY_KEY,
   isMagazinePath,
@@ -20,6 +22,8 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
+import { playStoryBackMorph } from "@/lib/engine/story-back-morph";
+import { nameListingForStoryBack } from "@/lib/engine/start-story-view-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
 
@@ -39,12 +43,28 @@ function saveStack(stack: string[]) {
   }
 }
 
+export function recordMagazineHref(href: string) {
+  const path = href.split("?")[0] || href;
+  if (!isMagazinePath(path)) return;
+  saveStack(recordMagazineVisit(loadStack(), href));
+}
+
 function MagazineHistorySync() {
+  const pathname = usePathname();
+  useLayoutEffect(() => {
+    if (pathname === "/" || pathname.startsWith("/category/")) {
+      nameListingForStoryBack();
+    }
+  }, [pathname]);
   useEffect(() => {
-    const href = magazineLocation(window.location.pathname, window.location.search);
-    if (!isMagazinePath(window.location.pathname)) return;
-    saveStack(recordMagazineVisit(loadStack(), href));
-  }, []);
+    if (!isMagazinePath(pathname)) return;
+    saveStack(
+      recordMagazineVisit(
+        loadStack(),
+        magazineLocation(window.location.pathname, window.location.search),
+      ),
+    );
+  }, [pathname]);
   return null;
 }
 
@@ -94,6 +114,7 @@ export function MagazineBack({
   children: ReactNode;
 }) {
   const ctx = useMagazineQuery();
+  const router = useRouter();
   const fallback = magazineHref(href, query ?? ctx);
 
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
@@ -102,9 +123,11 @@ export function MagazineBack({
     const current = magazineLocation(window.location.pathname, window.location.search);
     const stack = loadStack();
     const previous = previousMagazineHref(stack, current);
-    if (!shouldPopMagazineHistory(previous)) return;
+    if (!previous || !shouldPopMagazineHistory(previous)) return;
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
+    router.prefetch(previous);
+    playStoryBackMorph();
     window.history.back();
   }
 

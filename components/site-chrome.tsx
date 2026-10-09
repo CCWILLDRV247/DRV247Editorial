@@ -28,7 +28,7 @@ export function SiteHeader({
   testQuery?: string;
 }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
+    <header className="site-header sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 md:h-16 md:px-6">
         {backHref ? (
           <MagazineBack

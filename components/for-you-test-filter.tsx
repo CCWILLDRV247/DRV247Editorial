@@ -6,12 +6,11 @@ import {
   type ForYouTestCatalog,
   type ForYouTestProfile,
 } from "@/lib/engine/for-you-test";
+import { ForYouTestAutoSubmit } from "./for-you-test-auto-submit";
 import { ForYouTestStorageSync } from "./for-you-test-storage";
 
 const selectClass =
   "h-9 min-w-0 w-full rounded-[5px] border border-[#1b1d1f] bg-white px-2 font-display text-sm font-bold uppercase text-[#1b1d1f]";
-
-const autoSubmitScript = `(function(){var f=document.getElementById("for-you-test-form");if(!f)return;f.querySelectorAll("select").forEach(function(s){s.addEventListener("change",function(){f.requestSubmit();});});})();`;
 
 function withCurrent(options: string[], current?: string) {
   if (!current) return options;
@@ -213,7 +212,7 @@ export function ForYouTestFilter({
               Clear test
             </a>
           </form>
-          <script dangerouslySetInnerHTML={{ __html: autoSubmitScript }} />
+          <ForYouTestAutoSubmit />
         </details>
       </section>
     </>

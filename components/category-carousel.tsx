@@ -1,5 +1,7 @@
 import { cn } from "cn";
 import { MagazineLink } from "@/components/magazine-link";
+import { StoryMediaTarget } from "@/components/story-media-transition";
+import { StoryOpenLink } from "@/components/story-open-link";
 import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 import { isVideoStory } from "@/lib/engine/video-story";
@@ -13,11 +15,11 @@ export type CategoryLane = {
 
 export function CarouselStoryCard({ story }: { story: StoryDto }) {
   return (
-    <MagazineLink
-      href={`/story/${story.id}`}
+    <StoryOpenLink
+      storyId={story.id}
       className="w-[200px] shrink-0 snap-start md:w-[220px]"
     >
-      <div className="relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px]">
+      <StoryMediaTarget storyId={story.id} className="relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px]">
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
         <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1.5">
@@ -25,11 +27,11 @@ export function CarouselStoryCard({ story }: { story: StoryDto }) {
             {story.source.name}
           </p>
         </div>
-      </div>
+      </StoryMediaTarget>
       <p className="mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px]">
         {story.title}
       </p>
-    </MagazineLink>
+    </StoryOpenLink>
   );
 }
 
@@ -54,7 +56,10 @@ export function CategoryCarousel({ slug, name, stories, lead = false }: Category
           View all
         </MagazineLink>
       </div>
-      <div className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2">
+      <div
+        data-magazine-rail={`category:${slug}`}
+        className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2"
+      >
         {stories.map((story) => (
           <CarouselStoryCard key={`${slug}-${story.id}`} story={story} />
         ))}

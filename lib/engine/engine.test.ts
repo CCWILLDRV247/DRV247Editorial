@@ -1463,6 +1463,101 @@ describe("for you test profile", () => {
     assert.equal(recordMagazineVisit(afterStory, story), afterStory);
   });
 
+  it("stores carousel scroll per listing href and restores only that page", async () => {
+    const {
+      MAGAZINE_RAIL_KEY,
+      readMagazineRails,
+      writeMagazineRails,
+      railsMatchPage,
+    } = await import("./magazine-rail-scroll");
+    const home = {
+      href: "/?profile=A",
+      y: 640,
+      rails: { "category:cars": 420, interests: 0 },
+    };
+    const raw = writeMagazineRails(home);
+    assert.equal(MAGAZINE_RAIL_KEY, "drv247-magazine-rails");
+    assert.deepEqual(readMagazineRails(raw), home);
+    assert.equal(railsMatchPage(home, "/?profile=A"), true);
+    assert.equal(railsMatchPage(home, "/category/cars"), false);
+    assert.equal(readMagazineRails("not-json"), null);
+    assert.deepEqual(readMagazineRails(writeMagazineRails({ href: "/", y: 0, rails: {} }))?.rails, {});
+    const src = readFileSync(new URL("../../components/story-open-link.tsx", import.meta.url), "utf8");
+    const morph = readFileSync(new URL("./story-back-morph.ts", import.meta.url), "utf8");
+    const carousel = readFileSync(new URL("../../components/category-carousel.tsx", import.meta.url), "utf8");
+    const interests = readFileSync(new URL("../../components/for-you-home.tsx", import.meta.url), "utf8");
+    const feed = readFileSync(new URL("../../components/story-feed.tsx", import.meta.url), "utf8");
+    assert.match(src, /captureMagazineRails/);
+    assert.match(morph, /restoreMagazineRails/);
+    assert.match(carousel, /data-magazine-rail=\{`category:\$\{slug\}`\}/);
+    assert.match(interests, /data-magazine-rail="interests"/);
+    assert.match(feed, /data-magazine-rail="picks"/);
+  });
+
+  it("uses one shared story media view-transition name", async () => {
+    const { STORY_MEDIA_NAME } = await import("./story-transition");
+    const { STORY_MEDIA_BOOT_SCRIPT } = await import("./story-media-boot");
+    assert.equal(STORY_MEDIA_NAME, "story-media");
+    assert.match(STORY_MEDIA_NAME, /^[A-Za-z_][\w-]*$/);
+    assert.match(STORY_MEDIA_BOOT_SCRIPT, /story-media/);
+    assert.match(STORY_MEDIA_BOOT_SCRIPT, /pagereveal/);
+  });
+
+  it("starts a story-open view transition instead of a native <a> default click", () => {
+    const src = readFileSync(new URL("../../components/story-open-link.tsx", import.meta.url), "utf8");
+    const runtime = readFileSync(new URL("./start-story-view-transition.ts", import.meta.url), "utf8");
+    const back = readFileSync(new URL("../../components/magazine-link.tsx", import.meta.url), "utf8");
+    assert.match(src, /event\.preventDefault\(\)/);
+    assert.match(src, /startTypedViewTransition/);
+    assert.match(src, /STORY_OPEN_TRANSITION/);
+    assert.match(src, /router\.push\(href, \{ transitionTypes: \[STORY_OPEN_TRANSITION\] \}\)/);
+    assert.match(runtime, /document\.startViewTransition/);
+    assert.match(src, /recordMagazineHref/);
+    assert.match(src, /captureMagazineRails/);
+    assert.match(back, /window\.history\.back\(\)/);
+    assert.match(back, /playStoryBackMorph/);
+    assert.doesNotMatch(back, /document\.startViewTransition/);
+    assert.doesNotMatch(back, /armStoryBackTransition/);
+    assert.doesNotMatch(back, /runStoryBackTransition/);
+    assert.doesNotMatch(back, /popstate/);
+    assert.doesNotMatch(back, /router\.push\(previous/);
+    assert.doesNotMatch(back, /router\.replace/);
+    const morph = readFileSync(new URL("./story-back-morph.ts", import.meta.url), "utf8");
+    assert.match(morph, /STORY_BACK_MORPH_MS/);
+    assert.match(morph, /prefers-reduced-motion/);
+    assert.match(morph, /fadeOverlay/);
+    assert.match(morph, /isOnScreen/);
+    assert.match(morph, /laidOutCard/);
+    assert.match(morph, /restoreMagazineRails/);
+    assert.match(morph, /scale\(/);
+    assert.doesNotMatch(morph, /startViewTransition/);
+    assert.doesNotMatch(morph, /popstate/);
+    const tokens = readFileSync(new URL("./story-transition.ts", import.meta.url), "utf8");
+    assert.match(tokens, /STORY_BACK_MORPH_MS = 320/);
+    assert.match(tokens, /STORY_BACK_MORPH_EASING = "cubic-bezier\(0\.25, 0\.1, 0\.25, 1\)"/);
+    assert.match(runtime, /isInvalidSnapshot/);
+    assert.match(runtime, /Snapshot capture failed/);
+    assert.match(runtime, /documentIsNavigating/);
+    assert.match(runtime, /hasActiveViewTransition/);
+    assert.match(runtime, /applyLastStoryMediaName/);
+    const css = readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
+    assert.match(css, /navigation:\s*none/);
+    assert.doesNotMatch(css, /navigation:\s*auto/);
+    const copy = readFileSync(new URL("../../components/story-copy-transition.tsx", import.meta.url), "utf8");
+    const feed = readFileSync(new URL("../../components/magazine-page-transition.tsx", import.meta.url), "utf8");
+    assert.match(copy, /default="none"/);
+    assert.match(feed, /default="none"/);
+    const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
+    const autoSubmit = readFileSync(
+      new URL("../../components/for-you-test-auto-submit.tsx", import.meta.url),
+      "utf8",
+    );
+    assert.doesNotMatch(filter, /<script/);
+    assert.match(filter, /ForYouTestAutoSubmit/);
+    assert.match(autoSubmit, /requestSubmit/);
+    assert.match(autoSubmit, /"use client"/);
+  });
+
   it("does not invent a vehicle match when the story has no entities", async () => {
     const { scoreArticle } = await import("./rank");
     const unmatched = scoreArticle({

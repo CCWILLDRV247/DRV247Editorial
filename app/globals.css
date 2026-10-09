@@ -135,3 +135,164 @@
     font-family: var(--font-display);
   }
 }
+
+/* Story teaser ↔ detail. Card clicks start a same-document view transition
+   (StoryOpenLink preventDefault + router.push). Do not auto-start on
+   traverse: Safari aborts snapshot capture during history.back() in this
+   SPA (InvalidStateError: Snapshot capture failed). */
+@view-transition {
+  navigation: none;
+}
+
+.site-header {
+  view-transition-name: site-header;
+}
+
+.story-hero-media {
+  view-transition-name: story-media;
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(root) {
+  animation: 240ms ease-out both story-root-out;
+}
+
+::view-transition-new(root) {
+  animation: 280ms ease-out both story-root-in;
+}
+
+html:active-view-transition-type(story-open)::view-transition-old(root),
+html:active-view-transition-type(story-back)::view-transition-old(root) {
+  animation: 240ms ease-out both story-root-out;
+}
+
+html:active-view-transition-type(story-open)::view-transition-new(root),
+html:active-view-transition-type(story-back)::view-transition-new(root) {
+  animation: 280ms ease-out both story-root-in;
+}
+
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(site-header) {
+  display: none;
+}
+
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+::view-transition-group(.morph),
+::view-transition-group(story-media) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  z-index: 8;
+}
+
+::view-transition-old(.story-copy) {
+  animation: 240ms ease-out both story-copy-out;
+}
+
+::view-transition-new(.story-copy) {
+  animation: 280ms ease-out both story-copy-in;
+}
+
+::view-transition-old(.story-feed) {
+  animation: 240ms ease-out both story-feed-out;
+}
+
+::view-transition-new(.story-feed) {
+  animation: 280ms ease-out both story-feed-in;
+}
+
+@keyframes story-root-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes story-root-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes story-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes story-copy-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes story-feed-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes story-feed-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+html[data-story-back] main {
+  opacity: 0;
+}
+
+[data-story-back-morph] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 80;
+  pointer-events: none;
+  overflow: hidden;
+  transform-origin: top left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+
+  html[data-story-back] main {
+    opacity: 1;
+  }
+
+  [data-story-back-morph] {
+    display: none;
+  }
+}

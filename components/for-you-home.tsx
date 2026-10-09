@@ -62,7 +62,10 @@ function InterestLane({
         </p>
       ) : null}
       {stories.length > 0 ? (
-        <div className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2">
+        <div
+          data-magazine-rail="interests"
+          className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2"
+        >
           {stories.map((story) => (
             <CarouselStoryCard key={story.id} story={story} />
           ))}
