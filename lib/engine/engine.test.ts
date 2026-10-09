@@ -1483,8 +1483,12 @@ describe("for you test profile", () => {
     assert.match(runtime, /document\.startViewTransition/);
     assert.match(src, /recordMagazineHref/);
     assert.match(back, /window\.history\.back\(\)/);
+    assert.match(back, /armStoryBackTransition/);
     assert.doesNotMatch(back, /startTypedViewTransition/);
     assert.match(back, /STORY_BACK_TRANSITION/);
+    assert.match(runtime, /armStoryBackTransition/);
+    assert.match(runtime, /popstate/);
+    assert.match(runtime, /applyLastStoryMediaName/);
   });
 
   it("does not invent a vehicle match when the story has no entities", async () => {

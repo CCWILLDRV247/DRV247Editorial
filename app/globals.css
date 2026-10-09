@@ -163,6 +163,16 @@
   animation: 280ms ease-out both story-root-in;
 }
 
+html:active-view-transition-type(story-open)::view-transition-old(root),
+html:active-view-transition-type(story-back)::view-transition-old(root) {
+  animation: 240ms ease-out both story-root-out;
+}
+
+html:active-view-transition-type(story-open)::view-transition-new(root),
+html:active-view-transition-type(story-back)::view-transition-new(root) {
+  animation: 280ms ease-out both story-root-in;
+}
+
 ::view-transition-group(site-header) {
   animation: none;
   z-index: 100;
@@ -184,7 +194,7 @@
 }
 
 ::view-transition-old(.story-copy) {
-  animation: 220ms ease-out both story-copy-out;
+  animation: 240ms ease-out both story-copy-out;
 }
 
 ::view-transition-new(.story-copy) {
