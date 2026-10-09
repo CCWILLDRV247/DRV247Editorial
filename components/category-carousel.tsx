@@ -56,7 +56,10 @@ export function CategoryCarousel({ slug, name, stories, lead = false }: Category
           View all
         </MagazineLink>
       </div>
-      <div className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2">
+      <div
+        data-magazine-rail={`category:${slug}`}
+        className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2"
+      >
         {stories.map((story) => (
           <CarouselStoryCard key={`${slug}-${story.id}`} story={story} />
         ))}

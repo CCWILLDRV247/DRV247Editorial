@@ -4,6 +4,7 @@ import {
   STORY_BACK_MORPH_EASING,
   STORY_BACK_MORPH_MS,
 } from "./story-transition";
+import { restoreMagazineRails } from "./magazine-rail-scroll";
 import { waitForMagazinePaint } from "./start-story-view-transition";
 
 type Box = { top: number; left: number; width: number; height: number; radius: string };
@@ -97,12 +98,15 @@ function fadeListing() {
 function laidOutCard(id: string) {
   if (!id) return null;
   const nodes = document.querySelectorAll(`[data-story-media="${id}"]`);
+  let fallback: { node: HTMLElement; box: Box } | null = null;
   for (const node of nodes) {
     if (!(node instanceof HTMLElement)) continue;
     const box = boxOf(node);
-    if (box.width > 2 && box.height > 2) return { node, box };
+    if (box.width <= 2 || box.height <= 2) continue;
+    if (!fallback) fallback = { node, box };
+    if (isOnScreen(box)) return { node, box };
   }
-  return null;
+  return fallback;
 }
 
 function listingHasMedia() {
@@ -194,10 +198,11 @@ function captureHero() {
  */
 export function playStoryBackMorph() {
   try {
-    if (typeof document === "undefined" || prefersReducedMotion()) return;
+    if (typeof document === "undefined") return;
+    const reduced = prefersReducedMotion();
     document.querySelectorAll("[data-story-back-morph]").forEach((node) => node.remove());
-    const captured = captureHero();
-    document.documentElement.setAttribute("data-story-back", "1");
+    const captured = reduced ? null : captureHero();
+    if (!reduced) document.documentElement.setAttribute("data-story-back", "1");
     void waitForMagazinePaint(
       () => {
         if (window.location.pathname.startsWith("/story/")) return false;
@@ -208,9 +213,13 @@ export function playStoryBackMorph() {
       },
     )
       .then(async () => {
+        restoreMagazineRails();
         await waitFrames(2);
+        if (reduced || !captured) {
+          document.documentElement.removeAttribute("data-story-back");
+          return;
+        }
         fadeListing();
-        if (!captured) return;
         const ready = laidOutCard(captured.id);
         if (ready && isOnScreen(ready.box)) {
           morphToCard(captured.overlay, captured.from, ready.node, ready.box);

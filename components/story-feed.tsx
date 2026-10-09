@@ -219,7 +219,7 @@ export function StoryFeed({
             <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
               Our picks
             </p>
-            <div className="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-2">
+            <div data-magazine-rail="picks" className="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-2">
               {picks.map((story) => (
                 <PickCard key={story.id} story={story} />
               ))}

@@ -90,6 +90,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
       </div>
       {rest.length > 0 ? (
         <div
+          data-magazine-rail="picks"
           className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 md:mt-8 md:gap-2 md:px-0 ${PAGE_GUTTER}`}
         >
           {rest.map((story) => (

@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { recordMagazineHref, useMagazineQuery } from "@/components/magazine-link";
 import { magazineHref, magazineLocation } from "@/lib/engine/magazine-history";
+import { captureMagazineRails } from "@/lib/engine/magazine-rail-scroll";
 import {
   startTypedViewTransition,
   waitForMagazinePaint,
@@ -76,6 +77,7 @@ export function StoryOpenLink({
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     markStoryMedia(storyId, ref.current);
+    captureMagazineRails();
     recordMagazineHref(magazineLocation(window.location.pathname, window.location.search));
     recordMagazineHref(href);
     onClick?.(event);
