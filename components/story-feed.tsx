@@ -14,6 +14,7 @@ import { PrintModuleRail } from "@/components/print-module";
 import type { PrintModule } from "@/lib/engine/print";
 import { OpenerRecentSync } from "@/components/opener-recent-sync";
 import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
+import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
 
 function splitSequential(items: StoryDto[], parts: number) {
   if (items.length === 0) {
@@ -213,14 +214,16 @@ export function StoryFeed({
         </div>
       </div>
       {picks.length > 0 ? (
-        <section className="min-w-0 pl-4 pr-0 md:px-0">
-          <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
-            Our picks
-          </p>
-          <div className="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-2">
-            {picks.map((story) => (
-              <PickCard key={story.id} story={story} />
-            ))}
+        <section className={HOMEPAGE_COMPOSITION.picksBand}>
+          <div className="min-w-0 pl-4 pr-0 md:px-0">
+            <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
+              Our picks
+            </p>
+            <div className="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-2">
+              {picks.map((story) => (
+                <PickCard key={story.id} story={story} />
+              ))}
+            </div>
           </div>
         </section>
       ) : null}
