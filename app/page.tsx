@@ -1,5 +1,6 @@
 import { ForYouHome } from "@/components/for-you-home";
 import { ForYouTestFilter } from "@/components/for-you-test-filter";
+import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import { MagazineQueryProvider } from "@/components/magazine-link";
 import { SiteHeader } from "@/components/site-chrome";
 import {
@@ -37,6 +38,7 @@ export default async function HomePage({
       <div className="min-h-full overflow-x-clip bg-white">
         <SiteHeader title={home.copy.headerTitle} testQuery={testQuery} />
         <ForYouTestFilter initial={testProfile} catalog={catalog} pathname="/" />
+        <MagazinePageTransition>
         <main className="relative z-0 pt-2">
           <ForYouHome
             copy={home.copy}
@@ -50,6 +52,7 @@ export default async function HomePage({
             testQuery={testQuery}
           />
         </main>
+        </MagazinePageTransition>
       </div>
     </MagazineQueryProvider>
   );

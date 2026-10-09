@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  addTransitionType,
   createContext,
+  startTransition,
   useContext,
   useEffect,
   type AnchorHTMLAttributes,
@@ -20,6 +22,7 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
+import { STORY_BACK_TRANSITION } from "@/lib/engine/story-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
 
@@ -105,7 +108,10 @@ export function MagazineBack({
     if (!shouldPopMagazineHistory(previous)) return;
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
-    window.history.back();
+    startTransition(() => {
+      addTransitionType(STORY_BACK_TRANSITION);
+      window.history.back();
+    });
   }
 
   return (

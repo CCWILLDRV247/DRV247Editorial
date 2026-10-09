@@ -1,4 +1,5 @@
-import { MagazineLink } from "@/components/magazine-link";
+import { StoryMediaTransition } from "@/components/story-media-transition";
+import { StoryOpenLink } from "@/components/story-open-link";
 import { StoryImage } from "@/components/story-image";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
@@ -19,28 +20,30 @@ function PickImageFrame({
 }) {
   const tag = story.desk?.labelName ?? story.category.name;
   return (
-    <div className={`relative ${PICK_IMAGE_HEIGHT} overflow-hidden rounded-[12px] bg-[#cfcfcf]`}>
-      <StoryImage
-        src={story.imageUrl}
-        sources={story.imageSources}
-        category={story.category.name}
-        alt=""
-        eager={eager}
-        video={isVideoStory(story)}
-      />
-      <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
-        <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
-          {tag}
-        </span>
+    <StoryMediaTransition storyId={story.id}>
+      <div className={`relative ${PICK_IMAGE_HEIGHT} overflow-hidden rounded-[12px] bg-[#cfcfcf]`}>
+        <StoryImage
+          src={story.imageUrl}
+          sources={story.imageSources}
+          category={story.category.name}
+          alt=""
+          eager={eager}
+          video={isVideoStory(story)}
+        />
+        <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
+          <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
+            {tag}
+          </span>
+        </div>
       </div>
-    </div>
+    </StoryMediaTransition>
   );
 }
 
 function DeskPickCard({ story }: { story: StoryDto }) {
   return (
     <div className="w-[218px] shrink-0">
-      <MagazineLink href={`/story/${story.id}`} className="block">
+      <StoryOpenLink storyId={story.id} className="block">
         <PickImageFrame story={story} />
         <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
           {story.title}
@@ -48,7 +51,7 @@ function DeskPickCard({ story }: { story: StoryDto }) {
         <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
           {story.source.name}
         </p>
-      </MagazineLink>
+      </StoryOpenLink>
     </div>
   );
 }
@@ -72,7 +75,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
         </p>
       </div>
       <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`}>
-        <MagazineLink href={`/story/${featured.id}`} className="block">
+        <StoryOpenLink storyId={featured.id} className="block">
           <PickImageFrame story={featured} eager />
           <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
             {featured.title}
@@ -80,7 +83,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
           <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
             {featured.source.name}
           </p>
-        </MagazineLink>
+        </StoryOpenLink>
         {note ? (
           <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
             {note}

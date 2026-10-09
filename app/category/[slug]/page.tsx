@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { ForYouTestFilter } from "@/components/for-you-test-filter";
+import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import { MagazineQueryProvider } from "@/components/magazine-link";
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryFeed } from "@/components/story-feed";
@@ -53,6 +54,7 @@ export default async function CategoryPage({
       <div className="min-h-full overflow-x-clip bg-white">
         <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
         <ForYouTestFilter initial={testProfile} catalog={catalog} pathname={`/category/${slug}`} />
+        <MagazinePageTransition>
         <main className="pt-2">
           <StoryFeed
             stories={stories}
@@ -62,6 +64,7 @@ export default async function CategoryPage({
             testQuery={testQuery}
           />
         </main>
+        </MagazinePageTransition>
       </div>
     </MagazineQueryProvider>
   );

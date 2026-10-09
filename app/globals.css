@@ -135,3 +135,105 @@
     font-family: var(--font-display);
   }
 }
+
+/* Story teaser ↔ detail: Next.js View Transitions (React <ViewTransition>). */
+.site-header {
+  view-transition-name: site-header;
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(site-header) {
+  display: none;
+}
+
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+::view-transition-group(.morph) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  z-index: 8;
+}
+
+::view-transition-old(.story-copy) {
+  animation: 220ms ease-out both story-copy-out;
+}
+
+::view-transition-new(.story-copy) {
+  animation: 280ms ease-out both story-copy-in;
+}
+
+::view-transition-old(.story-feed) {
+  animation: 240ms ease-out both story-feed-out;
+}
+
+::view-transition-new(.story-feed) {
+  animation: 280ms ease-out both story-feed-in;
+}
+
+@keyframes story-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes story-copy-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes story-feed-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes story-feed-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

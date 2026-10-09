@@ -1463,6 +1463,12 @@ describe("for you test profile", () => {
     assert.equal(recordMagazineVisit(afterStory, story), afterStory);
   });
 
+  it("names story media transitions with a CSS ident from the story id", async () => {
+    const { storyMediaTransitionName } = await import("./story-transition");
+    assert.equal(storyMediaTransitionName(12), "story-media-12");
+    assert.match(storyMediaTransitionName(381), /^[A-Za-z_][\w-]*$/);
+  });
+
   it("does not invent a vehicle match when the story has no entities", async () => {
     const { scoreArticle } = await import("./rank");
     const unmatched = scoreArticle({
