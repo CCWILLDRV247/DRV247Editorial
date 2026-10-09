@@ -10,6 +10,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import {
   MAGAZINE_HISTORY_KEY,
   isMagazinePath,
@@ -22,10 +23,6 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
-import {
-  startTypedViewTransition,
-  waitForMagazinePaint,
-} from "@/lib/engine/start-story-view-transition";
 import { STORY_BACK_TRANSITION } from "@/lib/engine/story-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
@@ -46,12 +43,23 @@ function saveStack(stack: string[]) {
   }
 }
 
+export function recordMagazineHref(href: string) {
+  const path = href.split("?")[0] || href;
+  if (!isMagazinePath(path)) return;
+  saveStack(recordMagazineVisit(loadStack(), href));
+}
+
 function MagazineHistorySync() {
+  const pathname = usePathname();
   useEffect(() => {
-    const href = magazineLocation(window.location.pathname, window.location.search);
-    if (!isMagazinePath(window.location.pathname)) return;
-    saveStack(recordMagazineVisit(loadStack(), href));
-  }, []);
+    if (!isMagazinePath(pathname)) return;
+    saveStack(
+      recordMagazineVisit(
+        loadStack(),
+        magazineLocation(window.location.pathname, window.location.search),
+      ),
+    );
+  }, [pathname]);
   return null;
 }
 
@@ -112,16 +120,9 @@ export function MagazineBack({
     if (!shouldPopMagazineHistory(previous)) return;
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
-    void startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
-      startTransition(() => {
-        addTransitionType(STORY_BACK_TRANSITION);
-        window.history.back();
-      });
-      await waitForMagazinePaint(
-        () =>
-          !window.location.pathname.startsWith("/story/") &&
-          Boolean(document.querySelector("[data-story-media]")),
-      );
+    startTransition(() => {
+      addTransitionType(STORY_BACK_TRANSITION);
+      window.history.back();
     });
   }
 

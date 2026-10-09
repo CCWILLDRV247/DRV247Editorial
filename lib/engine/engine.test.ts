@@ -1481,7 +1481,9 @@ describe("for you test profile", () => {
     assert.match(src, /STORY_OPEN_TRANSITION/);
     assert.match(src, /router\.push\(href, \{ transitionTypes: \[STORY_OPEN_TRANSITION\] \}\)/);
     assert.match(runtime, /document\.startViewTransition/);
-    assert.match(back, /startTypedViewTransition/);
+    assert.match(src, /recordMagazineHref/);
+    assert.match(back, /window\.history\.back\(\)/);
+    assert.doesNotMatch(back, /startTypedViewTransition/);
     assert.match(back, /STORY_BACK_TRANSITION/);
   });
 

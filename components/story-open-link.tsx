@@ -9,8 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { useMagazineQuery } from "@/components/magazine-link";
-import { magazineHref } from "@/lib/engine/magazine-history";
+import { recordMagazineHref, useMagazineQuery } from "@/components/magazine-link";
+import { magazineHref, magazineLocation } from "@/lib/engine/magazine-history";
 import {
   startTypedViewTransition,
   waitForMagazinePaint,
@@ -77,6 +77,8 @@ export function StoryOpenLink({
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     markStoryMedia(storyId, ref.current);
+    recordMagazineHref(magazineLocation(window.location.pathname, window.location.search));
+    recordMagazineHref(href);
     onClick?.(event);
     void startTypedViewTransition(STORY_OPEN_TRANSITION, async () => {
       startTransition(() => {
