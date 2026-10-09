@@ -123,7 +123,7 @@ export function MagazineBack({
     const current = magazineLocation(window.location.pathname, window.location.search);
     const stack = loadStack();
     const previous = previousMagazineHref(stack, current);
-    if (!shouldPopMagazineHistory(previous)) return;
+    if (!previous || !shouldPopMagazineHistory(previous)) return;
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
     router.prefetch(previous);
