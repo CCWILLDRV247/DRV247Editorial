@@ -12,6 +12,10 @@ import { useRouter } from "next/navigation";
 import { useMagazineQuery } from "@/components/magazine-link";
 import { magazineHref } from "@/lib/engine/magazine-history";
 import {
+  startTypedViewTransition,
+  waitForMagazinePaint,
+} from "@/lib/engine/start-story-view-transition";
+import {
   LAST_STORY_MEDIA_KEY,
   STORY_MEDIA_NAME,
   STORY_OPEN_TRANSITION,
@@ -43,11 +47,11 @@ export function markStoryMedia(storyId: number, root: HTMLElement | null) {
 }
 
 /**
- * Same path as MagazineBack: preventDefault, stamp story-media, then
- * startTransition + addTransitionType + router.push. A native <a> default
- * click is a push navigation; Safari's `@view-transition { navigation: auto }`
- * only runs on traverse (back), so the card→story open skipped the morph.
- * Cmd-click / new-tab still use the real href.
+ * Native <a> default click is a push navigation. Safari's
+ * `@view-transition { navigation: auto }` only runs on traverse (back), so the
+ * card→story open skipped the morph while chevron reverse worked.
+ * Prevent default, stamp story-media, then startViewTransition + router.push
+ * like MagazineBack starts a transition before history.back().
  */
 export function StoryOpenLink({
   storyId,
@@ -62,6 +66,7 @@ export function StoryOpenLink({
   const router = useRouter();
   const ref = useRef<HTMLAnchorElement>(null);
   const href = magazineHref(`/story/${storyId}`, query ?? ctx);
+  const storyPath = `/story/${storyId}`;
 
   function prefetch() {
     router.prefetch(href);
@@ -73,9 +78,16 @@ export function StoryOpenLink({
     event.preventDefault();
     markStoryMedia(storyId, ref.current);
     onClick?.(event);
-    startTransition(() => {
-      addTransitionType(STORY_OPEN_TRANSITION);
-      router.push(href, { transitionTypes: [STORY_OPEN_TRANSITION] });
+    void startTypedViewTransition(STORY_OPEN_TRANSITION, async () => {
+      startTransition(() => {
+        addTransitionType(STORY_OPEN_TRANSITION);
+        router.push(href, { transitionTypes: [STORY_OPEN_TRANSITION] });
+      });
+      await waitForMagazinePaint(
+        () =>
+          window.location.pathname === storyPath &&
+          Boolean(document.querySelector(".story-hero-media")),
+      );
     });
   }
 

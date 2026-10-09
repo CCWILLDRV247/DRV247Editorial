@@ -22,6 +22,10 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
+import {
+  startTypedViewTransition,
+  waitForMagazinePaint,
+} from "@/lib/engine/start-story-view-transition";
 import { STORY_BACK_TRANSITION } from "@/lib/engine/story-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
@@ -108,9 +112,16 @@ export function MagazineBack({
     if (!shouldPopMagazineHistory(previous)) return;
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
-    startTransition(() => {
-      addTransitionType(STORY_BACK_TRANSITION);
-      window.history.back();
+    void startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
+      startTransition(() => {
+        addTransitionType(STORY_BACK_TRANSITION);
+        window.history.back();
+      });
+      await waitForMagazinePaint(
+        () =>
+          !window.location.pathname.startsWith("/story/") &&
+          Boolean(document.querySelector("[data-story-media]")),
+      );
     });
   }
 
