@@ -22,6 +22,7 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
+import { playStoryBackMorph } from "@/lib/engine/story-back-morph";
 import { nameListingForStoryBack } from "@/lib/engine/start-story-view-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
@@ -126,6 +127,7 @@ export function MagazineBack({
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
     router.prefetch(previous);
+    playStoryBackMorph();
     window.history.back();
   }
 

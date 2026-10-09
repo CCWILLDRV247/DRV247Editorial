@@ -8,3 +8,8 @@ export const STORY_BACK_TRANSITION = "story-back";
 export const STORY_MEDIA_NAME = "story-media";
 
 export const LAST_STORY_MEDIA_KEY = "drv247-story-media-id";
+
+/** Manual chevron reverse — same duration/easing as inbound story-media. */
+export const STORY_BACK_MORPH_MS = 320;
+export const STORY_BACK_LISTING_MS = 280;
+export const STORY_BACK_MORPH_EASING = "cubic-bezier(0.25, 0.1, 0.25, 1)";

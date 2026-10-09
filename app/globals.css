@@ -266,11 +266,33 @@ html:active-view-transition-type(story-back)::view-transition-new(root) {
   }
 }
 
+html[data-story-back] main {
+  opacity: 0;
+}
+
+[data-story-back-morph] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 80;
+  pointer-events: none;
+  overflow: hidden;
+  transform-origin: top left;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),
   ::view-transition-new(*),
   ::view-transition-group(*) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
+  }
+
+  html[data-story-back] main {
+    opacity: 1;
+  }
+
+  [data-story-back-morph] {
+    display: none;
   }
 }
