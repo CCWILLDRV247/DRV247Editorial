@@ -5,9 +5,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export function GET(request: Request) {
-  return handleWeeklyIngestCron(request, 1);
+  return handleWeeklyIngestCron(request, 2);
 }
 
 export function POST(request: Request) {
-  return handleWeeklyIngestCron(request, 1);
+  return handleWeeklyIngestCron(request, 2);
 }

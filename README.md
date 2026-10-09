@@ -46,7 +46,7 @@ Then desk **Ingest now** (or wait for Monday 06:00 UTC cron) to fill stories. Ho
 - **Story** — hero, source tag, title, feed teaser, short extract from the original, **Read on [outlet]**. Desk-curated stories also show their label and optional human note.
 - **Admin** (`/admin/engine`) — ingest now, source health, classification, **Desk curation** (select a teaser, label, optional note, active/featured), For You ranking debug (article / score / why)
 - **JSON** — `GET /api/editorial` (includes `ranking` why/score when a test profile is set), `GET /api/editorial/status`
-- **Weekly ingest** — Vercel cron `0 6 * * 1` (Monday 06:00 UTC) → `/api/cron/ingest`
+- **Weekly ingest** — Vercel crons Monday 06:00 UTC (`/api/cron/ingest`) then 06:06, 06:21, 06:27, 06:33 resume ticks. Each isolate stops before 300s and the next slot continues from `ingestion_runs`. Sources stay sequential.
 - **Vehicle Intelligence** — `/intelligence` (Build + Maintain; Design 911 + Eurospares). Not on the magazine nav. Live catalogues refresh on `15 6 * * 1` → `/api/cron/intelligence-ingest`.
 - **Print** — physical-magazine objects inside For You and relevant category pages, not a nav item. Quiet detail URLs at `/print/[slug]`. Structured store, not RSS ingest. Buy/Subscribe only with verified official URLs.
 
@@ -66,7 +66,7 @@ Get a key: Google Cloud → enable **YouTube Data API v3** → create an API key
 
 Desk **Ingest now** runs the enabled culture pipeline (75 titles plus any YouTube channels). Non-English items are skipped; shop/product/collection/cart/merch URLs are skipped; auction and subscribe paths, empty or `/undefined` URLs, and off-site magazine-shop canonicals are skipped; mixed-language titles such as ramp stay enabled. Type 7 is pinned to the stories Atom feed so shop URLs never become the source. The leftover v1 RSS job is only if you POST `{ "pipeline": "v1" }`.
 
-Weekly cron updates the same Turso database. Cold homepage loads **read** that database; they do not scrape feeds. Magazine pages cache for 60 seconds (`s-maxage=60`, stale-while-revalidate 300).
+Weekly cron updates the same Turso database. One 300s isolate cannot finish all 75 titles, so Monday is five sequential slots that resume from the last completed source this week. Desk **Ingest now** still runs the full enabled list in one request. Cold homepage loads **read** that database; they do not scrape feeds. Magazine pages cache for 60 seconds (`s-maxage=60`, stale-while-revalidate 300).
 
 On **For You**, the page is organised around the car: **For your Ferrari F355** (or the test car you pick), then **From the DRV247 Desk** (human picks, honest labels, no invented notes), then **Your interests**, then **Discover**, then the existing Cars / Culture / Driving / Events carousels. Without a car it still runs — “Tell us what you drive to make DRV247 yours.” Tap **Set test** or A–D (F355 GTB, 964 C2, Skyline, M3). Saved in the URL and in `localStorage` (`drv247-for-you-test`). Weights live in `config/ranking.json` (`deskPick` / `deskPickRelevant` are modest boosts only). Preview: `/?profile=A`.
 
