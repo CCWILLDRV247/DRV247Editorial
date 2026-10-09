@@ -4,6 +4,7 @@ import { MagazineLink } from "@/components/magazine-link";
 import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { InterludeRecentSync } from "@/components/interlude-recent-sync";
+import { OpenerRecentSync } from "@/components/opener-recent-sync";
 import { SectionIntro } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
 import type { EditorialInterlude } from "@/lib/engine/editorial-interlude";
@@ -129,6 +130,11 @@ export function ForYouHome({
     yourInterests.stories.find((story) => !pickIds.has(story.id)) ??
     null;
   const leadCards = vehicleStories.slice(1, 1 + HOMEPAGE_LEAD_CARD_MAX);
+  const openerIds = [
+    ...(hero ? [hero.id] : []),
+    ...leadCards.map((story) => story.id),
+    ...carousels.flatMap((lane) => (lane.stories[0] ? [lane.stories[0].id] : [])),
+  ];
   const bySlot = interludeMap(interludes);
   const afterPicks = bySlot.get("after-picks");
   const beforeCategories = bySlot.get("before-categories");
@@ -144,6 +150,7 @@ export function ForYouHome({
   return (
     <>
       <InterludeRecentSync interludeIds={interludes.map((item) => item.interlude.id)} />
+      <OpenerRecentSync openerIds={openerIds} />
       <div
         className={`mx-auto flex w-full min-w-0 max-w-3xl flex-col pb-20 md:max-w-6xl md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}
       >

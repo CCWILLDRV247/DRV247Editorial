@@ -26,11 +26,44 @@ import {
   HOMEPAGE_CATEGORY_STORY_MAX,
 } from "./homepage-hierarchy";
 import { selectHomepageInterludes } from "./interlude-selection";
+import {
+  emptyOpenerRecent,
+  lastWeekOpenerIds,
+  type OpenerRecentState,
+} from "./opener-recent";
 import { printModuleForYou } from "./print";
 import {
   pickRelevanceExplanation,
   type ExplanationLane,
 } from "./relevance-explanation";
+import {
+  applyWeeklyHomepageOpening,
+  CATEGORY_PAGE_OPENING_MAX,
+  FOR_YOU_OPENING_MAX,
+  prependOpening,
+  selectOpeningStories,
+  type FreshnessCard,
+} from "./weekly-freshness";
+
+type FreshArticle = EditorialDto & FreshnessCard;
+
+function withFreshness(article: EditorialDto): FreshArticle {
+  return { ...article, deskPick: Boolean(article.desk) };
+}
+
+function matchesProfileVehicle(article: EditorialDto, profile?: ForYouTestProfile) {
+  const make = profile?.make?.trim().toLowerCase();
+  const model = profile?.model?.trim().toLowerCase();
+  if (!make && !model) return true;
+  if (make && article.makes.some((item) => item.toLowerCase() === make)) return true;
+  if (model && article.models.some((item) => item.toLowerCase() === model)) return true;
+  return false;
+}
+
+function openerCacheKey(openerRecent?: OpenerRecentState) {
+  const state = openerRecent ?? emptyOpenerRecent();
+  return `${state.weekStart}:${lastWeekOpenerIds(state).join(",")}`;
+}
 
 export { MAGAZINE_NAV, PRIMARY_NAV } from "../../config/magazine-nav";
 
@@ -158,15 +191,18 @@ export async function listMagazineStories(options?: {
   navSlug?: string;
   testProfile?: ForYouTestProfile;
   limit?: number;
+  openerRecent?: OpenerRecentState;
 }): Promise<StoryDto[]> {
   const navSlug = options?.navSlug ?? "for-you";
   const limit = options?.limit ?? 24;
   const testProfile =
     options?.testProfile && forYouTestIsActive(options.testProfile) ? options.testProfile : undefined;
+  const openerRecent = options?.openerRecent ?? emptyOpenerRecent();
   const key = JSON.stringify({
     navSlug,
     limit,
     profile: magazineCacheKey(testProfile),
+    openers: openerCacheKey(openerRecent),
   });
   const cached = memoGet(magazineMemo.drvMagazineStories, key, MAGAZINE_TTL_MS);
   if (cached) return cached;
@@ -175,7 +211,15 @@ export async function listMagazineStories(options?: {
     testProfile,
     limit: 80,
   });
-  const stories = articles.slice(0, limit).map((article) => toMagazineStory(article));
+  const fresh = articles.map(withFreshness);
+  const opening = selectOpeningStories(fresh, fresh, {
+    count: CATEGORY_PAGE_OPENING_MAX,
+    lastWeekOpenerIds: lastWeekOpenerIds(openerRecent),
+    avoidStaleDeskLead: true,
+  });
+  const stories = prependOpening(opening, fresh)
+    .slice(0, limit)
+    .map((article) => toMagazineStory(article));
   (magazineMemo.drvMagazineStories ??= new Map()).set(key, { at: Date.now(), value: stories });
   return stories;
 }
@@ -200,7 +244,11 @@ function uniqueStories(stories: StoryDto[]) {
   });
 }
 
-async function getMagazineHomeFresh(testProfile?: ForYouTestProfile, recentIds: readonly string[] = []) {
+async function getMagazineHomeFresh(
+  testProfile?: ForYouTestProfile,
+  recentIds: readonly string[] = [],
+  openerRecent: OpenerRecentState = emptyOpenerRecent(),
+) {
   const personalized = forYouTestIsActive(testProfile ?? { interests: [] });
   const [deskArticles, ranked] = await Promise.all([
     listDeskHomepage(3),
@@ -216,6 +264,35 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile, recentIds: 
   );
   const plan = curateForYouHome(ranked, testProfile, pickIds);
   const byId = new Map(ranked.map((article) => [article.id, article]));
+  const resolveFresh = (items: { id: number }[]) =>
+    items
+      .map((item) => byId.get(item.id))
+      .filter((article): article is EditorialDto => Boolean(article))
+      .map(withFreshness);
+  const rankedFresh = ranked.filter((article) => !pickIds.has(article.id)).map(withFreshness);
+  const vehicleFresh = resolveFresh(plan.forYourCar.stories);
+  const discoverFresh = resolveFresh(plan.discover.stories).filter((article) => !pickIds.has(article.id));
+  const forYouPreferred = vehicleFresh.length ? vehicleFresh : personalized ? [] : rankedFresh;
+  const forYouRanked = vehicleFresh.length
+    ? rankedFresh.filter(
+        (article) =>
+          matchesProfileVehicle(article, testProfile) || vehicleFresh.some((item) => item.id === article.id),
+      )
+    : rankedFresh;
+  const railSource = HOMEPAGE_CATEGORY_SLUGS.flatMap((slug) => {
+    const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
+    if (!nav) return [];
+    const stories = ranked.filter((article) => articleMatchesNav(article, nav.slug)).slice(0, 12).map(withFreshness);
+    if (stories.length === 0) return [];
+    return [{ slug: nav.slug, stories }];
+  });
+  const pinned = applyWeeklyHomepageOpening({
+    forYou: forYouPreferred,
+    ranked: forYouRanked.length ? forYouRanked : rankedFresh,
+    rails: railSource,
+    lastWeekOpenerIds: lastWeekOpenerIds(openerRecent),
+    forYouCount: FOR_YOU_OPENING_MAX,
+  });
   const vehicles =
     personalized && testProfile ? contextFromTestProfile(testProfile).vehicles : [];
   const storyOpts = (lane: ExplanationLane) => ({
@@ -230,44 +307,57 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile, recentIds: 
         .filter((article): article is EditorialDto => Boolean(article))
         .map((article) => toMagazineStory(article, storyOpts(lane))),
     );
-  const forYourCar = { ...plan.forYourCar, stories: toStories(plan.forYourCar.stories, "vehicle") };
+  const forYourCar = {
+    ...plan.forYourCar,
+    empty: vehicleFresh.length
+      ? plan.forYourCar.empty
+      : pinned.forYou.length
+        ? undefined
+        : plan.forYourCar.empty,
+    stories: toStories(pinned.forYou, "vehicle"),
+  };
   const yourInterests = {
     ...plan.yourInterests,
     stories: toStories(plan.yourInterests.stories, "interests"),
   };
   const discover = {
     ...plan.discover,
-    stories: toStories(plan.discover.stories, "discover").filter((story) => !pickIds.has(story.id)),
+    stories: toStories(discoverFresh, "discover").filter((story) => !pickIds.has(story.id)),
   };
   const featuredIds = new Set(
     [...forYourCar.stories, ...yourInterests.stories, ...discover.stories, ...picks].map(
       (story) => story.id,
     ),
   );
-  const carousels: CategoryLane[] = HOMEPAGE_CATEGORY_SLUGS.flatMap((slug) => {
-    const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
+  const carousels: CategoryLane[] = pinned.rails.flatMap((rail) => {
+    const nav = MAGAZINE_NAV.find((item) => item.slug === rail.slug);
     if (!nav) return [];
-    const lane = ranked
-      .filter((article) => articleMatchesNav(article, nav.slug))
-      .slice(0, 12)
-      .map((article) => toMagazineStory(article, { lane: "carousel", showExplanation: false }));
-    const fresh = lane.filter((story) => !featuredIds.has(story.id));
-    const stories = uniqueStories([...fresh, ...lane]).slice(0, HOMEPAGE_CATEGORY_STORY_MAX);
+    const lane = rail.stories.map((article) =>
+      toMagazineStory(article, { lane: "carousel", showExplanation: false }),
+    );
+    const opener = lane[0];
+    const rest = lane.filter((story) => story.id !== opener?.id && !featuredIds.has(story.id));
+    const stories = uniqueStories([...(opener ? [opener] : []), ...rest, ...lane]).slice(
+      0,
+      HOMEPAGE_CATEGORY_STORY_MAX,
+    );
     if (stories.length === 0) return [];
     return [{ slug: nav.slug, name: nav.name, stories }];
   });
   const carouselArticles = HOMEPAGE_CATEGORY_SLUGS.flatMap((slug) => {
     const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
     if (!nav) return [];
-    const articles = ranked
-      .filter((article) => articleMatchesNav(article, nav.slug))
-      .slice(0, HOMEPAGE_CATEGORY_STORY_MAX);
+    const pinnedRail = pinned.rails.find((rail) => rail.slug === slug);
+    const articles = (pinnedRail?.stories ?? ranked.filter((article) => articleMatchesNav(article, nav.slug))).slice(
+      0,
+      HOMEPAGE_CATEGORY_STORY_MAX,
+    );
     if (articles.length === 0) return [];
     return [{ slug: nav.slug, articles }];
   });
   const interludes = selectHomepageInterludes({
     picks: deskArticles,
-    forYourCar: plan.forYourCar.stories
+    forYourCar: pinned.forYou
       .map((item) => byId.get(item.id))
       .filter((article): article is EditorialDto => Boolean(article)),
     yourInterests: plan.yourInterests.stories
@@ -293,11 +383,12 @@ async function getMagazineHomeFresh(testProfile?: ForYouTestProfile, recentIds: 
 export async function getMagazineHome(
   testProfile?: ForYouTestProfile,
   recentIds: readonly string[] = [],
+  openerRecent: OpenerRecentState = emptyOpenerRecent(),
 ) {
-  const key = magazineCacheKey(testProfile);
+  const key = `${magazineCacheKey(testProfile)}|open:${openerCacheKey(openerRecent)}`;
   const cached = memoGet(magazineMemo.drvMagazineHome, key, MAGAZINE_TTL_MS);
   if (cached) return cached;
-  const value = await getMagazineHomeFresh(testProfile, recentIds);
+  const value = await getMagazineHomeFresh(testProfile, recentIds, openerRecent);
   (magazineMemo.drvMagazineHome ??= new Map()).set(key, { at: Date.now(), value });
   return value;
 }

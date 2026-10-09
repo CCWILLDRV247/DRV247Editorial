@@ -75,6 +75,8 @@ export type EditorialDto = {
   canonicalUrl: string;
   author: string | null;
   publishedAt: string;
+  firstSeen: number;
+  lastProcessed: number | null;
   imageUrl: string | null;
   imageSources: string[];
   imageStatus: string | null;
@@ -123,6 +125,8 @@ type FeedArticle = Pick<
   | "canonicalUrl"
   | "author"
   | "publishedAt"
+  | "firstSeen"
+  | "lastProcessed"
   | "imageUrl"
   | "excerpt"
   | "editorialScore"
@@ -141,6 +145,8 @@ const ARTICLE_FEED_COLUMNS = {
   canonicalUrl: articles.canonicalUrl,
   author: articles.author,
   publishedAt: articles.publishedAt,
+  firstSeen: articles.firstSeen,
+  lastProcessed: articles.lastProcessed,
   imageUrl: articles.imageUrl,
   excerpt: articles.excerpt,
   editorialScore: articles.editorialScore,
@@ -298,6 +304,8 @@ function toDto(
     canonicalUrl: article.canonicalUrl,
     author: article.author,
     publishedAt: new Date(article.publishedAt).toISOString(),
+    firstSeen: article.firstSeen,
+    lastProcessed: article.lastProcessed ?? null,
     imageUrl: imageUrls[0] ?? null,
     imageSources: imageUrls.slice(1),
     imageStatus: image?.status ?? (imageUrls[0] ? "ok" : "missing"),

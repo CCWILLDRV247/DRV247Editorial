@@ -12,6 +12,7 @@ import {
 } from "@/components/category-carousel";
 import { PrintModuleRail } from "@/components/print-module";
 import type { PrintModule } from "@/lib/engine/print";
+import { OpenerRecentSync } from "@/components/opener-recent-sync";
 import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
 
 function splitSequential(items: StoryDto[], parts: number) {
@@ -108,6 +109,7 @@ export function StoryFeed({
 
   const [hero, ...rest] = stories;
   const leadCards = rest.slice(0, 2);
+  const openerIds = [hero.id, ...leadCards.map((story) => story.id)];
   const picks = rest.slice(2, 6);
   const trailing = rest.slice(6);
   const sketchIndex = trailing.findIndex((story) =>
@@ -180,6 +182,7 @@ export function StoryFeed({
 
   return (
     <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 pb-16 md:max-w-6xl">
+      <OpenerRecentSync openerIds={openerIds} />
       <div
         className={
           deskVisual

@@ -12,8 +12,10 @@ import {
   withTestQuery,
 } from "@/lib/engine/for-you-test";
 import { listMagazineStories } from "@/lib/engine/magazine";
+import { OPENER_RECENT_COOKIE, parseOpenerRecent } from "@/lib/engine/opener-recent";
 import { printModuleForSection } from "@/lib/engine/print";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
+import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,11 +35,13 @@ export default async function CategoryPage({
   if (mapped && mapped !== slug) redirect(withTestQuery(`/category/${mapped}`, testQuery));
   const category = contentPrimaryBySlug(slug);
   if (!category) notFound();
+  const openerRecent = parseOpenerRecent((await cookies()).get(OPENER_RECENT_COOKIE)?.value);
   const [stories, catalogRows] = await Promise.all([
     listMagazineStories({
       navSlug: slug,
       testProfile: forYouTestIsActive(testProfile) ? testProfile : undefined,
       limit: 24,
+      openerRecent,
     }),
     loadForYouTestCatalog(),
   ]);
