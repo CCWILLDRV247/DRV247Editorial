@@ -8,6 +8,7 @@ import {
   withProfileInCatalog,
 } from "@/lib/engine/for-you-test";
 import { INTERLUDE_RECENT_COOKIE, parseInterludeRecentIds } from "@/lib/engine/interlude-recent";
+import { OPENER_RECENT_COOKIE, parseOpenerRecent } from "@/lib/engine/opener-recent";
 import { getMagazineHome } from "@/lib/engine/magazine";
 import { loadForYouTestCatalog } from "@/lib/engine/queries";
 import { cookies } from "next/headers";
@@ -23,9 +24,11 @@ export default async function HomePage({
   const params = await searchParams;
   const testProfile = parseForYouTestProfile(params);
   const testQuery = forYouTestSearchString(testProfile) || undefined;
-  const recentIds = parseInterludeRecentIds((await cookies()).get(INTERLUDE_RECENT_COOKIE)?.value);
+  const cookieStore = await cookies();
+  const recentIds = parseInterludeRecentIds(cookieStore.get(INTERLUDE_RECENT_COOKIE)?.value);
+  const openerRecent = parseOpenerRecent(cookieStore.get(OPENER_RECENT_COOKIE)?.value);
   const [home, catalogRows] = await Promise.all([
-    getMagazineHome(testProfile, recentIds),
+    getMagazineHome(testProfile, recentIds, openerRecent),
     loadForYouTestCatalog(),
   ]);
   const catalog = withProfileInCatalog(catalogRows, testProfile);
