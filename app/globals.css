@@ -136,8 +136,9 @@
   }
 }
 
-/* Story teaser ↔ detail. Native <a> + cross-document view transitions so
-   Safari and a full navigation still show motion (Next <Link> skipped this). */
+/* Story teaser ↔ detail. Card clicks start a same-document view transition
+   (StoryOpenLink preventDefault + router.push). Keep MPA auto for traverse
+   (Safari back / chevron history.back() when the document unloads). */
 @view-transition {
   navigation: auto;
 }

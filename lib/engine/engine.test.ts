@@ -1472,6 +1472,15 @@ describe("for you test profile", () => {
     assert.match(STORY_MEDIA_BOOT_SCRIPT, /pagereveal/);
   });
 
+  it("starts a story-open view transition instead of a native <a> default click", () => {
+    const src = readFileSync(new URL("../../components/story-open-link.tsx", import.meta.url), "utf8");
+    assert.match(src, /event\.preventDefault\(\)/);
+    assert.match(src, /startTransition/);
+    assert.match(src, /addTransitionType/);
+    assert.match(src, /STORY_OPEN_TRANSITION/);
+    assert.match(src, /router\.push\(href, \{ transitionTypes: \[STORY_OPEN_TRANSITION\] \}\)/);
+  });
+
   it("does not invent a vehicle match when the story has no entities", async () => {
     const { scoreArticle } = await import("./rank");
     const unmatched = scoreArticle({
