@@ -3,7 +3,7 @@ import { MagazineLink, MagazineQueryProvider } from "@/components/magazine-link"
 import { SiteHeader } from "@/components/site-chrome";
 import { StoryCopyTransition } from "@/components/story-copy-transition";
 import { StoryImage } from "@/components/story-image";
-import { StoryMediaTransition } from "@/components/story-media-transition";
+import { StoryHeroMedia } from "@/components/story-media-transition";
 import { forYouTestSearchString, parseForYouTestProfile, withTestQuery } from "@/lib/engine/for-you-test";
 import { getMagazineStory } from "@/lib/engine/magazine";
 import { isVideoStory } from "@/lib/engine/video-story";
@@ -32,11 +32,11 @@ export default async function StoryPage({
       <div className="min-h-full bg-white">
         <SiteHeader title={story.category.name} backHref="/" testQuery={testQuery} />
       <article className="mx-auto max-w-3xl pb-20">
-        <StoryMediaTransition storyId={story.id}>
+        <StoryHeroMedia>
           <div className="relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl">
             <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority video={isVideoStory(story)} />
           </div>
-        </StoryMediaTransition>
+        </StoryHeroMedia>
         <StoryCopyTransition>
         <div className="px-7 pt-10 md:px-8">
           <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">

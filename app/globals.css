@@ -163,7 +163,8 @@
   animation: none;
 }
 
-::view-transition-group(.morph) {
+::view-transition-group(.morph),
+::view-transition-group(story-media) {
   animation-duration: 320ms;
   animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
   z-index: 8;

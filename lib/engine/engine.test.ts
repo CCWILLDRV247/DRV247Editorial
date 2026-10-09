@@ -1463,10 +1463,10 @@ describe("for you test profile", () => {
     assert.equal(recordMagazineVisit(afterStory, story), afterStory);
   });
 
-  it("names story media transitions with a CSS ident from the story id", async () => {
-    const { storyMediaTransitionName } = await import("./story-transition");
-    assert.equal(storyMediaTransitionName(12), "story-media-12");
-    assert.match(storyMediaTransitionName(381), /^[A-Za-z_][\w-]*$/);
+  it("uses one shared story media view-transition name", async () => {
+    const { STORY_MEDIA_NAME } = await import("./story-transition");
+    assert.equal(STORY_MEDIA_NAME, "story-media");
+    assert.match(STORY_MEDIA_NAME, /^[A-Za-z_][\w-]*$/);
   });
 
   it("does not invent a vehicle match when the story has no entities", async () => {

@@ -1,4 +1,4 @@
-import { StoryMediaTransition } from "@/components/story-media-transition";
+import { StoryMediaTarget } from "@/components/story-media-transition";
 import { StoryOpenLink } from "@/components/story-open-link";
 import { StoryImage } from "@/components/story-image";
 import { isVideoStory } from "@/lib/engine/video-story";
@@ -20,23 +20,21 @@ function PickImageFrame({
 }) {
   const tag = story.desk?.labelName ?? story.category.name;
   return (
-    <StoryMediaTransition storyId={story.id}>
-      <div className={`relative ${PICK_IMAGE_HEIGHT} overflow-hidden rounded-[12px] bg-[#cfcfcf]`}>
-        <StoryImage
-          src={story.imageUrl}
-          sources={story.imageSources}
-          category={story.category.name}
-          alt=""
-          eager={eager}
-          video={isVideoStory(story)}
-        />
-        <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
-          <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
-            {tag}
-          </span>
-        </div>
+    <StoryMediaTarget storyId={story.id} className={`relative ${PICK_IMAGE_HEIGHT} overflow-hidden rounded-[12px] bg-[#cfcfcf]`}>
+      <StoryImage
+        src={story.imageUrl}
+        sources={story.imageSources}
+        category={story.category.name}
+        alt=""
+        eager={eager}
+        video={isVideoStory(story)}
+      />
+      <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
+        <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
+          {tag}
+        </span>
       </div>
-    </StoryMediaTransition>
+    </StoryMediaTarget>
   );
 }
 

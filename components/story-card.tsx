@@ -1,5 +1,5 @@
 import { cn } from "cn";
-import { StoryMediaTransition } from "@/components/story-media-transition";
+import { StoryMediaTarget } from "@/components/story-media-transition";
 import { StoryOpenLink } from "@/components/story-open-link";
 import type { StoryDto } from "@/lib/stories";
 import { isVideoStory } from "@/lib/engine/video-story";
@@ -41,11 +41,9 @@ export function StoryCard({ story }: { story: StoryDto }) {
       storyId={story.id}
       className="relative block h-[500px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
     >
-      <StoryMediaTransition storyId={story.id}>
-        <div className="absolute inset-0 opacity-80">
-          <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
-        </div>
-      </StoryMediaTransition>
+      <StoryMediaTarget storyId={story.id} className="absolute inset-0 opacity-80">
+        <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
+      </StoryMediaTarget>
       <div className="absolute inset-x-0 bottom-0 h-[227px] bg-gradient-to-b from-transparent to-[#1b1d1f]" />
       <div className="absolute inset-0 flex flex-col justify-end px-7 pb-7 pr-6">
         <div className="flex flex-col gap-6">
@@ -90,11 +88,9 @@ export function StoryHero({
           : "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
       }
     >
-      <StoryMediaTransition storyId={story.id}>
-        <div className="absolute inset-0">
-          <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority video={isVideoStory(story)} />
-        </div>
-      </StoryMediaTransition>
+      <StoryMediaTarget storyId={story.id} className="absolute inset-0">
+        <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority video={isVideoStory(story)} />
+      </StoryMediaTarget>
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
       <div className="absolute inset-x-5 bottom-6 flex flex-col gap-3 md:inset-x-7 md:bottom-10 md:gap-3">
         <div className="flex flex-col items-start gap-2">
@@ -122,16 +118,14 @@ export function PickCard({ story }: { story: StoryDto }) {
   const tag = story.desk?.labelName ?? story.category.name;
   return (
     <StoryOpenLink storyId={story.id} className="w-[218px] shrink-0">
-      <StoryMediaTransition storyId={story.id}>
-        <div className="relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf]">
-          <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
-          <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
-            <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
-              {tag}
-            </span>
-          </div>
+      <StoryMediaTarget storyId={story.id} className="relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf]">
+        <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
+        <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
+          <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
+            {tag}
+          </span>
         </div>
-      </StoryMediaTransition>
+      </StoryMediaTarget>
       <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-[#1b1d1f]">
         {story.title}
       </p>
