@@ -47,11 +47,10 @@ export function markStoryMedia(storyId: number, root: HTMLElement | null) {
 }
 
 /**
- * Native <a> default click is a push navigation. Safari's
- * `@view-transition { navigation: auto }` only runs on traverse (back), so the
- * card→story open skipped the morph while chevron reverse worked.
- * Prevent default, stamp story-media, then startViewTransition + router.push
- * like MagazineBack starts a transition before history.back().
+ * Native <a> default click is a push navigation. Prevent default, stamp
+ * story-media, then startViewTransition + router.push. Chevron back pops
+ * with history.back() and must not start a view transition — Safari aborts
+ * snapshot capture during that pop (InvalidStateError).
  */
 export function StoryOpenLink({
   storyId,

@@ -1483,15 +1483,24 @@ describe("for you test profile", () => {
     assert.match(runtime, /document\.startViewTransition/);
     assert.match(src, /recordMagazineHref/);
     assert.match(back, /window\.history\.back\(\)/);
-    assert.match(back, /armStoryBackTransition/);
     assert.doesNotMatch(back, /document\.startViewTransition/);
+    assert.doesNotMatch(back, /armStoryBackTransition/);
     assert.doesNotMatch(back, /runStoryBackTransition/);
+    assert.doesNotMatch(back, /popstate/);
     assert.doesNotMatch(back, /router\.push\(previous/);
     assert.doesNotMatch(back, /router\.replace/);
-    assert.match(runtime, /armStoryBackTransition/);
-    assert.match(runtime, /history\.back\(\) \*outside\*/);
-    assert.match(runtime, /popstate/);
+    assert.match(runtime, /isInvalidSnapshot/);
+    assert.match(runtime, /Snapshot capture failed/);
+    assert.match(runtime, /documentIsNavigating/);
+    assert.match(runtime, /hasActiveViewTransition/);
     assert.match(runtime, /applyLastStoryMediaName/);
+    const css = readFileSync(new URL("../../app/globals.css", import.meta.url), "utf8");
+    assert.match(css, /navigation:\s*none/);
+    assert.doesNotMatch(css, /navigation:\s*auto/);
+    const copy = readFileSync(new URL("../../components/story-copy-transition.tsx", import.meta.url), "utf8");
+    const feed = readFileSync(new URL("../../components/magazine-page-transition.tsx", import.meta.url), "utf8");
+    assert.match(copy, /default="none"/);
+    assert.match(feed, /default="none"/);
     const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
     const autoSubmit = readFileSync(
       new URL("../../components/for-you-test-auto-submit.tsx", import.meta.url),

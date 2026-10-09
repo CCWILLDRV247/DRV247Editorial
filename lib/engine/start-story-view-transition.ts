@@ -1,12 +1,31 @@
-import { LAST_STORY_MEDIA_KEY, STORY_BACK_TRANSITION, STORY_MEDIA_NAME } from "./story-transition";
+import { LAST_STORY_MEDIA_KEY, STORY_MEDIA_NAME } from "./story-transition";
 
-/** Same-document view transition used by card open and chevron back. */
+/** Same-document view transition used by card open. Chevron back must not call this. */
+
+function isInvalidSnapshot(error: unknown) {
+  const text = error instanceof Error ? `${error.name} ${error.message}` : String(error);
+  return /InvalidStateError|invalid state|Snapshot capture failed|aborted/i.test(text);
+}
+
+function documentIsNavigating() {
+  const nav = (window as Window & { navigation?: { transition?: unknown } }).navigation;
+  return Boolean(nav?.transition);
+}
+
+function hasActiveViewTransition() {
+  return Boolean(
+    (document as Document & { activeViewTransition?: unknown }).activeViewTransition,
+  );
+}
 
 export function startTypedViewTransition(
   type: string,
   update: () => void | Promise<void>,
 ) {
   if (typeof document === "undefined" || typeof document.startViewTransition !== "function") {
+    return Promise.resolve(update());
+  }
+  if (hasActiveViewTransition() || documentIsNavigating()) {
     return Promise.resolve(update());
   }
 
@@ -17,15 +36,26 @@ export function startTypedViewTransition(
       update: run,
       types: [type],
     });
-    return transition.finished.catch(() => undefined);
-  } catch {
-    const transition = document.startViewTransition(run);
+    void transition.ready.catch((error) => {
+      if (!isInvalidSnapshot(error)) return;
+    });
+    return transition.finished.catch((error) => {
+      if (isInvalidSnapshot(error)) return;
+    });
+  } catch (error) {
+    if (isInvalidSnapshot(error)) return Promise.resolve(update());
     try {
-      transition.types?.add(type);
+      const transition = document.startViewTransition(run);
+      try {
+        transition.types?.add(type);
+      } catch {
+        // Older browsers expose startViewTransition but not types.
+      }
+      void transition.ready.catch(() => undefined);
+      return transition.finished.catch(() => undefined);
     } catch {
-      // Older browsers expose startViewTransition but not types.
+      return Promise.resolve(update());
     }
-    return transition.finished.catch(() => undefined);
   }
 }
 
@@ -76,38 +106,3 @@ export function nameListingForStoryBack() {
   setViewTransitionClass(document.querySelector("main"), "story-feed");
 }
 
-let pendingStoryBackPath: string | null = null;
-
-/**
- * Arm reverse motion, then the caller must history.back() *outside*
- * startViewTransition. The capture popstate starts the only VT; wrapping
- * back() inside the update is ignored in Safari.
- */
-export function armStoryBackTransition(previousHref: string) {
-  pendingStoryBackPath = previousHref.split("?")[0] || previousHref;
-  setViewTransitionClass(document.querySelector("article"), "story-copy");
-}
-
-function onStoryBackPopState() {
-  const destPath = pendingStoryBackPath;
-  if (!destPath) return;
-  pendingStoryBackPath = null;
-  void startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
-    await waitForMagazinePaint(
-      () =>
-        window.location.pathname === destPath &&
-        Boolean(document.querySelector("[data-story-media]")),
-    );
-    nameListingForStoryBack();
-  });
-}
-
-const BACK_POP_FLAG = "__drv247StoryBackPop";
-
-if (typeof window !== "undefined") {
-  const scoped = window as Window & { [BACK_POP_FLAG]?: boolean };
-  if (!scoped[BACK_POP_FLAG]) {
-    scoped[BACK_POP_FLAG] = true;
-    window.addEventListener("popstate", onStoryBackPopState, true);
-  }
-}

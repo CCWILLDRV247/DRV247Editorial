@@ -137,10 +137,11 @@
 }
 
 /* Story teaser ↔ detail. Card clicks start a same-document view transition
-   (StoryOpenLink preventDefault + router.push). Keep MPA auto for traverse
-   (Safari back / chevron history.back() when the document unloads). */
+   (StoryOpenLink preventDefault + router.push). Do not auto-start on
+   traverse: Safari aborts snapshot capture during history.back() in this
+   SPA (InvalidStateError: Snapshot capture failed). */
 @view-transition {
-  navigation: auto;
+  navigation: none;
 }
 
 .site-header {
