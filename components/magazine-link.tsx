@@ -23,7 +23,7 @@ import {
   shouldPopMagazineHistory,
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
-import { armStoryBackTransition } from "@/lib/engine/start-story-view-transition";
+import { runStoryBackTransition } from "@/lib/engine/start-story-view-transition";
 import { STORY_BACK_TRANSITION } from "@/lib/engine/story-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
@@ -121,11 +121,11 @@ export function MagazineBack({
     if (!shouldPopMagazineHistory(previous)) return;
     event.preventDefault();
     saveStack(popMagazineVisit(stack, current));
-    armStoryBackTransition(previous);
+    void runStoryBackTransition(previous);
     startTransition(() => {
       addTransitionType(STORY_BACK_TRANSITION);
-      window.history.back();
     });
+    window.history.back();
   }
 
   return (

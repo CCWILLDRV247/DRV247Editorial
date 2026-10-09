@@ -1483,12 +1483,20 @@ describe("for you test profile", () => {
     assert.match(runtime, /document\.startViewTransition/);
     assert.match(src, /recordMagazineHref/);
     assert.match(back, /window\.history\.back\(\)/);
-    assert.match(back, /armStoryBackTransition/);
-    assert.doesNotMatch(back, /startTypedViewTransition/);
+    assert.match(back, /runStoryBackTransition/);
     assert.match(back, /STORY_BACK_TRANSITION/);
-    assert.match(runtime, /armStoryBackTransition/);
-    assert.match(runtime, /popstate/);
+    assert.match(runtime, /runStoryBackTransition/);
+    assert.match(runtime, /history\.back\(\) \*outside\*/);
     assert.match(runtime, /applyLastStoryMediaName/);
+    const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
+    const autoSubmit = readFileSync(
+      new URL("../../components/for-you-test-auto-submit.tsx", import.meta.url),
+      "utf8",
+    );
+    assert.doesNotMatch(filter, /<script/);
+    assert.match(filter, /ForYouTestAutoSubmit/);
+    assert.match(autoSubmit, /requestSubmit/);
+    assert.match(autoSubmit, /"use client"/);
   });
 
   it("does not invent a vehicle match when the story has no entities", async () => {

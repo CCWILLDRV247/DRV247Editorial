@@ -74,19 +74,15 @@ function setViewTransitionClass(node: Element | null, className: string) {
   if ("viewTransitionClass" in style) style.viewTransitionClass = className;
 }
 
-let pendingStoryBackPath: string | null = null;
-
-/** Arm reverse motion. history.back() must stay outside startViewTransition. */
-export function armStoryBackTransition(previousHref: string) {
-  pendingStoryBackPath = previousHref.split("?")[0] || previousHref;
-}
-
-function onStoryBackPopState() {
-  const destPath = pendingStoryBackPath;
-  if (!destPath) return;
-  pendingStoryBackPath = null;
+/**
+ * Start the reverse morph in the click (user gesture). The caller must then
+ * call history.back() *outside* this update — wrapping back() inside
+ * startViewTransition is ignored and stays on the story.
+ */
+export function runStoryBackTransition(previousHref: string) {
+  const destPath = previousHref.split("?")[0] || previousHref;
   setViewTransitionClass(document.querySelector("article"), "story-copy");
-  void startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
+  return startTypedViewTransition(STORY_BACK_TRANSITION, async () => {
     await waitForMagazinePaint(
       () =>
         window.location.pathname === destPath &&
@@ -95,14 +91,4 @@ function onStoryBackPopState() {
     applyLastStoryMediaName();
     setViewTransitionClass(document.querySelector("main"), "story-feed");
   });
-}
-
-const BACK_POP_FLAG = "__drv247StoryBackPop";
-
-if (typeof window !== "undefined") {
-  const scoped = window as Window & { [BACK_POP_FLAG]?: boolean };
-  if (!scoped[BACK_POP_FLAG]) {
-    scoped[BACK_POP_FLAG] = true;
-    window.addEventListener("popstate", onStoryBackPopState, true);
-  }
 }
