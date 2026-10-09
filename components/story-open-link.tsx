@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import {
-  useEffect,
   useRef,
   type AnchorHTMLAttributes,
   type MouseEvent,
@@ -13,7 +11,6 @@ import { magazineHref } from "@/lib/engine/magazine-history";
 import {
   LAST_STORY_MEDIA_KEY,
   STORY_MEDIA_NAME,
-  STORY_OPEN_TRANSITION,
 } from "@/lib/engine/story-transition";
 
 type StoryOpenLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
@@ -28,7 +25,7 @@ function clearStoryMediaNames() {
   });
 }
 
-function markStoryMedia(storyId: number, root: HTMLElement | null) {
+export function markStoryMedia(storyId: number, root: HTMLElement | null) {
   try {
     sessionStorage.setItem(LAST_STORY_MEDIA_KEY, String(storyId));
   } catch {
@@ -41,25 +38,10 @@ function markStoryMedia(storyId: number, root: HTMLElement | null) {
   }
 }
 
-function restoreStoryMedia(storyId: number) {
-  let last = "";
-  try {
-    last = sessionStorage.getItem(LAST_STORY_MEDIA_KEY) ?? "";
-  } catch {
-    return;
-  }
-  if (last !== String(storyId)) return;
-  const nodes = document.querySelectorAll(`[data-story-media="${storyId}"]`);
-  nodes.forEach((node, index) => {
-    if (node instanceof HTMLElement) {
-      node.style.viewTransitionName = index === 0 ? STORY_MEDIA_NAME : "";
-    }
-  });
-}
-
 /**
- * Client navigation into `/story/[id]` so React `<ViewTransition>` can morph
- * the card image. Query is stamped the same way as `MagazineLink`.
+ * Native <a> (same as MagazineLink) so the browser pushes a real history
+ * entry and `@view-transition { navigation: auto }` can run. Next.js <Link>
+ * soft-nav skipped that MPA transition, so the card→story move was instant.
  */
 export function StoryOpenLink({
   storyId,
@@ -70,25 +52,18 @@ export function StoryOpenLink({
 }: StoryOpenLinkProps) {
   const ctx = useMagazineQuery();
   const ref = useRef<HTMLAnchorElement>(null);
-
-  useEffect(() => {
-    restoreStoryMedia(storyId);
-  }, [storyId]);
+  const href = magazineHref(`/story/${storyId}`, query ?? ctx);
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     markStoryMedia(storyId, ref.current);
     onClick?.(event);
   }
 
   return (
-    <Link
-      {...props}
-      ref={ref}
-      href={magazineHref(`/story/${storyId}`, query ?? ctx)}
-      transitionTypes={[STORY_OPEN_TRANSITION]}
-      onClick={handleClick}
-    >
+    <a {...props} ref={ref} href={href} onClick={handleClick}>
       {children}
-    </Link>
+    </a>
   );
 }

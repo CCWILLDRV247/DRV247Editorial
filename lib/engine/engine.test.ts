@@ -1465,8 +1465,11 @@ describe("for you test profile", () => {
 
   it("uses one shared story media view-transition name", async () => {
     const { STORY_MEDIA_NAME } = await import("./story-transition");
+    const { STORY_MEDIA_BOOT_SCRIPT } = await import("./story-media-boot");
     assert.equal(STORY_MEDIA_NAME, "story-media");
     assert.match(STORY_MEDIA_NAME, /^[A-Za-z_][\w-]*$/);
+    assert.match(STORY_MEDIA_BOOT_SCRIPT, /story-media/);
+    assert.match(STORY_MEDIA_BOOT_SCRIPT, /pagereveal/);
   });
 
   it("does not invent a vehicle match when the story has no entities", async () => {

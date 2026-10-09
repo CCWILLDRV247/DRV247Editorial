@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import { ViewTransition } from "react";
-import { STORY_MEDIA_NAME } from "@/lib/engine/story-transition";
 
 /** Listing card image. Named only when this card is the active story open/back pair. */
 export function StoryMediaTarget({
@@ -19,11 +17,7 @@ export function StoryMediaTarget({
   );
 }
 
-/** Teaser hero. Pairs with the card that set `STORY_MEDIA_NAME` on click. */
+/** Teaser hero. CSS `view-transition-name: story-media` pairs with the clicked card. */
 export function StoryHeroMedia({ children }: { children: ReactNode }) {
-  return (
-    <ViewTransition name={STORY_MEDIA_NAME} share="morph" default="none">
-      {children}
-    </ViewTransition>
-  );
+  return <div className="story-hero-media">{children}</div>;
 }

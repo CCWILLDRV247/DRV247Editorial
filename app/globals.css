@@ -136,18 +136,30 @@
   }
 }
 
-/* Story teaser ↔ detail: Next.js View Transitions (React <ViewTransition>). */
+/* Story teaser ↔ detail. Native <a> + cross-document view transitions so
+   Safari and a full navigation still show motion (Next <Link> skipped this). */
+@view-transition {
+  navigation: auto;
+}
+
 .site-header {
   view-transition-name: site-header;
+}
+
+.story-hero-media {
+  view-transition-name: story-media;
 }
 
 ::view-transition {
   pointer-events: none;
 }
 
-::view-transition-old(root),
+::view-transition-old(root) {
+  animation: 240ms ease-out both story-root-out;
+}
+
 ::view-transition-new(root) {
-  animation: none;
+  animation: 280ms ease-out both story-root-in;
 }
 
 ::view-transition-group(site-header) {
@@ -184,6 +196,18 @@
 
 ::view-transition-new(.story-feed) {
   animation: 280ms ease-out both story-feed-in;
+}
+
+@keyframes story-root-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes story-root-in {
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes story-copy-in {
