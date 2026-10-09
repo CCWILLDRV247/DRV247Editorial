@@ -1495,6 +1495,8 @@ describe("for you test profile", () => {
     assert.match(morph, /prefers-reduced-motion/);
     assert.match(morph, /fadeOverlay/);
     assert.match(morph, /isOnScreen/);
+    assert.match(morph, /laidOutCard/);
+    assert.match(morph, /scale\(/);
     assert.doesNotMatch(morph, /startViewTransition/);
     assert.doesNotMatch(morph, /popstate/);
     const tokens = readFileSync(new URL("./story-transition.ts", import.meta.url), "utf8");

@@ -94,26 +94,47 @@ function fadeListing() {
   });
 }
 
-function morphToCard(overlay: HTMLElement, from: Box, card: HTMLElement) {
-  const to = boxOf(card);
-  if (!isOnScreen(to)) {
-    fadeOverlay(overlay);
-    return;
+function laidOutCard(id: string) {
+  if (!id) return null;
+  const nodes = document.querySelectorAll(`[data-story-media="${id}"]`);
+  for (const node of nodes) {
+    if (!(node instanceof HTMLElement)) continue;
+    const box = boxOf(node);
+    if (box.width > 2 && box.height > 2) return { node, box };
   }
+  return null;
+}
+
+function listingHasMedia() {
+  return Boolean(document.querySelector("[data-story-media]"));
+}
+
+function waitFrames(count: number) {
+  return new Promise<void>((resolve) => {
+    const step = (left: number) => {
+      if (left <= 0) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(() => step(left - 1));
+    };
+    step(count);
+  });
+}
+
+function morphToCard(overlay: HTMLElement, from: Box, card: HTMLElement, to: Box) {
+  const scaleX = to.width / from.width;
+  const scaleY = to.height / from.height;
   const prior = card.style.opacity;
   card.style.opacity = "0";
   const anim = overlay.animate(
     [
       {
-        transform: `translate(${from.left}px, ${from.top}px)`,
-        width: `${from.width}px`,
-        height: `${from.height}px`,
+        transform: `translate(${from.left}px, ${from.top}px) scale(1, 1)`,
         borderRadius: from.radius,
       },
       {
-        transform: `translate(${to.left}px, ${to.top}px)`,
-        width: `${to.width}px`,
-        height: `${to.height}px`,
+        transform: `translate(${to.left}px, ${to.top}px) scale(${scaleX}, ${scaleY})`,
         borderRadius: to.radius,
       },
     ],
@@ -178,18 +199,21 @@ export function playStoryBackMorph() {
     const captured = captureHero();
     document.documentElement.setAttribute("data-story-back", "1");
     void waitForMagazinePaint(
-      () =>
-        !window.location.pathname.startsWith("/story/") &&
-        Boolean(document.querySelector("[data-story-media]")),
+      () => {
+        if (window.location.pathname.startsWith("/story/")) return false;
+        if (!listingHasMedia()) return false;
+        if (!captured?.id) return true;
+        if (laidOutCard(captured.id)) return true;
+        return !document.querySelector(`[data-story-media="${captured.id}"]`);
+      },
     )
-      .then(() => {
+      .then(async () => {
+        await waitFrames(2);
         fadeListing();
         if (!captured) return;
-        const card = captured.id
-          ? document.querySelector(`[data-story-media="${captured.id}"]`)
-          : null;
-        if (card instanceof HTMLElement) {
-          morphToCard(captured.overlay, captured.from, card);
+        const ready = laidOutCard(captured.id);
+        if (ready && isOnScreen(ready.box)) {
+          morphToCard(captured.overlay, captured.from, ready.node, ready.box);
           return;
         }
         fadeOverlay(captured.overlay);
