@@ -1512,12 +1512,17 @@ describe("for you test profile", () => {
     assert.match(src, /STORY_OPEN_TRANSITION/);
     assert.match(src, /freezeOpenView/);
     assert.match(src, /thawOpenView/);
-    assert.doesNotMatch(src, /startTransition/);
-    assert.doesNotMatch(src, /addTransitionType/);
+    assert.match(src, /startTransition\(\(\) => \{/);
+    assert.match(src, /addTransitionType\(STORY_OPEN_TRANSITION\)/);
+    assert.match(
+      src,
+      /startTransition\(\(\) => \{\s*addTransitionType\(STORY_OPEN_TRANSITION\);/s,
+    );
     assert.match(src, /router\.push\(href, \{ transitionTypes: \[STORY_OPEN_TRANSITION\] \}\)/);
     assert.match(runtime, /document\.startViewTransition/);
     const freeze = readFileSync(new URL("./story-open-freeze.ts", import.meta.url), "utf8");
     assert.match(freeze, /data-story-open-freeze/);
+    assert.match(freeze, /viewTransitionName = "none"/);
     assert.doesNotMatch(freeze, /startViewTransition/);
     assert.match(src, /recordMagazineHref/);
     assert.match(src, /captureMagazineRails/);

@@ -1,5 +1,18 @@
 /** Pin the listing over the story loading shell until the hero can snapshot. */
 
+function stripTransitionNames(root: Node) {
+  if (!(root instanceof HTMLElement)) return;
+  const clear = (node: HTMLElement) => {
+    node.style.viewTransitionName = "none";
+    const style = node.style as CSSStyleDeclaration & { viewTransitionClass?: string };
+    if ("viewTransitionClass" in style) style.viewTransitionClass = "";
+  };
+  clear(root);
+  root.querySelectorAll("*").forEach((node) => {
+    if (node instanceof HTMLElement) clear(node);
+  });
+}
+
 export function freezeOpenView() {
   if (typeof document === "undefined") return;
   if (document.querySelector("[data-story-open-freeze]")) return;
@@ -12,6 +25,7 @@ export function freezeOpenView() {
   layer.style.overflow = "hidden";
   layer.style.pointerEvents = "none";
   layer.style.background = "#ffffff";
+  layer.style.viewTransitionName = "none";
   const frame = document.createElement("div");
   frame.style.position = "absolute";
   frame.style.left = "0";
@@ -21,7 +35,9 @@ export function freezeOpenView() {
     if (child.tagName === "SCRIPT") continue;
     if (child.getAttribute("data-story-open-freeze")) continue;
     if (child.getAttribute("data-story-back-morph")) continue;
-    frame.appendChild(child.cloneNode(true));
+    const clone = child.cloneNode(true);
+    stripTransitionNames(clone);
+    frame.appendChild(clone);
   }
   layer.appendChild(frame);
   document.body.appendChild(layer);
