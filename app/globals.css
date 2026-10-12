@@ -152,26 +152,37 @@
   view-transition-name: story-media;
 }
 
-::view-transition {
-  pointer-events: none;
+html {
+  background-color: #ffffff;
 }
 
+::view-transition {
+  pointer-events: none;
+  background-color: transparent;
+}
+
+/* Old listing stays opaque while it eases out. Fading both root
+   snapshots through 0 punches a white hole on WKWebView. */
 ::view-transition-old(root) {
-  animation: 240ms ease-out both story-root-out;
+  animation: 320ms cubic-bezier(0.25, 0.1, 0.25, 1) both story-root-out;
+  z-index: 1;
 }
 
 ::view-transition-new(root) {
-  animation: 280ms ease-out both story-root-in;
+  animation: none;
+  z-index: 0;
 }
 
 html:active-view-transition-type(story-open)::view-transition-old(root),
 html:active-view-transition-type(story-back)::view-transition-old(root) {
-  animation: 240ms ease-out both story-root-out;
+  animation: 320ms cubic-bezier(0.25, 0.1, 0.25, 1) both story-root-out;
+  z-index: 1;
 }
 
 html:active-view-transition-type(story-open)::view-transition-new(root),
 html:active-view-transition-type(story-back)::view-transition-new(root) {
-  animation: 280ms ease-out both story-root-in;
+  animation: none;
+  z-index: 0;
 }
 
 ::view-transition-group(site-header) {
@@ -212,12 +223,6 @@ html:active-view-transition-type(story-back)::view-transition-new(root) {
 
 @keyframes story-root-out {
   to {
-    opacity: 0;
-  }
-}
-
-@keyframes story-root-in {
-  from {
     opacity: 0;
   }
 }
