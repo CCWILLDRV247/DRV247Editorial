@@ -1516,7 +1516,7 @@ describe("for you test profile", () => {
     assert.match(src, /addTransitionType\(STORY_OPEN_TRANSITION\)/);
     assert.match(
       src,
-      /startTransition\(\(\) => \{\s*addTransitionType\(STORY_OPEN_TRANSITION\);/s,
+      /startTransition\(\(\) => \{\s*addTransitionType\(STORY_OPEN_TRANSITION\);/,
     );
     assert.match(src, /router\.push\(href, \{ transitionTypes: \[STORY_OPEN_TRANSITION\] \}\)/);
     assert.match(runtime, /document\.startViewTransition/);
