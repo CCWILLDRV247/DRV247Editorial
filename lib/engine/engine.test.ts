@@ -1513,6 +1513,7 @@ describe("for you test profile", () => {
     assert.match(src, /freezeOpenView/);
     assert.match(src, /thawOpenView/);
     assert.doesNotMatch(src, /startTransition/);
+    assert.doesNotMatch(src, /addTransitionType/);
     assert.match(src, /router\.push\(href, \{ transitionTypes: \[STORY_OPEN_TRANSITION\] \}\)/);
     assert.match(runtime, /document\.startViewTransition/);
     const freeze = readFileSync(new URL("./story-open-freeze.ts", import.meta.url), "utf8");

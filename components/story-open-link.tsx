@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  addTransitionType,
   useRef,
   type AnchorHTMLAttributes,
   type MouseEvent,
@@ -83,7 +82,6 @@ export function StoryOpenLink({
     onClick?.(event);
     freezeOpenView();
     void startTypedViewTransition(STORY_OPEN_TRANSITION, async () => {
-      addTransitionType(STORY_OPEN_TRANSITION);
       router.push(href, { transitionTypes: [STORY_OPEN_TRANSITION] });
       await waitForMagazinePaint(
         () =>
