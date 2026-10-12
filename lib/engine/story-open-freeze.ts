@@ -13,6 +13,21 @@ function stripTransitionNames(root: Node) {
   });
 }
 
+function clonePainted(child: Element) {
+  const clone = child.cloneNode(true);
+  stripTransitionNames(clone);
+  if (!(clone instanceof HTMLElement)) return clone;
+  const srcImgs = child.querySelectorAll("img");
+  const dstImgs = clone.querySelectorAll("img");
+  srcImgs.forEach((img, i) => {
+    const dst = dstImgs[i];
+    if (!(dst instanceof HTMLImageElement)) return;
+    const src = img.currentSrc || img.src;
+    if (src) dst.src = src;
+  });
+  return clone;
+}
+
 export function freezeOpenView() {
   if (typeof document === "undefined") return;
   if (document.querySelector("[data-story-open-freeze]")) return;
@@ -35,9 +50,7 @@ export function freezeOpenView() {
     if (child.tagName === "SCRIPT") continue;
     if (child.getAttribute("data-story-open-freeze")) continue;
     if (child.getAttribute("data-story-back-morph")) continue;
-    const clone = child.cloneNode(true);
-    stripTransitionNames(clone);
-    frame.appendChild(clone);
+    frame.appendChild(clonePainted(child));
   }
   layer.appendChild(frame);
   document.body.appendChild(layer);

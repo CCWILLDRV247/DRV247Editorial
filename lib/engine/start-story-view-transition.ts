@@ -61,6 +61,14 @@ export function startTypedViewTransition(
   }
 }
 
+export function storyHeroIsPainted() {
+  const hero = document.querySelector(".story-hero-media");
+  if (!hero) return false;
+  const img = hero.querySelector("img");
+  if (!(img instanceof HTMLImageElement)) return true;
+  return img.complete && img.naturalWidth > 0;
+}
+
 export function waitForMagazinePaint(isReady: () => boolean, timeoutMs = 2500) {
   return new Promise<void>((resolve) => {
     if (isReady()) {
