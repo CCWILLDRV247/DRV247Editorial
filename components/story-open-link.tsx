@@ -2,7 +2,6 @@
 
 import {
   addTransitionType,
-  startTransition,
   useRef,
   type AnchorHTMLAttributes,
   type MouseEvent,
@@ -12,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { recordMagazineHref, useMagazineQuery } from "@/components/magazine-link";
 import { magazineHref, magazineLocation } from "@/lib/engine/magazine-history";
 import { captureMagazineRails } from "@/lib/engine/magazine-rail-scroll";
+import { freezeOpenView, thawOpenView } from "@/lib/engine/story-open-freeze";
 import {
   startTypedViewTransition,
   waitForMagazinePaint,
@@ -48,10 +48,10 @@ export function markStoryMedia(storyId: number, root: HTMLElement | null) {
 }
 
 /**
- * Native <a> default click is a push navigation. Prevent default, stamp
- * story-media, then startViewTransition + router.push. Chevron back pops
- * with history.back() and must not start a view transition — Safari aborts
- * snapshot capture during that pop (InvalidStateError).
+ * Native <a> default click is a push navigation. Prevent default, pin the
+ * listing over the story loading shell, then startViewTransition + router.push.
+ * WebKit otherwise paints that empty shell before the morph. Chevron back
+ * pops with history.back() and must not start a view transition.
  */
 export function StoryOpenLink({
   storyId,
@@ -81,17 +81,17 @@ export function StoryOpenLink({
     recordMagazineHref(magazineLocation(window.location.pathname, window.location.search));
     recordMagazineHref(href);
     onClick?.(event);
+    freezeOpenView();
     void startTypedViewTransition(STORY_OPEN_TRANSITION, async () => {
-      startTransition(() => {
-        addTransitionType(STORY_OPEN_TRANSITION);
-        router.push(href, { transitionTypes: [STORY_OPEN_TRANSITION] });
-      });
+      addTransitionType(STORY_OPEN_TRANSITION);
+      router.push(href, { transitionTypes: [STORY_OPEN_TRANSITION] });
       await waitForMagazinePaint(
         () =>
           window.location.pathname === storyPath &&
           Boolean(document.querySelector(".story-hero-media")),
       );
-    });
+      thawOpenView();
+    }).finally(() => thawOpenView());
   }
 
   return (
