@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { recordMagazineHref, useMagazineQuery } from "@/components/magazine-link";
 import { magazineHref, magazineLocation } from "@/lib/engine/magazine-history";
 import { captureMagazineRails } from "@/lib/engine/magazine-rail-scroll";
+import { freezeOpenView, thawOpenView } from "@/lib/engine/story-open-freeze";
 import {
   startTypedViewTransition,
   waitForMagazinePaint,
@@ -48,10 +49,12 @@ export function markStoryMedia(storyId: number, root: HTMLElement | null) {
 }
 
 /**
- * Native <a> default click is a push navigation. Prevent default, stamp
- * story-media, then startViewTransition + router.push. Chevron back pops
- * with history.back() and must not start a view transition — Safari aborts
- * snapshot capture during that pop (InvalidStateError).
+ * Native <a> default click is a push navigation. Prevent default, snapshot
+ * the listing, then startTransition + addTransitionType + router.push so
+ * React can run the story-open morph. Pin the listing over the loading
+ * shell only after that snapshot — WebKit otherwise paints the grey pulse
+ * before the hero. Chevron back pops with history.back() and must not
+ * start a view transition.
  */
 export function StoryOpenLink({
   storyId,
@@ -82,6 +85,7 @@ export function StoryOpenLink({
     recordMagazineHref(href);
     onClick?.(event);
     void startTypedViewTransition(STORY_OPEN_TRANSITION, async () => {
+      freezeOpenView();
       startTransition(() => {
         addTransitionType(STORY_OPEN_TRANSITION);
         router.push(href, { transitionTypes: [STORY_OPEN_TRANSITION] });
@@ -91,7 +95,8 @@ export function StoryOpenLink({
           window.location.pathname === storyPath &&
           Boolean(document.querySelector(".story-hero-media")),
       );
-    });
+      thawOpenView();
+    }).finally(() => thawOpenView());
   }
 
   return (

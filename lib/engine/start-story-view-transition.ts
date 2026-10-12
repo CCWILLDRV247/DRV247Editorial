@@ -25,17 +25,21 @@ export function startTypedViewTransition(
   if (typeof document === "undefined" || typeof document.startViewTransition !== "function") {
     return Promise.resolve(update());
   }
-  if (hasActiveViewTransition() || documentIsNavigating()) {
+  if (hasActiveViewTransition()) {
     return Promise.resolve(update());
   }
 
   const run = () => Promise.resolve(update());
 
+  // Callback form first: WebKit keeps the old snapshot for an async update.
+  // The object form can paint the live document (story loading shell) first.
   try {
-    const transition = document.startViewTransition({
-      update: run,
-      types: [type],
-    });
+    const transition = document.startViewTransition(run);
+    try {
+      transition.types?.add(type);
+    } catch {
+      // Older browsers expose startViewTransition but not types.
+    }
     void transition.ready.catch((error) => {
       if (!isInvalidSnapshot(error)) return;
     });
@@ -43,14 +47,12 @@ export function startTypedViewTransition(
       if (isInvalidSnapshot(error)) return;
     });
   } catch (error) {
-    if (isInvalidSnapshot(error)) return Promise.resolve(update());
+    if (isInvalidSnapshot(error) || documentIsNavigating()) return Promise.resolve(update());
     try {
-      const transition = document.startViewTransition(run);
-      try {
-        transition.types?.add(type);
-      } catch {
-        // Older browsers expose startViewTransition but not types.
-      }
+      const transition = document.startViewTransition({
+        update: run,
+        types: [type],
+      });
       void transition.ready.catch(() => undefined);
       return transition.finished.catch(() => undefined);
     } catch {
