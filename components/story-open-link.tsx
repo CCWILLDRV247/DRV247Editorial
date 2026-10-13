@@ -13,6 +13,7 @@ import { recordMagazineHref, useMagazineQuery } from "@/components/magazine-link
 import { magazineHref, magazineLocation } from "@/lib/engine/magazine-history";
 import { captureMagazineRails } from "@/lib/engine/magazine-rail-scroll";
 import { freezeOpenView, thawOpenView } from "@/lib/engine/story-open-freeze";
+import { joinRestores, rasterizeOpenImages } from "@/lib/engine/story-open-raster";
 import {
   startTypedViewTransition,
   storyHeroIsPainted,
@@ -50,11 +51,11 @@ export function markStoryMedia(storyId: number, root: HTMLElement | null) {
 }
 
 /**
- * Native <a> default click is a push navigation. Pin the listing, then
- * snapshot + startTransition + addTransitionType + router.push so React
- * can run the story-open morph without a white root crossfade hole.
- * Thaw once the hero image can snapshot. Chevron back pops with
- * history.back() and must not start a view transition.
+ * Native <a> default click is a push navigation. Rasterize listing photos
+ * so Safari's view-transition snapshot keeps them (cross-origin imgs go
+ * black otherwise), pin the listing, then startTransition +
+ * addTransitionType + router.push. Thaw once the hero image can snapshot.
+ * Chevron back pops with history.back() and must not start a view transition.
  */
 export function StoryOpenLink({
   storyId,
@@ -84,6 +85,7 @@ export function StoryOpenLink({
     recordMagazineHref(magazineLocation(window.location.pathname, window.location.search));
     recordMagazineHref(href);
     onClick?.(event);
+    let restoreRaster = rasterizeOpenImages();
     freezeOpenView();
     void startTypedViewTransition(STORY_OPEN_TRANSITION, async () => {
       startTransition(() => {
@@ -93,8 +95,12 @@ export function StoryOpenLink({
       await waitForMagazinePaint(
         () => window.location.pathname === storyPath && storyHeroIsPainted(),
       );
+      restoreRaster = joinRestores(restoreRaster, rasterizeOpenImages());
       thawOpenView();
-    }).finally(() => thawOpenView());
+    }).finally(() => {
+      thawOpenView();
+      restoreRaster();
+    });
   }
 
   return (

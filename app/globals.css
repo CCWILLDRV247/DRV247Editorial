@@ -205,6 +205,11 @@ html:active-view-transition-type(story-back)::view-transition-new(root) {
   z-index: 8;
 }
 
+::view-transition-old(story-media),
+::view-transition-new(story-media) {
+  mix-blend-mode: normal;
+}
+
 ::view-transition-old(.story-copy) {
   animation: 240ms ease-out both story-copy-out;
 }
