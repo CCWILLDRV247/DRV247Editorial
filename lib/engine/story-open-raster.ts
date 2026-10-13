@@ -57,6 +57,7 @@ export function rasterizeOpenImages() {
   const restorers = [...document.querySelectorAll("img")].map((node) =>
     node instanceof HTMLImageElement ? rasterizeOne(node) : () => undefined,
   );
+  void document.body.offsetHeight;
   return () => {
     restorers.forEach((restore) => restore());
   };
