@@ -25,6 +25,16 @@ function clonePainted(child: Element) {
     const src = img.currentSrc || img.src;
     if (src) dst.src = src;
   });
+  const srcCanvases = child.querySelectorAll("canvas");
+  const dstCanvases = clone.querySelectorAll("canvas");
+  srcCanvases.forEach((src, i) => {
+    const dst = dstCanvases[i];
+    if (!(src instanceof HTMLCanvasElement) || !(dst instanceof HTMLCanvasElement)) return;
+    dst.width = src.width;
+    dst.height = src.height;
+    const ctx = dst.getContext("2d");
+    if (ctx) ctx.drawImage(src, 0, 0);
+  });
   return clone;
 }
 

@@ -1510,6 +1510,7 @@ describe("for you test profile", () => {
     assert.match(src, /event\.preventDefault\(\)/);
     assert.match(src, /startTypedViewTransition/);
     assert.match(src, /STORY_OPEN_TRANSITION/);
+    assert.match(src, /rasterizeOpenImages/);
     assert.match(src, /freezeOpenView\(\);/);
     assert.match(src, /storyHeroIsPainted/);
     assert.match(src, /thawOpenView/);
@@ -1525,7 +1526,13 @@ describe("for you test profile", () => {
     assert.match(freeze, /data-story-open-freeze/);
     assert.match(freeze, /viewTransitionName = "none"/);
     assert.match(freeze, /currentSrc/);
+    assert.match(freeze, /drawImage\(src/);
     assert.doesNotMatch(freeze, /startViewTransition/);
+    const raster = readFileSync(new URL("./story-open-raster.ts", import.meta.url), "utf8");
+    assert.match(raster, /data-story-open-raster/);
+    assert.match(raster, /drawImage/);
+    assert.doesNotMatch(raster, /startViewTransition/);
+    assert.doesNotMatch(back, /rasterizeOpenImages/);
     assert.match(runtime, /storyHeroIsPainted/);
     assert.match(src, /recordMagazineHref/);
     assert.match(src, /captureMagazineRails/);
@@ -1561,6 +1568,7 @@ describe("for you test profile", () => {
     assert.doesNotMatch(css, /navigation:\s*auto/);
     assert.match(css, /background-color:\s*transparent/);
     assert.match(css, /::view-transition-new\(root\) \{\s*animation:\s*none;/);
+    assert.match(css, /mix-blend-mode:\s*normal/);
     const copy = readFileSync(new URL("../../components/story-copy-transition.tsx", import.meta.url), "utf8");
     const feed = readFileSync(new URL("../../components/magazine-page-transition.tsx", import.meta.url), "utf8");
     assert.match(copy, /default="none"/);
