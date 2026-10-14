@@ -39,8 +39,10 @@ function isOnScreen(box: Box) {
 }
 
 function lastStoryId() {
-  const fromPath = window.location.pathname.match(/^\/story\/(\d+)/)?.[1];
-  if (fromPath) return fromPath;
+  const story = window.location.pathname.match(/^\/story\/(\d+)/)?.[1];
+  if (story) return story;
+  const print = window.location.pathname.match(/^\/print\/([^/]+)/)?.[1];
+  if (print) return print;
   try {
     return sessionStorage.getItem(LAST_STORY_MEDIA_KEY) ?? "";
   } catch {
@@ -206,6 +208,7 @@ export function playStoryBackMorph() {
     void waitForMagazinePaint(
       () => {
         if (window.location.pathname.startsWith("/story/")) return false;
+        if (window.location.pathname.startsWith("/print/")) return false;
         if (!listingHasMedia()) return false;
         if (!captured?.id) return true;
         if (laidOutCard(captured.id)) return true;
