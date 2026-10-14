@@ -15,10 +15,12 @@ export type EngineItem = {
   guid?: string | null;
   author?: string | null;
   excerpt: string;
+  /** Feed standfirst when it differs from the capped excerpt. Teaser feeds only. */
+  summary?: string | null;
   imageUrl: string | null;
   imageCandidates?: ImageCandidate[];
   publishedAt: number;
-  method: "rss" | "atom" | "sitemap" | "scrape" | "youtube";
+  method: "rss" | "atom" | "sitemap" | "scrape" | "youtube" | "wp-json";
 };
 
 export function parseFeedXml(xml: string, contentType = ""): EngineItem[] {

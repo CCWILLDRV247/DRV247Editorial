@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import { ENABLED_SOURCE_IDS, ENABLED_SOURCE_SET } from "../../config/wave1-sources";
 import { MERCH_SOURCE_POLICY } from "../../config/merch";
+import { teaserCategoryFeed } from "../../config/teaser-feeds";
 import {
   demoUserInterests,
   demoUsers,
@@ -107,9 +108,13 @@ export async function seedEngine(db: Db) {
 
   for (const row of rows) {
     const merchPolicy = MERCH_SOURCE_POLICY[row.id];
+    const teaserFeed = teaserCategoryFeed(row.id);
     const enabled = ENABLED_SOURCE_SET.has(row.id);
-    const rssUrl =
-      merchPolicy?.action === "editorial-rss" ? merchPolicy.rssUrl : row.rss_url || null;
+    const rssUrl = teaserFeed
+      ? teaserFeed.feedUrl
+      : merchPolicy?.action === "editorial-rss"
+        ? merchPolicy.rssUrl
+        : row.rss_url || null;
     const values: SourceSeedValues = {
       id: row.id,
       publication: row.publication,

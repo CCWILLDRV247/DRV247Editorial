@@ -70,7 +70,7 @@ export const WAVE5_SOURCE_IDS = [
   "auto_050", // 911 & Porsche World
 ] as const;
 
-/** Underground Priority titles plus Type 7 stories. Research further / Manual only stay out. Type 7 was Reference only until the Shopify stories Atom feed was found. Fast Car is already live. Dark list stays off. */
+/** Underground Priority titles, Type 7 stories, and HiConsumption Motors. Research further / Manual only stay out. Type 7 was Reference only until the Shopify stories Atom feed was found. HiConsumption is the Motors category teaser feed only. Fast Car is already live. Dark list stays off. */
 export const UNDERGROUND_SOURCE_IDS = [
   "auto_054", // Petrolicious
   "auto_055", // Type 7 — stories.atom only; shop/products skipped
@@ -101,6 +101,7 @@ export const UNDERGROUND_SOURCE_IDS = [
   "auto_128", // Time Attack UK
   "auto_130", // Motorsport Retro
   "auto_131", // Racecar Engineering
+  "auto_132", // HiConsumption — Motors category teasers only
 ] as const;
 
 /** Wave-2 titles kept in the wave list but not ingested. Autoitaliana is omitted from every wave (no DNS). */

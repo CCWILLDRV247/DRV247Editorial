@@ -19,6 +19,8 @@ import {
   type MediaSource,
 } from "@/lib/db/schema";
 import { parseFeedXml, type EngineItem } from "./adapters/rss";
+import { parseWpCategoryPosts, skipsOriginalPageFetch } from "./adapters/wp-json";
+import { teaserCategoryFeed, type TeaserCategoryFeed } from "../../config/teaser-feeds";
 import { isSitemapIndex, looksLikeArticleUrl, parseSitemapXml } from "./adapters/sitemap";
 import { parseArticleMetadata, parseHomeLinks, robotsAllows } from "./adapters/scrape";
 import { fetchText, looksLikeFeed } from "./http";
@@ -153,36 +155,49 @@ export async function ingestMediaSource(source: MediaSource): Promise<SourceInge
 
   const runId = await openIngestRun(source.id, startedAt);
   try {
-    const rss = await tryRss(source);
-    httpStatus = rss.status;
-    if (rss.items.length) {
-      method = rss.items[0]?.method ?? "rss";
-      items = rss.items;
-    } else if (rss.error) {
-      error = rss.error;
-    }
-
-    if (!items.length) {
-      const sitemap = await trySitemap(source);
-      httpStatus = sitemap.status ?? httpStatus;
-      if (sitemap.items.length) {
-        method = "sitemap";
-        items = sitemap.items;
+    const teaserFeed = teaserCategoryFeed(source.id);
+    if (teaserFeed) {
+      const feed = await tryWpCategoryFeed(teaserFeed);
+      httpStatus = feed.status;
+      method = "wp-json";
+      if (feed.items.length) {
+        items = feed.items;
         error = null;
-      } else if (sitemap.error && !error) {
-        error = sitemap.error;
+      } else {
+        error = feed.error ?? "Empty category feed";
       }
-    }
+    } else {
+      const rss = await tryRss(source);
+      httpStatus = rss.status;
+      if (rss.items.length) {
+        method = rss.items[0]?.method ?? "rss";
+        items = rss.items;
+      } else if (rss.error) {
+        error = rss.error;
+      }
 
-    if (!items.length) {
-      const scrape = await tryScrape(source);
-      httpStatus = scrape.status ?? httpStatus;
-      if (scrape.items.length) {
-        method = "scrape";
-        items = scrape.items;
-        error = null;
-      } else if (scrape.error) {
-        error = scrape.error;
+      if (!items.length) {
+        const sitemap = await trySitemap(source);
+        httpStatus = sitemap.status ?? httpStatus;
+        if (sitemap.items.length) {
+          method = "sitemap";
+          items = sitemap.items;
+          error = null;
+        } else if (sitemap.error && !error) {
+          error = sitemap.error;
+        }
+      }
+
+      if (!items.length) {
+        const scrape = await tryScrape(source);
+        httpStatus = scrape.status ?? httpStatus;
+        if (scrape.items.length) {
+          method = "scrape";
+          items = scrape.items;
+          error = null;
+        } else if (scrape.error) {
+          error = scrape.error;
+        }
       }
     }
 
@@ -430,6 +445,33 @@ async function ingestYoutubeMediaSource(source: MediaSource): Promise<SourceInge
   }
 }
 
+async function tryWpCategoryFeed(feed: TeaserCategoryFeed): Promise<{
+  items: EngineItem[];
+  status: number | null;
+  error: string | null;
+}> {
+  const result = await fetchText(feed.feedUrl, {
+    accept: "application/json, */*",
+  });
+  if (!result.ok) {
+    return { items: [], status: result.status, error: `Category feed HTTP ${result.status}` };
+  }
+  try {
+    const items = parseWpCategoryPosts(result.text, feed);
+    return {
+      items,
+      status: result.status,
+      error: items.length ? null : "Empty category feed",
+    };
+  } catch (error) {
+    return {
+      items: [],
+      status: result.status,
+      error: error instanceof Error ? error.message : "Malformed category feed",
+    };
+  }
+}
+
 async function tryRss(source: MediaSource): Promise<{
   items: EngineItem[];
   status: number | null;
@@ -607,7 +649,7 @@ async function persistItems(
         .set({ lastSeen: now, imageUrl })
         .where(eq(articles.id, seen.id));
       if (
-        item.method !== "youtube" &&
+        !skipsOriginalPageFetch(item.method) &&
         (!seen.aiSummary?.trim() || (source.allowImage && !isUsableArticleImage(imageUrl)))
       ) {
         pendingPages.push({
@@ -631,6 +673,7 @@ async function persistItems(
       ? resolveCandidates(item.imageCandidates ?? imageCandidatesFromUrl(item.imageUrl), item.canonicalUrl)
       : [];
     const youtubeItem = item.method === "youtube";
+    const teaserOnly = skipsOriginalPageFetch(item.method);
     const created = await db
       .insert(articles)
       .values({
@@ -652,7 +695,8 @@ async function persistItems(
         duplicateGroupId: group,
         ingestionMethod: item.method || method,
         whyItMatters: null,
-        aiSummary: youtubeItem && source.allowExcerpt ? item.excerpt : null,
+        aiSummary:
+          teaserOnly && source.allowExcerpt ? item.summary?.trim() || item.excerpt : null,
         metadata: JSON.stringify({ duplicateKey: duplicateKey(source.publication, item.title) }),
       })
       .onConflictDoNothing({ target: articles.canonicalUrl })
@@ -670,7 +714,7 @@ async function persistItems(
         isPrimary: true,
       });
     }
-    if (!youtubeItem) {
+    if (!teaserOnly) {
       pendingPages.push({
         id: row.id,
         title: row.title,
@@ -982,7 +1026,7 @@ export async function extractMissingSummaries(): Promise<{
   const db = await getDb();
   const rows = await db.select().from(articles);
   const missing = rows.filter(
-    (row) => !row.aiSummary?.trim() && row.ingestionMethod !== "youtube",
+    (row) => !row.aiSummary?.trim() && !skipsOriginalPageFetch(row.ingestionMethod),
   );
   const filled = await summarizePending(missing.map((row) => toPendingPage(row)));
   return {
@@ -999,7 +1043,7 @@ export async function extractMissingImages(options?: {
   const db = await getDb();
   const rows = await db.select().from(articles);
   let missing = rows.filter(
-    (row) => !isUsableArticleImage(row.imageUrl) && row.ingestionMethod !== "youtube",
+    (row) => !isUsableArticleImage(row.imageUrl) && !skipsOriginalPageFetch(row.ingestionMethod),
   );
   if (options?.ids?.length) {
     const wanted = new Set(options.ids);
