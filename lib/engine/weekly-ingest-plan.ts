@@ -1,4 +1,4 @@
-/** Vercel Pro cron / function cap. One isolate cannot finish 75 sequential sources. */
+/** Vercel Pro cron / function cap. One isolate cannot finish 76 sequential sources. */
 export const VERCEL_CRON_MAX_MS = 300_000;
 
 /**

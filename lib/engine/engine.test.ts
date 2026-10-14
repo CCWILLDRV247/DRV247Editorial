@@ -417,8 +417,8 @@ describe("enabled sources", () => {
     assert.equal(WAVE3_SOURCE_IDS.length, 10);
     assert.equal(WAVE4_SOURCE_IDS.length, 10);
     assert.equal(WAVE5_SOURCE_IDS.length, 9);
-    assert.equal(UNDERGROUND_SOURCE_IDS.length, 29);
-    assert.equal(ENABLED_SOURCE_IDS.length, 75);
+    assert.equal(UNDERGROUND_SOURCE_IDS.length, 30);
+    assert.equal(ENABLED_SOURCE_IDS.length, 76);
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
     assert.ok((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_022"));
     assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_022"), false);
@@ -458,7 +458,7 @@ describe("enabled sources", () => {
     assert.equal(ENABLED_SOURCE_SET.has("auto_055"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_095"), true);
     const csv = loadCsvSources();
-    assert.equal(csv.length, 80);
+    assert.equal(csv.length, 81);
     const byId = new Map(csv.map((row) => [row.id, row]));
     assert.equal(byId.get("auto_022")?.publication, "Fast Car");
     assert.equal(byId.get("auto_054")?.publication, "Petrolicious");
@@ -466,6 +466,15 @@ describe("enabled sources", () => {
     assert.equal(byId.get("auto_055")?.publication, "Type 7");
     assert.equal(byId.get("auto_055")?.rss_url, "https://type7.com/blogs/stories.atom");
     assert.equal(byId.get("auto_055")?.enabled.toLowerCase(), "true");
+    assert.equal(byId.get("auto_132")?.publication, "HiConsumption");
+    assert.equal(byId.get("auto_132")?.url, "https://hiconsumption.com/category/motors/");
+    assert.equal(
+      byId.get("auto_132")?.rss_url,
+      "https://hiconsumption.com/wp-json/wp/v2/posts?categories=1039&per_page=8&context=embed",
+    );
+    assert.equal(byId.get("auto_132")?.enabled.toLowerCase(), "true");
+    assert.equal(ENABLED_SOURCE_SET.has("auto_132"), true);
+    assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_132"));
     assert.equal(byId.get("auto_103")?.publication, "Classic Cars");
     assert.equal(byId.get("auto_111")?.publication, "Engine Swap Depot");
     assert.equal(byId.has("auto_052"), false);

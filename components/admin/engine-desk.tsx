@@ -123,11 +123,12 @@ export function EngineDesk({ sources, runs, articles, classified, children }: Pr
             Automotive Culture Engine
           </p>
           <h1 className="font-display text-4xl font-black uppercase tracking-[-0.04em]">
-            Underground — 75 titles
+            Underground — 76 titles
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-[#1b1d1f]/70">
-            Twenty-eight Priority underground titles plus Type 7 stories are on (Petrolicious through
-            Racecar Engineering, and Type 7 via stories.atom). Research further and Manual only stay
+            Twenty-eight Priority underground titles, Type 7 stories, and HiConsumption Motors teasers
+            are on (Petrolicious through Racecar Engineering, Type 7 via stories.atom, HiConsumption
+            via the Motors category only). Research further and Manual only stay
             out. Type 7’s shop is skipped. Fast Car stays the live Fast Car
             row. Flat 6 (French), AUTOMOBILSPORT (German), 9WERKS (paywall), and EuroStance (Shopify shop)
             stay dark. Autoitaliana has no DNS. Car & Classic and Just Auto stay enabled (Cloudflare

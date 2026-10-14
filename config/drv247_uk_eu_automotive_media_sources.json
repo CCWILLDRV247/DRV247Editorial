@@ -1358,5 +1358,22 @@
     "source_type": "rss",
     "rss_verified_status": "confirmed",
     "rss_confidence": "verified"
+  },
+  {
+    "id": "auto_132",
+    "publication": "HiConsumption",
+    "country": "USA",
+    "url": "https://hiconsumption.com/category/motors/",
+    "rss_available": "yes",
+    "rss_url": "https://hiconsumption.com/wp-json/wp/v2/posts?categories=1039&per_page=8&context=embed",
+    "website_available": "yes",
+    "scrape_difficulty": "low",
+    "editorial_category": "Car culture; lifestyle; design; auctions; performance",
+    "marques_covered": "Porsche; Ferrari; Toyota; Suzuki; Jaguar; Alpine; broad enthusiast",
+    "drv247_relevance": "Excellent: motors category teasers only; link out",
+    "enabled": true,
+    "source_type": "wp-json",
+    "rss_verified_status": "confirmed",
+    "rss_confidence": "verified"
   }
 ]
