@@ -3,7 +3,9 @@ import { describe, it } from "node:test";
 import {
   HOMEPAGE_COMPOSITION,
   MAGAZINE_LAYOUT,
+  forYouSectionIndices,
   interludeCompositionVariant,
+  sectionIndexLabel,
 } from "./editorial-composition";
 
 describe("editorial composition", () => {
@@ -45,6 +47,52 @@ describe("editorial composition", () => {
     assert.match(MAGAZINE_LAYOUT.picksInner, /lg:pl-8/);
     assert.match(MAGAZINE_LAYOUT.featuredPick, /^block$/);
     assert.match(MAGAZINE_LAYOUT.heroHeight, /lg:h-\[420px\]/);
+    assert.match(MAGAZINE_LAYOUT.posterHeight, /lg:h-\[min\(78vh,720px\)\]/);
+    assert.match(MAGAZINE_LAYOUT.sectionKicker, /hidden/);
+    assert.match(MAGAZINE_LAYOUT.sectionKicker, /lg:inline-flex/);
     assert.match(HOMEPAGE_COMPOSITION.sectionTitle, /lg:text-\[40px\]/);
+  });
+
+  it("numbers section kickers as /01 /02", () => {
+    assert.equal(sectionIndexLabel(1), "/01");
+    assert.equal(sectionIndexLabel(12), "/12");
+  });
+
+  it("assigns For You kickers in render order and skips empty blocks", () => {
+    const full = forYouSectionIndices({
+      interests: true,
+      firstInterlude: true,
+      picks: true,
+      print: true,
+      remainingInterludeCount: 1,
+      carouselSlots: [
+        { hasLane: true, hasMidInterlude: true },
+        { hasLane: true, hasMidInterlude: false },
+      ],
+      beforeViewAll: true,
+    });
+    assert.equal(full.interests, 1);
+    assert.equal(full.firstInterlude, 2);
+    assert.equal(full.picks, 3);
+    assert.equal(full.print, 4);
+    assert.deepEqual(full.remainingInterludes, [5]);
+    assert.deepEqual(full.carousels, [
+      { lane: 6, midInterlude: 7 },
+      { lane: 8, midInterlude: undefined },
+    ]);
+    assert.equal(full.beforeViewAll, 9);
+
+    const sparse = forYouSectionIndices({
+      interests: false,
+      firstInterlude: false,
+      picks: true,
+      print: false,
+      remainingInterludeCount: 0,
+      carouselSlots: [{ hasLane: false, hasMidInterlude: true }],
+      beforeViewAll: false,
+    });
+    assert.equal(sparse.picks, 1);
+    assert.deepEqual(sparse.carousels, [{ lane: undefined, midInterlude: 2 }]);
+    assert.equal(sparse.interests, undefined);
   });
 });

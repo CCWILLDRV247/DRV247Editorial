@@ -1,7 +1,9 @@
 import { cn } from "cn";
 import type { EditorialInterlude } from "@/lib/engine/editorial-interlude";
 import {
+  MAGAZINE_LAYOUT,
   interludeCompositionVariant,
+  sectionIndexLabel,
   type InterludeCompositionVariant,
 } from "@/lib/engine/editorial-composition";
 import {
@@ -25,6 +27,7 @@ export function EditorialInterludeBlock({
   variant,
   size = "default",
   showType = size === "home",
+  kickerIndex,
 }: {
   interlude: EditorialInterlude;
   slot?: HomepageInterludeSlotId;
@@ -33,6 +36,7 @@ export function EditorialInterludeBlock({
   /** @deprecated composition uses explicit rhythm — tuck removed */
   tuck?: boolean;
   showType?: boolean;
+  kickerIndex?: number;
 }) {
   const resolvedVariant =
     variant ??
@@ -52,7 +56,20 @@ export function EditorialInterludeBlock({
           : "px-7 py-10 md:px-0 md:py-12 lg:px-0",
       )}
     >
-      {typeLabel ? <p className={styles.label}>{typeLabel}</p> : null}
+      {typeLabel ? (
+        <p className={cn(styles.label, kickerIndex != null && "lg:hidden")}>{typeLabel}</p>
+      ) : null}
+      {kickerIndex != null ? (
+        <p
+          data-section-kicker={sectionIndexLabel(kickerIndex)}
+          className={cn(MAGAZINE_LAYOUT.sectionKicker, "mb-4")}
+        >
+          <span className={MAGAZINE_LAYOUT.sectionKickerIndex}>
+            {sectionIndexLabel(kickerIndex)}
+          </span>
+          <span>{typeLabel ?? "Note"}</span>
+        </p>
+      ) : null}
       <p
         className={cn(
           "font-display font-black uppercase tracking-[-0.02em]",

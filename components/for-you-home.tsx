@@ -4,10 +4,14 @@ import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { InterludeRecentSync } from "@/components/interlude-recent-sync";
 import { OpenerRecentSync } from "@/components/opener-recent-sync";
-import { SectionIntro } from "@/components/site-chrome";
+import { SectionIntro, SectionKicker } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
 import type { EditorialInterlude } from "@/lib/engine/editorial-interlude";
-import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
+import {
+  HOMEPAGE_COMPOSITION,
+  MAGAZINE_LAYOUT,
+  forYouSectionIndices,
+} from "@/lib/engine/editorial-composition";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import type { PrintModule } from "@/lib/engine/print";
 import { PrintModuleRail } from "@/components/print-module";
@@ -20,7 +24,7 @@ type ForYouLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
 function storyCardGrid(cards: StoryDto[]) {
   if (cards.length === 0) return null;
   return (
-    <div className={MAGAZINE_LAYOUT.gutter}>
+    <div className={`${MAGAZINE_LAYOUT.gutter} lg:hidden`}>
       <div className="grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4">
         {cards.map((story) => (
           <StoryCard key={story.id} story={story} />
@@ -35,20 +39,20 @@ function InterestLane({
   dek,
   empty,
   stories,
+  kickerIndex,
 }: {
   heading: string;
   dek?: string;
   empty?: string;
   stories: StoryDto[];
+  kickerIndex?: number;
 }) {
   if (stories.length === 0 && !empty) return null;
 
   return (
     <section className="min-w-0">
       <div className={MAGAZINE_LAYOUT.gutter}>
-        <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
-          {heading}
-        </p>
+        <SectionKicker index={kickerIndex}>{heading}</SectionKicker>
         {dek ? (
           <p className="mt-2 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/50 md:mt-1.5 md:text-xs md:text-[#1b1d1f]/55">
             {dek}
@@ -81,11 +85,20 @@ function interludeMap(interludes: SelectedHomepageInterlude[]) {
 function HomepageInterlude({
   interlude,
   slot,
+  kickerIndex,
 }: {
   interlude: EditorialInterlude;
   slot: SelectedHomepageInterlude["slot"];
+  kickerIndex?: number;
 }) {
-  return <EditorialInterludeBlock interlude={interlude} slot={slot} size="home" />;
+  return (
+    <EditorialInterludeBlock
+      interlude={interlude}
+      slot={slot}
+      size="home"
+      kickerIndex={kickerIndex}
+    />
+  );
 }
 
 export function ForYouHome({
@@ -131,6 +144,19 @@ export function ForYouHome({
   if (beforeCategories) preCategoryInterludes.push({ slot: "before-categories", interlude: beforeCategories });
   const firstInterlude = preCategoryInterludes[0];
   const remainingInterludes = preCategoryInterludes.slice(1);
+  const printVisible = Boolean(print && print.publications.length > 0);
+  const sectionIndex = forYouSectionIndices({
+    interests: yourInterests.stories.length > 0,
+    firstInterlude: Boolean(firstInterlude),
+    picks: picks.length > 0,
+    print: printVisible,
+    remainingInterludeCount: remainingInterludes.length,
+    carouselSlots: carousels.map((lane, index) => ({
+      hasLane: lane.stories.length > 0,
+      hasMidInterlude: Boolean(midCategories && index === midCarouselIndex),
+    })),
+    beforeViewAll: Boolean(beforeViewAll),
+  });
 
   return (
     <>
@@ -140,7 +166,7 @@ export function ForYouHome({
         className={`flex flex-col pb-20 md:pb-24 ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}
       >
       <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
-        {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
+        {hero ? <StoryHero story={hero} titleLeading="loose" square composition poster /> : null}
         <div className="flex min-w-0 flex-col gap-6 md:gap-7">
           <SectionIntro
             kicker={copy.kicker}
@@ -164,33 +190,63 @@ export function ForYouHome({
           dek={yourInterests.dek}
           empty={yourInterests.empty}
           stories={yourInterests.stories}
+          kickerIndex={sectionIndex.interests}
         />
       ) : null}
 
       {firstInterlude ? (
-        <HomepageInterlude interlude={firstInterlude.interlude} slot={firstInterlude.slot} />
+        <HomepageInterlude
+          interlude={firstInterlude.interlude}
+          slot={firstInterlude.slot}
+          kickerIndex={sectionIndex.firstInterlude}
+        />
       ) : null}
 
-      <DeskModule stories={picks} />
+      <DeskModule stories={picks} kickerIndex={sectionIndex.picks} />
 
-      {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
+      {print ? (
+        <PrintModuleRail
+          module={print}
+          testQuery={testQuery}
+          kickerIndex={sectionIndex.print}
+        />
+      ) : null}
 
-      {remainingInterludes.map((item) => (
-        <HomepageInterlude key={item.slot} interlude={item.interlude} slot={item.slot} />
+      {remainingInterludes.map((item, index) => (
+        <HomepageInterlude
+          key={item.slot}
+          interlude={item.interlude}
+          slot={item.slot}
+          kickerIndex={sectionIndex.remainingInterludes[index]}
+        />
       ))}
 
       <div className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.railGap}`}>
         {carousels.map((lane, index) => (
           <Fragment key={lane.slug}>
-            <CategoryCarousel {...lane} lead={index === 0} />
+            <CategoryCarousel
+              {...lane}
+              lead={index === 0}
+              kickerIndex={sectionIndex.carousels[index]?.lane}
+            />
             {midCategories && index === midCarouselIndex ? (
-              <HomepageInterlude interlude={midCategories} slot="mid-categories" />
+              <HomepageInterlude
+                interlude={midCategories}
+                slot="mid-categories"
+                kickerIndex={sectionIndex.carousels[index]?.midInterlude}
+              />
             ) : null}
           </Fragment>
         ))}
       </div>
 
-      {beforeViewAll ? <HomepageInterlude interlude={beforeViewAll} slot="before-view-all" /> : null}
+      {beforeViewAll ? (
+        <HomepageInterlude
+          interlude={beforeViewAll}
+          slot="before-view-all"
+          kickerIndex={sectionIndex.beforeViewAll}
+        />
+      ) : null}
       </div>
     </>
   );
