@@ -55,7 +55,7 @@ export function ForYouTestFilter({
   return (
     <>
       <ForYouTestStorageSync query={initialQuery} />
-      <section className="relative z-30 mx-auto w-full max-w-3xl px-4 pt-3 md:max-w-6xl md:px-6">
+      <section className="relative z-30 mx-auto w-full max-w-3xl px-4 pt-3 md:max-w-6xl md:px-6 lg:max-w-[1080px] lg:pl-8 lg:pr-8">
         <details
           open={active}
           className="rounded-[8px] border border-dashed border-[#1b1d1f]/30 bg-[#f6f6f6] px-3 py-3"

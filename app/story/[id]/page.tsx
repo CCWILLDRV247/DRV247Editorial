@@ -7,6 +7,7 @@ import { StoryHeroMedia } from "@/components/story-media-transition";
 import { forYouTestSearchString, parseForYouTestProfile, withTestQuery } from "@/lib/engine/for-you-test";
 import { getMagazineStory } from "@/lib/engine/magazine";
 import { isVideoStory } from "@/lib/engine/video-story";
+import { MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import { formatStoryDate } from "@/lib/format";
 
 export const runtime = "nodejs";
@@ -31,15 +32,15 @@ export default async function StoryPage({
     <MagazineQueryProvider testQuery={testQuery}>
       <div className="min-h-full bg-white">
         <SiteHeader title={story.category.name} backHref="/" testQuery={testQuery} />
-      <article className="mx-auto max-w-3xl pb-20">
+      <article className={`${MAGAZINE_LAYOUT.reading} pb-20`}>
         <StoryHeroMedia>
-          <div className="relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl">
+          <div className={MAGAZINE_LAYOUT.storyHeroMedia}>
             <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority video={isVideoStory(story)} />
           </div>
         </StoryHeroMedia>
         <StoryCopyTransition>
-        <div className="px-7 pt-10 md:px-8">
-          <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">
+        <div className="px-7 pt-10 md:px-8 lg:px-0 lg:max-w-3xl">
+          <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f] lg:text-[clamp(2.75rem,5vw,4rem)]">
             {story.title}
           </h1>
           <p className="mt-6">

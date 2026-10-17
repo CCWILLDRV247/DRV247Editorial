@@ -14,7 +14,7 @@ import { PrintModuleRail } from "@/components/print-module";
 import type { PrintModule } from "@/lib/engine/print";
 import { OpenerRecentSync } from "@/components/opener-recent-sync";
 import { PickCard, StoryCard, StoryHero } from "@/components/story-card";
-import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
+import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 
 function splitSequential(items: StoryDto[], parts: number) {
   if (items.length === 0) {
@@ -91,7 +91,7 @@ export function StoryFeed({
   const deskVisual = true;
   if (stories.length === 0) {
     return (
-      <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 py-10 md:max-w-6xl">
+      <div className={`flex flex-col gap-8 py-10 ${MAGAZINE_LAYOUT.page}`}>
         <SectionIntro
           kicker={copy.kicker}
           dek={copy.dek}
@@ -175,14 +175,14 @@ export function StoryFeed({
       return grid;
     }
     return (
-      <div className="min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]">
+      <div className={MAGAZINE_LAYOUT.gutter}>
         {grid}
       </div>
     );
   };
 
   return (
-    <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-8 pb-16 md:max-w-6xl">
+    <div className={`flex flex-col gap-8 pb-16 ${MAGAZINE_LAYOUT.page}`}>
       <OpenerRecentSync openerIds={openerIds} />
       <div
         className={
@@ -215,13 +215,17 @@ export function StoryFeed({
       </div>
       {picks.length > 0 ? (
         <section className={HOMEPAGE_COMPOSITION.picksBand}>
-          <div className="min-w-0 pl-4 pr-0 md:px-0">
-            <p className="font-display text-2xl font-extrabold uppercase tracking-[-0.02em] text-[#1b1d1f]">
+          <div className="min-w-0 pl-4 pr-0 md:px-0 lg:px-0">
+            <p className={`${HOMEPAGE_COMPOSITION.picksHeading} pr-4 md:pr-0`}>
               Our picks
             </p>
-            <div data-magazine-rail="picks" className="mt-4 flex min-w-0 gap-2 overflow-x-auto pb-2">
+            <div
+              data-magazine-rail="picks"
+              data-magazine-rail-solo={picks.length === 1 ? "" : undefined}
+              className={picks.length === 1 ? MAGAZINE_LAYOUT.railSolo : MAGAZINE_LAYOUT.rail}
+            >
               {picks.map((story) => (
-                <PickCard key={story.id} story={story} />
+                <PickCard key={story.id} story={story} solo={picks.length === 1} />
               ))}
             </div>
           </div>

@@ -48,8 +48,8 @@ export function EditorialInterludeBlock({
       className={cn(
         "relative min-w-0 text-[#1b1d1f]",
         size === "home"
-          ? cn("px-[calc(10px+env(safe-area-inset-left,0px))] md:px-0", styles.section, styles.rule)
-          : "px-7 py-10 md:px-0 md:py-12",
+          ? cn("px-[calc(10px+env(safe-area-inset-left,0px))] md:px-0 lg:px-0", styles.section, styles.rule)
+          : "px-7 py-10 md:px-0 md:py-12 lg:px-0",
       )}
     >
       {typeLabel ? <p className={styles.label}>{typeLabel}</p> : null}
