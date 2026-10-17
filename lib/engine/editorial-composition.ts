@@ -53,8 +53,13 @@ export const MAGAZINE_LAYOUT = {
   storyHeroMedia:
     "relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl lg:h-[420px]",
   storyCard: "h-[500px] lg:h-[380px]",
-  featuredPick:
-    "block lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-end lg:gap-8",
+  /**
+   * Type and tiles inside the Picks grey band. Mobile keeps the 10px gutter;
+   * desktop adds space from the band edge without moving the band itself.
+   */
+  picksInner:
+    "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))] lg:pl-8 lg:pr-0",
+  featuredPick: "block",
   railTitle:
     "mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px] lg:text-[20px] lg:leading-[0.88]",
 } as const;

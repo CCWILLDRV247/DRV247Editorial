@@ -6,7 +6,7 @@ import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labe
 import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 
-const PAGE_GUTTER = MAGAZINE_LAYOUT.gutter;
+const PAGE_GUTTER = MAGAZINE_LAYOUT.picksInner;
 
 function PickImageFrame({
   story,
@@ -70,16 +70,17 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
         </p>
       </div>
       <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`}>
-        <StoryOpenLink storyId={featured.id} className={MAGAZINE_LAYOUT.featuredPick}>
+        <StoryOpenLink
+          storyId={featured.id}
+          className={`${MAGAZINE_LAYOUT.featuredPick} ${MAGAZINE_LAYOUT.pickRailCard}`}
+        >
           <PickImageFrame story={featured} eager />
-          <div>
-            <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:mt-0 lg:text-[20px] lg:leading-[0.88]">
-              {featured.title}
-            </p>
-            <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
-              {featured.source.name}
-            </p>
-          </div>
+          <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
+            {featured.title}
+          </p>
+          <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+            {featured.source.name}
+          </p>
         </StoryOpenLink>
         {note ? (
           <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
@@ -90,7 +91,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
       {rest.length > 0 ? (
         <div
           data-magazine-rail="picks"
-          className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 md:px-0 lg:gap-3 lg:px-0 ${PAGE_GUTTER}`}
+          className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 lg:gap-3 ${PAGE_GUTTER}`}
         >
           {rest.map((story) => (
             <div key={story.id}>
