@@ -49,7 +49,7 @@ export default async function PrintDetailPage({
     <MagazineQueryProvider testQuery={testQuery}>
       <div className="min-h-full overflow-x-clip bg-white">
         <SiteHeader title={publication.title} backHref="/" testQuery={testQuery} />
-        <article className={`${MAGAZINE_LAYOUT.page} grid gap-10 px-[calc(10px+env(safe-area-inset-left,0px))] pb-20 pt-8 md:grid-cols-[minmax(0,18rem)_1fr] md:px-6 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:px-8`}>
+        <article className={`${MAGAZINE_LAYOUT.page} grid gap-10 px-[calc(10px+env(safe-area-inset-left,0px))] pb-20 pt-8 md:grid-cols-[minmax(0,18rem)_1fr] md:px-6 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:px-0`}>
           <PrintCoverCard publication={publication} href={`/print/${publication.slug}`} />
           <div>
             <p className="font-display text-lg font-bold uppercase text-[#1b1d1f]/70">A thing worth holding.</p>

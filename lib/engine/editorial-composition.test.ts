@@ -32,7 +32,11 @@ describe("editorial composition", () => {
 
   it("keeps a desktop reading measure and one rail scale", () => {
     assert.match(MAGAZINE_LAYOUT.page, /lg:max-w-\[1080px\]/);
-    assert.match(MAGAZINE_LAYOUT.reading, /max-w-3xl/);
+    assert.match(MAGAZINE_LAYOUT.page, /lg:pl-8/);
+    assert.match(MAGAZINE_LAYOUT.reading, /lg:pl-8/);
+    assert.match(MAGAZINE_LAYOUT.header, /lg:px-8/);
+    assert.match(MAGAZINE_LAYOUT.gutter, /lg:px-0/);
+    assert.doesNotMatch(MAGAZINE_LAYOUT.page, /lg:px-8/);
     assert.match(MAGAZINE_LAYOUT.storyRailCard, /lg:w-\[260px\]/);
     assert.match(MAGAZINE_LAYOUT.pickRailCard, /lg:w-\[260px\]/);
     assert.match(MAGAZINE_LAYOUT.printRailCard, /lg:w-\[260px\]/);

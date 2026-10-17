@@ -39,7 +39,7 @@ export default async function StoryPage({
           </div>
         </StoryHeroMedia>
         <StoryCopyTransition>
-        <div className="px-7 pt-10 md:px-8">
+        <div className="px-7 pt-10 md:px-8 lg:px-0 lg:max-w-3xl">
           <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f] lg:text-[clamp(2.75rem,5vw,4rem)]">
             {story.title}
           </h1>

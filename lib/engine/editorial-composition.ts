@@ -30,15 +30,18 @@ export function interludeCompositionVariant(
  * Mobile class strings stay identical so phone layout does not regress.
  */
 export const MAGAZINE_LAYOUT = {
-  /** Centered page column for For You + category. */
-  page: "mx-auto w-full min-w-0 max-w-3xl md:max-w-6xl lg:max-w-[1080px]",
-  /** Reading column for the story teaser. */
-  reading: "mx-auto w-full min-w-0 max-w-3xl",
-  header: "mx-auto max-w-6xl lg:max-w-[1080px]",
-  /** Shared desktop inset — aligns section headings to the hero. */
-  desktopInset: "lg:px-8",
-  desktopRailStart: "lg:pl-8 lg:pr-0",
-  rail: "mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2 lg:gap-3",
+  /**
+   * Centered page column. The only desktop left gutter (`lg:pl-8`) lives here
+   * so hero, type, rails, Picks, and Print share one edge. Right stays open.
+   */
+  page: "mx-auto w-full min-w-0 max-w-3xl md:max-w-6xl lg:max-w-[1080px] lg:pl-8",
+  /** Story teaser uses the same left edge as For You. */
+  reading: "mx-auto w-full min-w-0 max-w-3xl lg:max-w-[1080px] lg:pl-8",
+  header: "mx-auto max-w-6xl px-4 md:px-6 lg:max-w-[1080px] lg:px-8",
+  /** Phone gutters only — flush to the page edge from 1024px up. */
+  gutter:
+    "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))] lg:px-0",
+  rail: "mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2 lg:gap-3 lg:pl-0 lg:pr-0",
   storyRailCard: "w-[200px] shrink-0 snap-start md:w-[220px] lg:w-[260px]",
   storyRailImage:
     "relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px] lg:h-[300px]",

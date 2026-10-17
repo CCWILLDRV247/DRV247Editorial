@@ -175,7 +175,7 @@ export function StoryFeed({
       return grid;
     }
     return (
-      <div className={`min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))] ${MAGAZINE_LAYOUT.desktopInset}`}>
+      <div className={MAGAZINE_LAYOUT.gutter}>
         {grid}
       </div>
     );
@@ -191,13 +191,11 @@ export function StoryFeed({
             : "flex min-w-0 flex-col gap-8"
         }
       >
-        <div className={MAGAZINE_LAYOUT.desktopInset}>
-          <StoryHero
-            story={hero}
-            titleLeading={looseHero || deskVisual ? "loose" : "tight"}
-            square={deskVisual}
-          />
-        </div>
+        <StoryHero
+          story={hero}
+          titleLeading={looseHero || deskVisual ? "loose" : "tight"}
+          square={deskVisual}
+        />
         <div
           className={
             deskVisual
@@ -217,11 +215,11 @@ export function StoryFeed({
       </div>
       {picks.length > 0 ? (
         <section className={HOMEPAGE_COMPOSITION.picksBand}>
-          <div className={`min-w-0 pl-4 pr-0 md:px-0 lg:px-0`}>
-            <p className={`${HOMEPAGE_COMPOSITION.sectionTitle} pr-4 md:pr-0 ${MAGAZINE_LAYOUT.desktopInset}`}>
+          <div className="min-w-0 pl-4 pr-0 md:px-0 lg:px-0">
+            <p className={`${HOMEPAGE_COMPOSITION.sectionTitle} pr-4 md:pr-0`}>
               Our picks
             </p>
-            <div data-magazine-rail="picks" className={`${MAGAZINE_LAYOUT.rail} ${MAGAZINE_LAYOUT.desktopRailStart}`}>
+            <div data-magazine-rail="picks" className={MAGAZINE_LAYOUT.rail}>
               {picks.map((story) => (
                 <PickCard key={story.id} story={story} />
               ))}

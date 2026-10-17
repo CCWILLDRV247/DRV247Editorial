@@ -6,8 +6,7 @@ import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labe
 import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 
-const PAGE_GUTTER =
-  "pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]";
+const PAGE_GUTTER = MAGAZINE_LAYOUT.gutter;
 
 function PickImageFrame({
   story,
@@ -62,7 +61,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
     <section
       className={`${HOMEPAGE_COMPOSITION.picksBand} ${HOMEPAGE_COMPOSITION.picksAboveHeading}`}
     >
-      <div className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopInset}`}>
+      <div className={PAGE_GUTTER}>
         <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
           {PICKS_SECTION_HEADING}
         </p>
@@ -70,7 +69,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
           {PICKS_SECTION_DEK}
         </p>
       </div>
-      <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopInset}`}>
+      <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`}>
         <StoryOpenLink storyId={featured.id} className={MAGAZINE_LAYOUT.featuredPick}>
           <PickImageFrame story={featured} eager />
           <div>
@@ -91,7 +90,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
       {rest.length > 0 ? (
         <div
           data-magazine-rail="picks"
-          className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 md:px-0 lg:gap-3 ${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopRailStart}`}
+          className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 md:px-0 lg:gap-3 lg:px-0 ${PAGE_GUTTER}`}
         >
           {rest.map((story) => (
             <div key={story.id}>

@@ -2,8 +2,7 @@ import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-co
 import type { PrintModule } from "@/lib/engine/print";
 import { PrintCoverCard } from "./print-cover-card";
 
-const PAGE_GUTTER =
-  "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]";
+const PAGE_GUTTER = MAGAZINE_LAYOUT.gutter;
 
 export function PrintModuleRail({
   module,
@@ -15,13 +14,13 @@ export function PrintModuleRail({
   if (module.publications.length === 0) return null;
   return (
     <section className="min-w-0">
-      <div className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopInset}`}>
+      <div className={PAGE_GUTTER}>
         <p className={HOMEPAGE_COMPOSITION.sectionTitle}>{module.heading}</p>
         <p className="mt-2 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/50 md:mt-1.5 md:text-xs md:text-[#1b1d1f]/55">
           {module.dek}
         </p>
       </div>
-      <div className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.rail} ${MAGAZINE_LAYOUT.desktopRailStart}`}>
+      <div className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.rail}`}>
         {module.publications.map((publication) => {
           const path = `/print/${publication.slug}`;
           const href = testQuery ? `${path}?${testQuery}` : path;

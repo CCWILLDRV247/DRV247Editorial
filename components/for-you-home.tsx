@@ -17,13 +17,10 @@ import type { StoryDto } from "@/lib/stories";
 
 type ForYouLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
 
-const PAGE_GUTTER =
-  "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]";
-
 function storyCardGrid(cards: StoryDto[]) {
   if (cards.length === 0) return null;
   return (
-    <div className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopInset}`}>
+    <div className={MAGAZINE_LAYOUT.gutter}>
       <div className="grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4">
         {cards.map((story) => (
           <StoryCard key={story.id} story={story} />
@@ -48,7 +45,7 @@ function InterestLane({
 
   return (
     <section className="min-w-0">
-      <div className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopInset}`}>
+      <div className={MAGAZINE_LAYOUT.gutter}>
         <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
           {heading}
         </p>
@@ -66,7 +63,7 @@ function InterestLane({
       {stories.length > 0 ? (
         <div
           data-magazine-rail="interests"
-          className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.rail} ${MAGAZINE_LAYOUT.desktopRailStart}`}
+          className={`${MAGAZINE_LAYOUT.gutter} ${MAGAZINE_LAYOUT.rail}`}
         >
           {stories.map((story) => (
             <CarouselStoryCard key={story.id} story={story} />
@@ -143,11 +140,7 @@ export function ForYouHome({
         className={`flex flex-col pb-20 md:pb-24 ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}
       >
       <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
-        {hero ? (
-          <div className={MAGAZINE_LAYOUT.desktopInset}>
-            <StoryHero story={hero} titleLeading="loose" square composition />
-          </div>
-        ) : null}
+        {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
         <div className="flex min-w-0 flex-col gap-6 md:gap-7">
           <SectionIntro
             kicker={copy.kicker}
@@ -157,7 +150,7 @@ export function ForYouHome({
             homeSpacing
           />
           {forYourCar.empty ? (
-            <p className={`text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f] ${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopInset}`}>
+            <p className={`text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f] ${MAGAZINE_LAYOUT.gutter}`}>
               {forYourCar.empty}
             </p>
           ) : null}
