@@ -1,9 +1,8 @@
 import { cn } from "cn";
 import { MagazineLink } from "@/components/magazine-link";
-import { SectionKicker } from "@/components/site-chrome";
 import { StoryMediaTarget } from "@/components/story-media-transition";
 import { StoryOpenLink } from "@/components/story-open-link";
-import { MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
+import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { StoryImage } from "./story-image";
@@ -36,13 +35,7 @@ export function CarouselStoryCard({ story }: { story: StoryDto }) {
   );
 }
 
-export function CategoryCarousel({
-  slug,
-  name,
-  stories,
-  lead = false,
-  kickerIndex,
-}: CategoryLane & { lead?: boolean; kickerIndex?: number }) {
+export function CategoryCarousel({ slug, name, stories, lead = false }: CategoryLane & { lead?: boolean }) {
   if (stories.length === 0) {
     return null;
   }
@@ -50,8 +43,11 @@ export function CategoryCarousel({
   return (
     <section className={cn("min-w-0 pl-4 pr-0 md:px-0 lg:px-0", lead && "pt-1 md:pt-2")}>
       <div className="flex min-w-0 items-baseline justify-between gap-3 pr-4 md:pr-0 lg:pr-8">
-        <MagazineLink href={`/category/${slug}`}>
-          <SectionKicker index={kickerIndex}>{name}</SectionKicker>
+        <MagazineLink
+          href={`/category/${slug}`}
+          className={HOMEPAGE_COMPOSITION.sectionTitle}
+        >
+          {name}
         </MagazineLink>
         <MagazineLink
           href={`/category/${slug}`}

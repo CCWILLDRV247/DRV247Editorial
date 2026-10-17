@@ -72,85 +72,51 @@ export function StoryHero({
   titleLeading = "tight",
   square = false,
   composition = false,
-  poster = false,
 }: {
   story: StoryDto;
   titleLeading?: "tight" | "loose";
   square?: boolean;
   composition?: boolean;
-  poster?: boolean;
 }) {
-  const caption = [story.source.name, story.desk?.labelName ?? story.category.name]
-    .filter(Boolean)
-    .join(" · ");
-
   return (
-    <div
-      data-magazine-hero={poster ? "poster" : "overlay"}
-      className="min-w-0"
+    <StoryOpenLink
+      storyId={story.id}
+      className={
+        square
+          ? cn(
+              "relative block w-full min-w-0 overflow-hidden rounded-none bg-[#1b1d1f] text-white",
+              composition ? "h-[min(72svh,520px)] md:h-[553px]" : "h-[553px]",
+              MAGAZINE_LAYOUT.heroHeight,
+            )
+          : cn(
+              "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white",
+              MAGAZINE_LAYOUT.heroHeight,
+            )
+      }
     >
-      <StoryOpenLink
-        storyId={story.id}
-        className={
-          square
-            ? cn(
-                "relative block w-full min-w-0 overflow-hidden rounded-none bg-[#1b1d1f] text-white",
-                composition ? "h-[min(72svh,520px)] md:h-[553px]" : "h-[553px]",
-                poster ? MAGAZINE_LAYOUT.posterHeight : MAGAZINE_LAYOUT.heroHeight,
-              )
-            : cn(
-                "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white",
-                MAGAZINE_LAYOUT.heroHeight,
-              )
-        }
-      >
-        <StoryMediaTarget storyId={story.id} className="absolute inset-0">
-          <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority video={isVideoStory(story)} />
-        </StoryMediaTarget>
-        <div
-          className={cn(
-            "absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90",
-            poster && "lg:hidden",
-          )}
-        />
-        <div
-          className={cn(
-            "absolute inset-x-5 bottom-6 flex flex-col gap-3 md:inset-x-7 md:bottom-10 md:gap-3",
-            poster && "lg:hidden",
-          )}
-        >
-          <div className="flex flex-col items-start gap-2">
-            <FeatureTag>{story.desk?.labelName ?? story.category.name}</FeatureTag>
-          </div>
-          <RelevanceLine text={story.relevanceExplanation} tone="dark" />
-          <h1
-            className={
-              titleLeading === "loose"
-                ? "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.68] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.66] lg:text-[clamp(2.5rem,3.6vw,3.75rem)] lg:leading-[0.68]"
-                : "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.64] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.62] lg:text-[clamp(2.5rem,3.6vw,3.75rem)] lg:leading-[0.66]"
-            }
-          >
-            {story.title}
-          </h1>
-          <p className="font-display text-[25px] font-bold uppercase leading-[0.64]">
-            {story.source.name}
-          </p>
+      <StoryMediaTarget storyId={story.id} className="absolute inset-0">
+        <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" priority video={isVideoStory(story)} />
+      </StoryMediaTarget>
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/90" />
+      <div className="absolute inset-x-5 bottom-6 flex flex-col gap-3 md:inset-x-7 md:bottom-10 md:gap-3">
+        <div className="flex flex-col items-start gap-2">
+          <FeatureTag>{story.desk?.labelName ?? story.category.name}</FeatureTag>
         </div>
-      </StoryOpenLink>
-      {poster ? (
-        <StoryOpenLink
-          storyId={story.id}
-          className={`mt-6 hidden min-w-0 text-[#1b1d1f] lg:block ${MAGAZINE_LAYOUT.gutter}`}
+        <RelevanceLine text={story.relevanceExplanation} tone="dark" />
+        <h1
+          className={
+            titleLeading === "loose"
+              ? "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.68] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.66] lg:text-[clamp(2.5rem,3.6vw,3.75rem)] lg:leading-[0.68]"
+              : "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.64] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.62] lg:text-[clamp(2.5rem,3.6vw,3.75rem)] lg:leading-[0.66]"
+          }
         >
-          <h1 className="font-display text-[clamp(3.25rem,5.2vw,5.75rem)] font-black uppercase leading-[0.74] tracking-[-0.02em]">
-            {story.title}
-          </h1>
-          <p className="mt-3 font-display text-[13px] font-bold uppercase tracking-[0.14em] text-[#1b1d1f]/45">
-            {caption}
-          </p>
-        </StoryOpenLink>
-      ) : null}
-    </div>
+          {story.title}
+        </h1>
+        <p className="font-display text-[25px] font-bold uppercase leading-[0.64]">
+          {story.source.name}
+        </p>
+      </div>
+    </StoryOpenLink>
   );
 }
 

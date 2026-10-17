@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
@@ -10,11 +10,7 @@ import {
   interludeFromText,
   type EditorialInterlude,
 } from "@/lib/engine/editorial-interlude";
-import {
-  HOMEPAGE_COMPOSITION,
-  MAGAZINE_LAYOUT,
-  sectionIndexLabel,
-} from "@/lib/engine/editorial-composition";
+import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 
 const mobileNav = PRIMARY_NAV.filter((item) =>
   (MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
@@ -129,38 +125,6 @@ export function EmptyStories({ category }: { category: string }) {
         No stories in {category} yet — check back after the next pull.
       </p>
     </div>
-  );
-}
-
-/** Mobile keeps the 35px section title. Desktop ≥1024 uses /01 + name. */
-export function SectionKicker({
-  children,
-  index,
-  className,
-}: {
-  children: ReactNode;
-  index?: number;
-  className?: string;
-}) {
-  return (
-    <span className={["block min-w-0", className].filter(Boolean).join(" ")}>
-      <span
-        className={`${HOMEPAGE_COMPOSITION.sectionTitle}${index != null ? " lg:hidden" : ""}`}
-      >
-        {children}
-      </span>
-      {index != null ? (
-        <span
-          data-section-kicker={sectionIndexLabel(index)}
-          className={MAGAZINE_LAYOUT.sectionKicker}
-        >
-          <span className={MAGAZINE_LAYOUT.sectionKickerIndex}>
-            {sectionIndexLabel(index)}
-          </span>
-          <span>{children}</span>
-        </span>
-      ) : null}
-    </span>
   );
 }
 

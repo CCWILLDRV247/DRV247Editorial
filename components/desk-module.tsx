@@ -2,7 +2,6 @@ import { StoryMediaTarget } from "@/components/story-media-transition";
 import { StoryOpenLink } from "@/components/story-open-link";
 import { StoryImage } from "@/components/story-image";
 import { isVideoStory } from "@/lib/engine/video-story";
-import { SectionKicker } from "@/components/site-chrome";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
 import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
@@ -52,13 +51,7 @@ function DeskPickCard({ story }: { story: StoryDto }) {
   );
 }
 
-export function DeskModule({
-  stories,
-  kickerIndex,
-}: {
-  stories: StoryDto[];
-  kickerIndex?: number;
-}) {
+export function DeskModule({ stories }: { stories: StoryDto[] }) {
   if (stories.length === 0) return null;
   const featured = stories.find((story) => story.desk?.featured) ?? stories[0];
   const rest = stories.filter((story) => story.id !== featured.id);
@@ -69,7 +62,9 @@ export function DeskModule({
       className={`${HOMEPAGE_COMPOSITION.picksBand} ${HOMEPAGE_COMPOSITION.picksAboveHeading}`}
     >
       <div className={PAGE_GUTTER}>
-        <SectionKicker index={kickerIndex}>{PICKS_SECTION_HEADING}</SectionKicker>
+        <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
+          {PICKS_SECTION_HEADING}
+        </p>
         <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/70 md:mt-2 md:text-[18px] md:leading-[22px] md:tracking-[-0.36px]">
           {PICKS_SECTION_DEK}
         </p>

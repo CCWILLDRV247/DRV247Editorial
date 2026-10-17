@@ -50,11 +50,6 @@ export const MAGAZINE_LAYOUT = {
     "relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf] lg:h-[300px]",
   printRailCard: "w-[9.75rem] shrink-0 snap-start md:w-[11.5rem] lg:w-[260px]",
   heroHeight: "lg:h-[420px] lg:rounded-xl",
-  /** For You poster — one large photograph. */
-  posterHeight: "lg:h-[min(78vh,720px)] lg:rounded-none",
-  sectionKicker:
-    "hidden font-display text-[13px] font-bold uppercase tracking-[0.16em] text-[#1b1d1f]/50 lg:inline-flex lg:items-baseline lg:gap-3",
-  sectionKickerIndex: "text-[#1b1d1f]/35",
   storyHeroMedia:
     "relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl lg:h-[420px]",
   storyCard: "h-[500px] lg:h-[380px]",
@@ -84,51 +79,3 @@ export const HOMEPAGE_COMPOSITION = {
   sectionTitle:
     "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f] lg:text-[40px] lg:leading-[0.66]",
 } as const;
-
-export function sectionIndexLabel(index: number) {
-  return `/${String(index).padStart(2, "0")}`;
-}
-
-/** Presence of each For You block that can render a numbered kicker. */
-export type ForYouSectionPresence = {
-  interests: boolean;
-  firstInterlude: boolean;
-  picks: boolean;
-  print: boolean;
-  remainingInterludeCount: number;
-  carouselSlots: { hasLane: boolean; hasMidInterlude: boolean }[];
-  beforeViewAll: boolean;
-};
-
-export type ForYouSectionIndices = {
-  interests?: number;
-  firstInterlude?: number;
-  picks?: number;
-  print?: number;
-  remainingInterludes: number[];
-  carousels: { lane?: number; midInterlude?: number }[];
-  beforeViewAll?: number;
-};
-
-/** Sequential /01… numbers for the sections that actually render. */
-export function forYouSectionIndices(
-  presence: ForYouSectionPresence,
-): ForYouSectionIndices {
-  let n = 0;
-  const next = () => ++n;
-  return {
-    interests: presence.interests ? next() : undefined,
-    firstInterlude: presence.firstInterlude ? next() : undefined,
-    picks: presence.picks ? next() : undefined,
-    print: presence.print ? next() : undefined,
-    remainingInterludes: Array.from(
-      { length: presence.remainingInterludeCount },
-      () => next(),
-    ),
-    carousels: presence.carouselSlots.map((slot) => ({
-      lane: slot.hasLane ? next() : undefined,
-      midInterlude: slot.hasMidInterlude ? next() : undefined,
-    })),
-    beforeViewAll: presence.beforeViewAll ? next() : undefined,
-  };
-}
