@@ -3,7 +3,11 @@ import { StoryOpenLink } from "@/components/story-open-link";
 import { StoryImage } from "@/components/story-image";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
-import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
+import {
+  HOMEPAGE_COMPOSITION,
+  MAGAZINE_LAYOUT,
+  isSoloMagazineRail,
+} from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 
 const PAGE_GUTTER = MAGAZINE_LAYOUT.picksInner;
@@ -35,11 +39,19 @@ function PickImageFrame({
   );
 }
 
-function DeskPickCard({ story }: { story: StoryDto }) {
+function DeskPickCard({
+  story,
+  solo = false,
+  eager = false,
+}: {
+  story: StoryDto;
+  solo?: boolean;
+  eager?: boolean;
+}) {
   return (
-    <div className={MAGAZINE_LAYOUT.pickRailCard}>
+    <div className={solo ? MAGAZINE_LAYOUT.pickRailCardSolo : MAGAZINE_LAYOUT.pickRailCard}>
       <StoryOpenLink storyId={story.id} className="block">
-        <PickImageFrame story={story} />
+        <PickImageFrame story={story} eager={eager} />
         <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
           {story.title}
         </p>
@@ -56,6 +68,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
   const featured = stories.find((story) => story.desk?.featured) ?? stories[0];
   const rest = stories.filter((story) => story.id !== featured.id);
   const note = featured.desk?.note ?? null;
+  const solo = isSoloMagazineRail(stories.length);
 
   return (
     <section
@@ -69,42 +82,55 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
           {PICKS_SECTION_DEK}
         </p>
       </div>
-      <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`}>
-        <StoryOpenLink
-          storyId={featured.id}
-          className={`${MAGAZINE_LAYOUT.featuredPick} ${MAGAZINE_LAYOUT.pickRailCard}`}
-        >
-          <PickImageFrame story={featured} eager />
-          <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
-            {featured.title}
-          </p>
-          <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
-            {featured.source.name}
-          </p>
-        </StoryOpenLink>
-        {note ? (
-          <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
-            {note}
-          </p>
+      <div
+        data-magazine-rail="picks"
+        data-magazine-rail-solo={solo ? "" : undefined}
+        className={
+          solo
+            ? `mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`
+            : `mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER} lg:flex lg:gap-3 lg:overflow-x-auto lg:pb-2 lg:snap-x lg:snap-mandatory`
+        }
+      >
+        <div className={solo ? MAGAZINE_LAYOUT.pickRailCardSolo : MAGAZINE_LAYOUT.pickRailCard}>
+          <StoryOpenLink
+            storyId={featured.id}
+            className={`${MAGAZINE_LAYOUT.featuredPick} block`}
+          >
+            <PickImageFrame story={featured} eager />
+            <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
+              {featured.title}
+            </p>
+            <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+              {featured.source.name}
+            </p>
+          </StoryOpenLink>
+          {note ? (
+            <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
+              {note}
+            </p>
+          ) : null}
+        </div>
+        {rest.length > 0 ? (
+          <div
+            className={
+              solo
+                ? "hidden"
+                : "mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 lg:mt-0 lg:contents lg:overflow-visible lg:p-0"
+            }
+          >
+            {rest.map((story) => (
+              <div key={story.id}>
+                <DeskPickCard story={story} />
+                {story.desk?.note ? (
+                  <p className="mt-2 line-clamp-3 text-[14px] leading-5 text-[#1b1d1f]/80">
+                    {story.desk.note}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
         ) : null}
       </div>
-      {rest.length > 0 ? (
-        <div
-          data-magazine-rail="picks"
-          className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 lg:gap-3 ${PAGE_GUTTER}`}
-        >
-          {rest.map((story) => (
-            <div key={story.id}>
-              <DeskPickCard story={story} />
-              {story.desk?.note ? (
-                <p className="mt-2 line-clamp-3 text-[14px] leading-5 text-[#1b1d1f]/80">
-                  {story.desk.note}
-                </p>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      ) : null}
     </section>
   );
 }

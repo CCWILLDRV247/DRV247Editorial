@@ -52,6 +52,7 @@ export const MAGAZINE_LAYOUT = {
   storyRailImageSolo:
     "relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px] lg:h-[300px] lg:w-[min(58%,640px)] lg:shrink-0",
   pickRailCard: "w-[218px] shrink-0 lg:w-[260px]",
+  pickRailCardSolo: "w-[218px] shrink-0 lg:w-full lg:max-w-none",
   pickRailImage:
     "relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf] lg:h-[300px]",
   printRailCard: "w-[9.75rem] shrink-0 snap-start md:w-[11.5rem] lg:w-[260px]",

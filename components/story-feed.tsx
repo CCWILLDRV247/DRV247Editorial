@@ -219,9 +219,13 @@ export function StoryFeed({
             <p className={`${HOMEPAGE_COMPOSITION.sectionTitle} pr-4 md:pr-0`}>
               Our picks
             </p>
-            <div data-magazine-rail="picks" className={MAGAZINE_LAYOUT.rail}>
+            <div
+              data-magazine-rail="picks"
+              data-magazine-rail-solo={picks.length === 1 ? "" : undefined}
+              className={picks.length === 1 ? MAGAZINE_LAYOUT.railSolo : MAGAZINE_LAYOUT.rail}
+            >
               {picks.map((story) => (
-                <PickCard key={story.id} story={story} />
+                <PickCard key={story.id} story={story} solo={picks.length === 1} />
               ))}
             </div>
           </div>

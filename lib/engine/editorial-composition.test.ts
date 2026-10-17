@@ -44,6 +44,9 @@ describe("editorial composition", () => {
     assert.match(MAGAZINE_LAYOUT.storyRailCardSolo, /w-\[200px\]/);
     assert.match(MAGAZINE_LAYOUT.railSolo, /lg:mt-5/);
     assert.match(MAGAZINE_LAYOUT.pickRailCard, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.pickRailCardSolo, /lg:w-full/);
+    assert.doesNotMatch(MAGAZINE_LAYOUT.pickRailCardSolo, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.pickRailCardSolo, /w-\[218px\]/);
     assert.match(MAGAZINE_LAYOUT.printRailCard, /lg:w-\[260px\]/);
     assert.match(MAGAZINE_LAYOUT.storyRailImage, /lg:h-\[300px\]/);
     assert.match(MAGAZINE_LAYOUT.pickRailImage, /lg:h-\[300px\]/);

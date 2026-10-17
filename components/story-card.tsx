@@ -120,10 +120,13 @@ export function StoryHero({
   );
 }
 
-export function PickCard({ story }: { story: StoryDto }) {
+export function PickCard({ story, solo = false }: { story: StoryDto; solo?: boolean }) {
   const tag = story.desk?.labelName ?? story.category.name;
   return (
-    <StoryOpenLink storyId={story.id} className={MAGAZINE_LAYOUT.pickRailCard}>
+    <StoryOpenLink
+      storyId={story.id}
+      className={solo ? MAGAZINE_LAYOUT.pickRailCardSolo : MAGAZINE_LAYOUT.pickRailCard}
+    >
       <StoryMediaTarget storyId={story.id} className={MAGAZINE_LAYOUT.pickRailImage}>
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
         <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
