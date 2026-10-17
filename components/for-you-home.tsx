@@ -7,7 +7,11 @@ import { OpenerRecentSync } from "@/components/opener-recent-sync";
 import { SectionIntro } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
 import type { EditorialInterlude } from "@/lib/engine/editorial-interlude";
-import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
+import {
+  HOMEPAGE_COMPOSITION,
+  MAGAZINE_LAYOUT,
+  isSoloMagazineRail,
+} from "@/lib/engine/editorial-composition";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import type { PrintModule } from "@/lib/engine/print";
 import { PrintModuleRail } from "@/components/print-module";
@@ -21,7 +25,13 @@ function storyCardGrid(cards: StoryDto[]) {
   if (cards.length === 0) return null;
   return (
     <div className={MAGAZINE_LAYOUT.gutter}>
-      <div className="grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4">
+      <div
+        className={
+          isSoloMagazineRail(cards.length)
+            ? "grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-1"
+            : "grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4"
+        }
+      >
         {cards.map((story) => (
           <StoryCard key={story.id} story={story} />
         ))}
@@ -63,10 +73,17 @@ function InterestLane({
       {stories.length > 0 ? (
         <div
           data-magazine-rail="interests"
-          className={`${MAGAZINE_LAYOUT.gutter} ${MAGAZINE_LAYOUT.rail}`}
+          data-magazine-rail-solo={isSoloMagazineRail(stories.length) ? "" : undefined}
+          className={`${MAGAZINE_LAYOUT.gutter} ${
+            isSoloMagazineRail(stories.length) ? MAGAZINE_LAYOUT.railSolo : MAGAZINE_LAYOUT.rail
+          }`}
         >
           {stories.map((story) => (
-            <CarouselStoryCard key={story.id} story={story} />
+            <CarouselStoryCard
+              key={story.id}
+              story={story}
+              solo={isSoloMagazineRail(stories.length)}
+            />
           ))}
         </div>
       ) : null}

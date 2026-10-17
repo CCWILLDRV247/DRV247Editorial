@@ -42,9 +42,15 @@ export const MAGAZINE_LAYOUT = {
   gutter:
     "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))] lg:px-0",
   rail: "mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2 lg:gap-3 lg:pl-0 lg:pr-0",
+  /** One story on desktop — fill the magazine measure instead of a 260px tile. */
+  railSolo: "mt-4 min-w-0 md:mt-5 lg:mt-5",
   storyRailCard: "w-[200px] shrink-0 snap-start md:w-[220px] lg:w-[260px]",
+  storyRailCardSolo:
+    "w-[200px] shrink-0 snap-start md:w-[220px] lg:flex lg:w-full lg:max-w-none lg:shrink lg:items-start lg:gap-6",
   storyRailImage:
     "relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px] lg:h-[300px]",
+  storyRailImageSolo:
+    "relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px] lg:h-[300px] lg:w-[min(58%,640px)] lg:shrink-0",
   pickRailCard: "w-[218px] shrink-0 lg:w-[260px]",
   pickRailImage:
     "relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf] lg:h-[300px]",
@@ -62,7 +68,13 @@ export const MAGAZINE_LAYOUT = {
   featuredPick: "block",
   railTitle:
     "mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px] lg:text-[20px] lg:leading-[0.88]",
+  railTitleSolo:
+    "mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px] lg:mt-0 lg:flex-1 lg:text-[20px] lg:leading-[0.88]",
 } as const;
+
+export function isSoloMagazineRail(count: number) {
+  return count === 1;
+}
 
 /** Vertical rhythm tokens for homepage composition (Tailwind class fragments). */
 export const HOMEPAGE_COMPOSITION = {

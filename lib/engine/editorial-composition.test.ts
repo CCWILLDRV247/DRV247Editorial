@@ -4,6 +4,7 @@ import {
   HOMEPAGE_COMPOSITION,
   MAGAZINE_LAYOUT,
   interludeCompositionVariant,
+  isSoloMagazineRail,
 } from "./editorial-composition";
 
 describe("editorial composition", () => {
@@ -38,6 +39,10 @@ describe("editorial composition", () => {
     assert.match(MAGAZINE_LAYOUT.gutter, /lg:px-0/);
     assert.doesNotMatch(MAGAZINE_LAYOUT.page, /lg:px-8/);
     assert.match(MAGAZINE_LAYOUT.storyRailCard, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.storyRailCardSolo, /lg:w-full/);
+    assert.doesNotMatch(MAGAZINE_LAYOUT.storyRailCardSolo, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.storyRailCardSolo, /w-\[200px\]/);
+    assert.match(MAGAZINE_LAYOUT.railSolo, /lg:mt-5/);
     assert.match(MAGAZINE_LAYOUT.pickRailCard, /lg:w-\[260px\]/);
     assert.match(MAGAZINE_LAYOUT.printRailCard, /lg:w-\[260px\]/);
     assert.match(MAGAZINE_LAYOUT.storyRailImage, /lg:h-\[300px\]/);
@@ -46,5 +51,11 @@ describe("editorial composition", () => {
     assert.match(MAGAZINE_LAYOUT.featuredPick, /^block$/);
     assert.match(MAGAZINE_LAYOUT.heroHeight, /lg:h-\[420px\]/);
     assert.match(HOMEPAGE_COMPOSITION.sectionTitle, /lg:text-\[40px\]/);
+  });
+
+  it("treats a one-story rail as full width and two or more as a carousel", () => {
+    assert.equal(isSoloMagazineRail(1), true);
+    assert.equal(isSoloMagazineRail(2), false);
+    assert.equal(isSoloMagazineRail(0), false);
   });
 });
