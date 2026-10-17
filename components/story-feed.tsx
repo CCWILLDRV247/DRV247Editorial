@@ -216,7 +216,7 @@ export function StoryFeed({
       {picks.length > 0 ? (
         <section className={HOMEPAGE_COMPOSITION.picksBand}>
           <div className="min-w-0 pl-4 pr-0 md:px-0 lg:px-0">
-            <p className={`${HOMEPAGE_COMPOSITION.sectionTitle} pr-4 md:pr-0`}>
+            <p className={`${HOMEPAGE_COMPOSITION.picksHeading} pr-4 md:pr-0`}>
               Our picks
             </p>
             <div

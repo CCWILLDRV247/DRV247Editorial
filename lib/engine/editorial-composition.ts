@@ -61,7 +61,7 @@ export const MAGAZINE_LAYOUT = {
     "relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl lg:h-[420px]",
   storyCard: "h-[500px] lg:h-[380px]",
   /**
-   * Type and tiles inside the Picks grey band. Mobile keeps the 10px gutter;
+   * Type and tiles inside the Picks band. Mobile keeps the 10px gutter;
    * desktop adds space from the band edge without moving the band itself.
    */
   picksInner:
@@ -85,9 +85,11 @@ export const HOMEPAGE_COMPOSITION = {
   picksLead: "mt-6 md:mt-10",
   /** Parent pageGap + this = heroGap before the Picks heading (72px / 88px). */
   picksAboveHeading: "mt-4 md:mt-4",
-  /** Full-width Picks band — magazine light grey `#f6f6f6`, not a card tint. */
+  /** Full-viewport Picks band — black, type on it is white. */
   picksBand:
-    "relative z-10 min-w-0 overflow-visible bg-[#f6f6f6] py-8 md:py-10 shadow-[100vw_0_0_0_#f6f6f6,-100vw_0_0_0_#f6f6f6]",
+    "relative z-10 min-w-0 overflow-visible bg-[#1b1d1f] py-8 md:py-10 text-white shadow-[100vw_0_0_0_#1b1d1f,-100vw_0_0_0_#1b1d1f]",
+  picksHeading:
+    "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-white lg:text-[40px] lg:leading-[0.66]",
   /** Matches SectionIntro dek — e.g. “Ferrari F355 GTB · Classic · Performance”. */
   sectionTitle:
     "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f] lg:text-[40px] lg:leading-[0.66]",

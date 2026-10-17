@@ -135,13 +135,13 @@ export function PickCard({ story, solo = false }: { story: StoryDto; solo?: bool
           </span>
         </div>
       </StoryMediaTarget>
-      <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
+      <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-white lg:text-[20px] lg:leading-[0.88]">
         {story.title}
       </p>
-      <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+      <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-white/55">
         {story.source.name}
       </p>
-      <RelevanceLine text={story.relevanceExplanation} tone="light" />
+      <RelevanceLine text={story.relevanceExplanation} tone="dark" />
     </StoryOpenLink>
   );
 }

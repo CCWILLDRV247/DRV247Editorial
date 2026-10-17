@@ -52,10 +52,10 @@ function DeskPickCard({
     <div className={solo ? MAGAZINE_LAYOUT.pickRailCardSolo : MAGAZINE_LAYOUT.pickRailCard}>
       <StoryOpenLink storyId={story.id} className="block">
         <PickImageFrame story={story} eager={eager} />
-        <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
+        <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-white lg:text-[20px] lg:leading-[0.88]">
           {story.title}
         </p>
-        <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+        <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-white/55">
           {story.source.name}
         </p>
       </StoryOpenLink>
@@ -75,10 +75,10 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
       className={`${HOMEPAGE_COMPOSITION.picksBand} ${HOMEPAGE_COMPOSITION.picksAboveHeading}`}
     >
       <div className={PAGE_GUTTER}>
-        <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
+        <p className={HOMEPAGE_COMPOSITION.picksHeading}>
           {PICKS_SECTION_HEADING}
         </p>
-        <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/70 md:mt-2 md:text-[18px] md:leading-[22px] md:tracking-[-0.36px]">
+        <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-white/70 md:mt-2 md:text-[18px] md:leading-[22px] md:tracking-[-0.36px]">
           {PICKS_SECTION_DEK}
         </p>
       </div>
@@ -97,15 +97,15 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
             className={`${MAGAZINE_LAYOUT.featuredPick} block`}
           >
             <PickImageFrame story={featured} eager />
-            <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
+            <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-white lg:text-[20px] lg:leading-[0.88]">
               {featured.title}
             </p>
-            <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+            <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-white/55">
               {featured.source.name}
             </p>
           </StoryOpenLink>
           {note ? (
-            <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
+            <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-white">
               {note}
             </p>
           ) : null}
@@ -122,7 +122,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
               <div key={story.id}>
                 <DeskPickCard story={story} />
                 {story.desk?.note ? (
-                  <p className="mt-2 line-clamp-3 text-[14px] leading-5 text-[#1b1d1f]/80">
+                  <p className="mt-2 line-clamp-3 text-[14px] leading-5 text-white/80">
                     {story.desk.note}
                   </p>
                 ) : null}
