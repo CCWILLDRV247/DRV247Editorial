@@ -25,6 +25,37 @@ export function interludeCompositionVariant(
   return base;
 }
 
+/**
+ * Desktop magazine measure (≥1024px / `lg`).
+ * Mobile class strings stay identical so phone layout does not regress.
+ */
+export const MAGAZINE_LAYOUT = {
+  /** Centered page column for For You + category. */
+  page: "mx-auto w-full min-w-0 max-w-3xl md:max-w-6xl lg:max-w-[1080px]",
+  /** Reading column for the story teaser. */
+  reading: "mx-auto w-full min-w-0 max-w-3xl",
+  header: "mx-auto max-w-6xl lg:max-w-[1080px]",
+  /** Shared desktop inset — aligns section headings to the hero. */
+  desktopInset: "lg:px-8",
+  desktopRailStart: "lg:pl-8 lg:pr-0",
+  rail: "mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2 lg:gap-3",
+  storyRailCard: "w-[200px] shrink-0 snap-start md:w-[220px] lg:w-[260px]",
+  storyRailImage:
+    "relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px] lg:h-[300px]",
+  pickRailCard: "w-[218px] shrink-0 lg:w-[260px]",
+  pickRailImage:
+    "relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf] lg:h-[300px]",
+  printRailCard: "w-[9.75rem] shrink-0 snap-start md:w-[11.5rem] lg:w-[260px]",
+  heroHeight: "lg:h-[420px] lg:rounded-xl",
+  storyHeroMedia:
+    "relative h-[553px] w-full overflow-hidden bg-[#1b1d1f] md:rounded-xl lg:h-[420px]",
+  storyCard: "h-[500px] lg:h-[380px]",
+  featuredPick:
+    "block lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-end lg:gap-8",
+  railTitle:
+    "mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px] lg:text-[20px] lg:leading-[0.88]",
+} as const;
+
 /** Vertical rhythm tokens for homepage composition (Tailwind class fragments). */
 export const HOMEPAGE_COMPOSITION = {
   pageGap: "gap-14 md:gap-[4.5rem]",
@@ -38,5 +69,5 @@ export const HOMEPAGE_COMPOSITION = {
     "relative z-10 min-w-0 overflow-visible bg-[#f6f6f6] py-8 md:py-10 shadow-[100vw_0_0_0_#f6f6f6,-100vw_0_0_0_#f6f6f6]",
   /** Matches SectionIntro dek — e.g. “Ferrari F355 GTB · Classic · Performance”. */
   sectionTitle:
-    "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f]",
+    "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f] lg:text-[40px] lg:leading-[0.66]",
 } as const;

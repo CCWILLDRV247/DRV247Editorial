@@ -4,6 +4,7 @@ import { MagazineQueryProvider } from "@/components/magazine-link";
 import { SiteHeader } from "@/components/site-chrome";
 import { PrintCoverCard } from "@/components/print-cover-card";
 import { forYouTestSearchString, parseForYouTestProfile } from "@/lib/engine/for-you-test";
+import { MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import { PRINT_SECTION_LINE, getPrintPublication, printCtas } from "@/lib/engine/print";
 
 export const runtime = "nodejs";
@@ -48,11 +49,11 @@ export default async function PrintDetailPage({
     <MagazineQueryProvider testQuery={testQuery}>
       <div className="min-h-full overflow-x-clip bg-white">
         <SiteHeader title={publication.title} backHref="/" testQuery={testQuery} />
-        <article className="mx-auto grid max-w-3xl gap-10 px-[calc(10px+env(safe-area-inset-left,0px))] pb-20 pt-8 md:max-w-6xl md:grid-cols-[minmax(0,18rem)_1fr] md:px-6">
+        <article className={`${MAGAZINE_LAYOUT.page} grid gap-10 px-[calc(10px+env(safe-area-inset-left,0px))] pb-20 pt-8 md:grid-cols-[minmax(0,18rem)_1fr] md:px-6 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:px-8`}>
           <PrintCoverCard publication={publication} href={`/print/${publication.slug}`} />
           <div>
             <p className="font-display text-lg font-bold uppercase text-[#1b1d1f]/70">A thing worth holding.</p>
-            <h1 className="mt-4 font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">
+            <h1 className="mt-4 font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f] lg:text-[clamp(2.75rem,5vw,4rem)]">
               {publication.title}
             </h1>
             {publication.tagline ? (

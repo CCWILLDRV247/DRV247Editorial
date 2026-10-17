@@ -3,13 +3,11 @@ import { StoryOpenLink } from "@/components/story-open-link";
 import { StoryImage } from "@/components/story-image";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { PICKS_SECTION_DEK, PICKS_SECTION_HEADING } from "@/lib/engine/desk-labels";
-import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
+import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 
 const PAGE_GUTTER =
   "pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]";
-
-const PICK_IMAGE_HEIGHT = "h-[219px]";
 
 function PickImageFrame({
   story,
@@ -20,7 +18,7 @@ function PickImageFrame({
 }) {
   const tag = story.desk?.labelName ?? story.category.name;
   return (
-    <StoryMediaTarget storyId={story.id} className={`relative ${PICK_IMAGE_HEIGHT} overflow-hidden rounded-[12px] bg-[#cfcfcf]`}>
+    <StoryMediaTarget storyId={story.id} className={MAGAZINE_LAYOUT.pickRailImage}>
       <StoryImage
         src={story.imageUrl}
         sources={story.imageSources}
@@ -40,10 +38,10 @@ function PickImageFrame({
 
 function DeskPickCard({ story }: { story: StoryDto }) {
   return (
-    <div className="w-[218px] shrink-0">
+    <div className={MAGAZINE_LAYOUT.pickRailCard}>
       <StoryOpenLink storyId={story.id} className="block">
         <PickImageFrame story={story} />
-        <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
+        <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
           {story.title}
         </p>
         <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
@@ -64,7 +62,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
     <section
       className={`${HOMEPAGE_COMPOSITION.picksBand} ${HOMEPAGE_COMPOSITION.picksAboveHeading}`}
     >
-      <div className={PAGE_GUTTER}>
+      <div className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopInset}`}>
         <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
           {PICKS_SECTION_HEADING}
         </p>
@@ -72,15 +70,17 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
           {PICKS_SECTION_DEK}
         </p>
       </div>
-      <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`}>
-        <StoryOpenLink storyId={featured.id} className="block">
+      <div className={`mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopInset}`}>
+        <StoryOpenLink storyId={featured.id} className={MAGAZINE_LAYOUT.featuredPick}>
           <PickImageFrame story={featured} eager />
-          <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f]">
-            {featured.title}
-          </p>
-          <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
-            {featured.source.name}
-          </p>
+          <div>
+            <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-[#1b1d1f] lg:mt-0 lg:text-[20px] lg:leading-[0.88]">
+              {featured.title}
+            </p>
+            <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
+              {featured.source.name}
+            </p>
+          </div>
         </StoryOpenLink>
         {note ? (
           <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]">
@@ -91,7 +91,7 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
       {rest.length > 0 ? (
         <div
           data-magazine-rail="picks"
-          className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 md:mt-8 md:gap-2 md:px-0 ${PAGE_GUTTER}`}
+          className={`mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 md:px-0 lg:gap-3 ${PAGE_GUTTER} ${MAGAZINE_LAYOUT.desktopRailStart}`}
         >
           {rest.map((story) => (
             <div key={story.id}>

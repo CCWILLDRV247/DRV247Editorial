@@ -1,6 +1,7 @@
 import { cn } from "cn";
 import { StoryMediaTarget } from "@/components/story-media-transition";
 import { StoryOpenLink } from "@/components/story-open-link";
+import { MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { StoryImage } from "./story-image";
@@ -39,7 +40,10 @@ export function StoryCard({ story }: { story: StoryDto }) {
   return (
     <StoryOpenLink
       storyId={story.id}
-      className="relative block h-[500px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
+      className={cn(
+        "relative block w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white",
+        MAGAZINE_LAYOUT.storyCard,
+      )}
     >
       <StoryMediaTarget storyId={story.id} className="absolute inset-0 opacity-80">
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
@@ -51,7 +55,7 @@ export function StoryCard({ story }: { story: StoryDto }) {
             <FeatureTag>{tag}</FeatureTag>
           </div>
           <RelevanceLine text={story.relevanceExplanation} tone="dark" />
-          <h2 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-black uppercase leading-[0.70] tracking-[-0.02em]">
+          <h2 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-black uppercase leading-[0.70] tracking-[-0.02em] lg:text-[clamp(2rem,2.8vw,3rem)]">
             {story.title}
           </h2>
           <p className="font-display text-[25px] font-bold uppercase leading-[0.64]">
@@ -81,11 +85,13 @@ export function StoryHero({
         square
           ? cn(
               "relative block w-full min-w-0 overflow-hidden rounded-none bg-[#1b1d1f] text-white",
-              composition
-                ? "h-[min(72svh,520px)] md:h-[553px]"
-                : "h-[553px]",
+              composition ? "h-[min(72svh,520px)] md:h-[553px]" : "h-[553px]",
+              MAGAZINE_LAYOUT.heroHeight,
             )
-          : "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white"
+          : cn(
+              "relative block h-[553px] w-full min-w-0 overflow-hidden rounded-xl bg-[#1b1d1f] text-white",
+              MAGAZINE_LAYOUT.heroHeight,
+            )
       }
     >
       <StoryMediaTarget storyId={story.id} className="absolute inset-0">
@@ -100,8 +106,8 @@ export function StoryHero({
         <h1
           className={
             titleLeading === "loose"
-              ? "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.68] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.66]"
-              : "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.64] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.62]"
+              ? "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.68] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.66] lg:text-[clamp(2.5rem,3.6vw,3.75rem)] lg:leading-[0.68]"
+              : "font-display text-[clamp(2.35rem,8.5vw,5rem)] font-black uppercase leading-[0.64] tracking-[-0.02em] md:text-[clamp(2.75rem,9vw,5rem)] md:leading-[0.62] lg:text-[clamp(2.5rem,3.6vw,3.75rem)] lg:leading-[0.66]"
           }
         >
           {story.title}
@@ -117,8 +123,8 @@ export function StoryHero({
 export function PickCard({ story }: { story: StoryDto }) {
   const tag = story.desk?.labelName ?? story.category.name;
   return (
-    <StoryOpenLink storyId={story.id} className="w-[218px] shrink-0">
-      <StoryMediaTarget storyId={story.id} className="relative h-[219px] overflow-hidden rounded-[12px] bg-[#cfcfcf]">
+    <StoryOpenLink storyId={story.id} className={MAGAZINE_LAYOUT.pickRailCard}>
+      <StoryMediaTarget storyId={story.id} className={MAGAZINE_LAYOUT.pickRailImage}>
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
         <div className="absolute bottom-4 left-5 flex flex-col items-start gap-1.5">
           <span className="inline-flex w-fit items-center rounded-[2.65px] bg-white px-2.5 py-1 font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]">
@@ -126,7 +132,7 @@ export function PickCard({ story }: { story: StoryDto }) {
           </span>
         </div>
       </StoryMediaTarget>
-      <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-[#1b1d1f]">
+      <p className="mt-2 truncate font-display text-base font-bold uppercase leading-[0.70] text-[#1b1d1f] lg:text-[20px] lg:leading-[0.88]">
         {story.title}
       </p>
       <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-[#1b1d1f]/55">
