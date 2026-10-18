@@ -2,7 +2,7 @@ import { ForYouHome } from "@/components/for-you-home";
 import { ForYouTestFilter } from "@/components/for-you-test-filter";
 import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import { MagazineQueryProvider } from "@/components/magazine-link";
-import { SiteHeader } from "@/components/site-chrome";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import {
   forYouTestSearchString,
   parseForYouTestProfile,
@@ -53,6 +53,7 @@ export default async function HomePage({
           />
         </main>
         </MagazinePageTransition>
+        <SiteFooter />
       </div>
     </MagazineQueryProvider>
   );
