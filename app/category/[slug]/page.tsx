@@ -1,25 +1,18 @@
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
-import { ForYouTestFilter } from "@/components/for-you-test-filter";
-import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import { MagazineQueryProvider } from "@/components/magazine-link";
+import { CategoryFeed } from "@/components/magazine/category-feed";
+import { ForYouTestFilterSection } from "@/components/magazine/for-you-test-filter-section";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-import { StoryFeed } from "@/components/story-feed";
+import CategoryLoading from "./loading";
 import { LEGACY_NAV_TO_PRIMARY, contentPrimaryBySlug } from "@/config/magazine-nav";
 import {
-  forYouTestIsActive,
   forYouTestSearchString,
   parseForYouTestProfile,
-  withProfileInCatalog,
   withTestQuery,
 } from "@/lib/engine/for-you-test";
-import { listMagazineStories } from "@/lib/engine/magazine";
-import { OPENER_RECENT_COOKIE, parseOpenerRecent } from "@/lib/engine/opener-recent";
-import { printModuleForSection } from "@/lib/engine/print";
-import { loadForYouTestCatalog } from "@/lib/engine/queries";
-import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({
   params,
@@ -29,42 +22,37 @@ export default async function CategoryPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
-  const testProfile = parseForYouTestProfile(await searchParams);
+  const resolvedSearch = await searchParams;
+  const testProfile = parseForYouTestProfile(resolvedSearch);
   const testQuery = forYouTestSearchString(testProfile) || undefined;
   if (slug === "for-you") redirect(withTestQuery("/", testQuery));
   const mapped = LEGACY_NAV_TO_PRIMARY[slug];
   if (mapped && mapped !== slug) redirect(withTestQuery(`/category/${mapped}`, testQuery));
   const category = contentPrimaryBySlug(slug);
   if (!category) notFound();
-  const openerRecent = parseOpenerRecent((await cookies()).get(OPENER_RECENT_COOKIE)?.value);
-  const [stories, catalogRows] = await Promise.all([
-    listMagazineStories({
-      navSlug: slug,
-      testProfile: forYouTestIsActive(testProfile) ? testProfile : undefined,
-      limit: 24,
-      openerRecent,
-    }),
-    loadForYouTestCatalog(),
-  ]);
-  const catalog = withProfileInCatalog(catalogRows, testProfile);
-  const print = printModuleForSection(slug, forYouTestIsActive(testProfile) ? testProfile : undefined);
 
   return (
     <MagazineQueryProvider testQuery={testQuery}>
       <div className="min-h-full overflow-x-clip bg-white">
         <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
-        <ForYouTestFilter initial={testProfile} catalog={catalog} pathname={`/category/${slug}`} />
-        <MagazinePageTransition>
-        <main className="pt-2">
-          <StoryFeed
-            stories={stories}
-            copyKey={category.slug}
+        <Suspense
+          fallback={
+            <section className="mx-auto w-full max-w-3xl px-4 pt-3 md:max-w-6xl md:px-6 lg:max-w-[1080px] lg:pl-8 lg:pr-8">
+              <div className="h-24 animate-pulse rounded-[8px] bg-[#eee]" />
+            </section>
+          }
+        >
+          <ForYouTestFilterSection testProfile={testProfile} pathname={`/category/${slug}`} />
+        </Suspense>
+        <Suspense fallback={<CategoryLoading />}>
+          <CategoryFeed
+            slug={slug}
             categoryName={category.name}
-            print={print}
+            copyKey={category.slug}
+            testProfile={testProfile}
             testQuery={testQuery}
           />
-        </main>
-        </MagazinePageTransition>
+        </Suspense>
         <SiteFooter />
       </div>
     </MagazineQueryProvider>
