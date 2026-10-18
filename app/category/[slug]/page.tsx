@@ -6,6 +6,7 @@ import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { StoryFeed } from "@/components/story-feed";
 import { LEGACY_NAV_TO_PRIMARY, contentPrimaryBySlug } from "@/config/magazine-nav";
 import {
+  forYouTestCatalog,
   forYouTestIsActive,
   forYouTestSearchString,
   parseForYouTestProfile,
@@ -37,17 +38,18 @@ export default async function CategoryPage({
   const category = contentPrimaryBySlug(slug);
   if (!category) notFound();
   const openerRecent = parseOpenerRecent((await cookies()).get(OPENER_RECENT_COOKIE)?.value);
+  const testActive = forYouTestIsActive(testProfile);
   const [stories, catalogRows] = await Promise.all([
     listMagazineStories({
       navSlug: slug,
-      testProfile: forYouTestIsActive(testProfile) ? testProfile : undefined,
+      testProfile: testActive ? testProfile : undefined,
       limit: 24,
       openerRecent,
     }),
-    loadForYouTestCatalog(),
+    testActive ? loadForYouTestCatalog() : Promise.resolve(forYouTestCatalog()),
   ]);
   const catalog = withProfileInCatalog(catalogRows, testProfile);
-  const print = printModuleForSection(slug, forYouTestIsActive(testProfile) ? testProfile : undefined);
+  const print = printModuleForSection(slug, testActive ? testProfile : undefined);
 
   return (
     <MagazineQueryProvider testQuery={testQuery}>

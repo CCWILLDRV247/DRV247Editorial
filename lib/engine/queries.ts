@@ -200,17 +200,12 @@ async function loadEditorialCorpusFresh(): Promise<EditorialCorpus> {
   return { selected, graph, deskRows };
 }
 
-const corpusMemo = globalThis as unknown as {
-  drvEditorialCorpus?: { at: number; value: EditorialCorpus };
-};
-
+/** Shared across isolates for 60s — same freshness as the former in-process memo. */
 export async function loadEditorialCorpus() {
-  const now = Date.now();
-  const memo = corpusMemo.drvEditorialCorpus;
-  if (memo && now - memo.at < 60_000) return memo.value;
-  const value = await loadEditorialCorpusFresh();
-  corpusMemo.drvEditorialCorpus = { at: now, value };
-  return value;
+  return unstable_cache(loadEditorialCorpusFresh, ["editorial-corpus"], {
+    revalidate: 60,
+    tags: ["editorial"],
+  })();
 }
 
 function emptyExtras() {
