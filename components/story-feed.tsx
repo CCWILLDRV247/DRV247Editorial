@@ -182,7 +182,8 @@ export function StoryFeed({
   };
 
   return (
-    <div className={`flex flex-col gap-8 pb-16 ${MAGAZINE_LAYOUT.page}`}>
+    <div className="flex flex-col gap-8 pb-16">
+      <div className={`flex min-w-0 flex-col gap-8 ${MAGAZINE_LAYOUT.page}`}>
       <OpenerRecentSync openerIds={openerIds} />
       <div
         className={
@@ -213,9 +214,11 @@ export function StoryFeed({
           {leadCards.length > 0 ? storyCardGrid(leadCards) : null}
         </div>
       </div>
+      </div>
       {picks.length > 0 ? (
-        <section className={HOMEPAGE_COMPOSITION.picksBand}>
-          <div className="min-w-0 pl-4 pr-0 md:px-0 lg:px-0">
+        <section data-picks-band="" className={HOMEPAGE_COMPOSITION.picksBand}>
+          <div className={MAGAZINE_LAYOUT.page}>
+          <div className={MAGAZINE_LAYOUT.picksInner}>
             <p className={`${HOMEPAGE_COMPOSITION.picksHeading} pr-4 md:pr-0`}>
               Our picks
             </p>
@@ -229,8 +232,10 @@ export function StoryFeed({
               ))}
             </div>
           </div>
+          </div>
         </section>
       ) : null}
+      <div className={`flex min-w-0 flex-col gap-8 ${MAGAZINE_LAYOUT.page}`}>
       {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
       <Interstitial
         text={copy.interstitial}
@@ -251,6 +256,7 @@ export function StoryFeed({
           )}
         </>
       )}
+      </div>
     </div>
   );
 }

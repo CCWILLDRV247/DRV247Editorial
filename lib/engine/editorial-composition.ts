@@ -85,9 +85,13 @@ export const HOMEPAGE_COMPOSITION = {
   picksLead: "mt-6 md:mt-10",
   /** Parent pageGap + this = heroGap before the Picks heading (72px / 88px). */
   picksAboveHeading: "mt-4 md:mt-4",
-  /** Full-viewport Picks band — black, type on it is white. */
+  /**
+   * Full-viewport Picks band. Lives outside MAGAZINE_LAYOUT.page so
+   * overflow-x-clip cannot crop a 100vw shadow. w-full of the page
+   * shell is the browser width; type on it is white.
+   */
   picksBand:
-    "relative z-10 min-w-0 overflow-visible bg-[#1b1d1f] py-8 md:py-10 text-white shadow-[100vw_0_0_0_#1b1d1f,-100vw_0_0_0_#1b1d1f]",
+    "relative z-10 w-full max-w-none min-w-0 overflow-visible bg-[#1b1d1f] py-8 md:py-10 text-white",
   picksHeading:
     "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-white lg:text-[40px] lg:leading-[0.66]",
   /** Matches SectionIntro dek — e.g. “Ferrari F355 GTB · Classic · Performance”. */

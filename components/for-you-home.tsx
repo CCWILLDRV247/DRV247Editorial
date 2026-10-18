@@ -154,8 +154,9 @@ export function ForYouHome({
       <InterludeRecentSync interludeIds={interludes.map((item) => item.interlude.id)} />
       <OpenerRecentSync openerIds={openerIds} />
       <div
-        className={`flex flex-col pb-20 md:pb-24 ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}
+        className={`flex flex-col pb-20 md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}
       >
+      <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
       <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
         {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
         <div className="flex min-w-0 flex-col gap-6 md:gap-7">
@@ -187,9 +188,11 @@ export function ForYouHome({
       {firstInterlude ? (
         <HomepageInterlude interlude={firstInterlude.interlude} slot={firstInterlude.slot} />
       ) : null}
+      </div>
 
       <DeskModule stories={picks} />
 
+      <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
       {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
 
       {remainingInterludes.map((item) => (
@@ -208,6 +211,7 @@ export function ForYouHome({
       </div>
 
       {beforeViewAll ? <HomepageInterlude interlude={beforeViewAll} slot="before-view-all" /> : null}
+      </div>
       </div>
     </>
   );

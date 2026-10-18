@@ -72,64 +72,67 @@ export function DeskModule({ stories }: { stories: StoryDto[] }) {
 
   return (
     <section
+      data-picks-band=""
       className={`${HOMEPAGE_COMPOSITION.picksBand} ${HOMEPAGE_COMPOSITION.picksAboveHeading}`}
     >
-      <div className={PAGE_GUTTER}>
-        <p className={HOMEPAGE_COMPOSITION.picksHeading}>
-          {PICKS_SECTION_HEADING}
-        </p>
-        <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-white/70 md:mt-2 md:text-[18px] md:leading-[22px] md:tracking-[-0.36px]">
-          {PICKS_SECTION_DEK}
-        </p>
-      </div>
-      <div
-        data-magazine-rail="picks"
-        data-magazine-rail-solo={solo ? "" : undefined}
-        className={
-          solo
-            ? `mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`
-            : `mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER} lg:flex lg:gap-3 lg:overflow-x-auto lg:pb-2 lg:snap-x lg:snap-mandatory`
-        }
-      >
-        <div className={solo ? MAGAZINE_LAYOUT.pickRailCardSolo : MAGAZINE_LAYOUT.pickRailCard}>
-          <StoryOpenLink
-            storyId={featured.id}
-            className={`${MAGAZINE_LAYOUT.featuredPick} block`}
-          >
-            <PickImageFrame story={featured} eager />
-            <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-white lg:text-[20px] lg:leading-[0.88]">
-              {featured.title}
-            </p>
-            <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-white/55">
-              {featured.source.name}
-            </p>
-          </StoryOpenLink>
-          {note ? (
-            <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-white">
-              {note}
-            </p>
+      <div className={MAGAZINE_LAYOUT.page}>
+        <div className={PAGE_GUTTER}>
+          <p className={HOMEPAGE_COMPOSITION.picksHeading}>
+            {PICKS_SECTION_HEADING}
+          </p>
+          <p className="mt-3 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-white/70 md:mt-2 md:text-[18px] md:leading-[22px] md:tracking-[-0.36px]">
+            {PICKS_SECTION_DEK}
+          </p>
+        </div>
+        <div
+          data-magazine-rail="picks"
+          data-magazine-rail-solo={solo ? "" : undefined}
+          className={
+            solo
+              ? `mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER}`
+              : `mt-6 min-w-0 md:mt-8 ${PAGE_GUTTER} lg:flex lg:gap-3 lg:overflow-x-auto lg:pb-2 lg:snap-x lg:snap-mandatory`
+          }
+        >
+          <div className={solo ? MAGAZINE_LAYOUT.pickRailCardSolo : MAGAZINE_LAYOUT.pickRailCard}>
+            <StoryOpenLink
+              storyId={featured.id}
+              className={`${MAGAZINE_LAYOUT.featuredPick} block`}
+            >
+              <PickImageFrame story={featured} eager />
+              <p className="mt-2 line-clamp-3 font-display text-base font-bold uppercase leading-[0.85] text-white lg:text-[20px] lg:leading-[0.88]">
+                {featured.title}
+              </p>
+              <p className="mt-1 truncate font-display text-[12px] font-bold uppercase leading-none text-white/55">
+                {featured.source.name}
+              </p>
+            </StoryOpenLink>
+            {note ? (
+              <p className="mt-4 max-w-xl font-display text-[18px] leading-[22px] tracking-[-0.02em] text-white">
+                {note}
+              </p>
+            ) : null}
+          </div>
+          {rest.length > 0 ? (
+            <div
+              className={
+                solo
+                  ? "hidden"
+                  : "mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 lg:mt-0 lg:contents lg:overflow-visible lg:p-0"
+              }
+            >
+              {rest.map((story) => (
+                <div key={story.id}>
+                  <DeskPickCard story={story} />
+                  {story.desk?.note ? (
+                    <p className="mt-2 line-clamp-3 text-[14px] leading-5 text-white/80">
+                      {story.desk.note}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
           ) : null}
         </div>
-        {rest.length > 0 ? (
-          <div
-            className={
-              solo
-                ? "hidden"
-                : "mt-6 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-8 md:gap-2 lg:mt-0 lg:contents lg:overflow-visible lg:p-0"
-            }
-          >
-            {rest.map((story) => (
-              <div key={story.id}>
-                <DeskPickCard story={story} />
-                {story.desk?.note ? (
-                  <p className="mt-2 line-clamp-3 text-[14px] leading-5 text-white/80">
-                    {story.desk.note}
-                  </p>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        ) : null}
       </div>
     </section>
   );
