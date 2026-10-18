@@ -20,16 +20,15 @@ export function PrintModuleRail({
           {module.dek}
         </p>
       </div>
-      <div className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.rail}`}>
-        {module.publications.map((publication) => {
-          const path = `/print/${publication.slug}`;
-          const href = testQuery ? `${path}?${testQuery}` : path;
-          return (
-            <div key={publication.id} className={MAGAZINE_LAYOUT.printRailCard}>
-              <PrintCoverCard publication={publication} href={href} compact />
-            </div>
-          );
-        })}
+      <div
+        data-magazine-rail="print"
+        className={`${PAGE_GUTTER} ${MAGAZINE_LAYOUT.rail}`}
+      >
+        {module.publications.map((publication) => (
+          <div key={publication.id} className={MAGAZINE_LAYOUT.printRailCard}>
+            <PrintCoverCard publication={publication} query={testQuery} compact />
+          </div>
+        ))}
       </div>
     </section>
   );

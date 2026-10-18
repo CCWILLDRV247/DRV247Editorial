@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { PRIMARY_NAV } from "../../config/magazine-nav";
 import { FOR_YOU_DEMO_PROFILES } from "./for-you-test";
@@ -102,6 +103,66 @@ describe("print stays off magazine chrome", () => {
   it("treats quiet /print detail URLs as magazine paths", () => {
     assert.equal(isMagazinePath("/print/the-road-rat"), true);
     assert.equal(isMagazinePath("/intelligence/print"), false);
+  });
+
+  it("opens suggested magazine cards with the story-open morph, not a native push", () => {
+    const open = readFileSync(new URL("../../components/print-open-link.tsx", import.meta.url), "utf8");
+    const card = readFileSync(new URL("../../components/print-cover-card.tsx", import.meta.url), "utf8");
+    const rail = readFileSync(new URL("../../components/print-module.tsx", import.meta.url), "utf8");
+    const page = readFileSync(new URL("../../app/print/[slug]/page.tsx", import.meta.url), "utf8");
+    const loading = readFileSync(new URL("../../app/print/[slug]/loading.tsx", import.meta.url), "utf8");
+    const morph = readFileSync(new URL("./story-back-morph.ts", import.meta.url), "utf8");
+    const back = readFileSync(new URL("../../components/magazine-link.tsx", import.meta.url), "utf8");
+    const storyOpen = readFileSync(new URL("../../components/story-open-link.tsx", import.meta.url), "utf8");
+    const storyCard = readFileSync(new URL("../../components/story-card.tsx", import.meta.url), "utf8");
+
+    assert.match(open, /event\.preventDefault\(\)/);
+    assert.match(open, /startTypedViewTransition/);
+    assert.match(open, /`\/print\/\$\{slug\}`/);
+    assert.match(open, /rasterizeOpenImages/);
+    assert.match(open, /freezeOpenView\(\);/);
+    assert.match(open, /storyHeroIsPainted/);
+    assert.match(open, /thawOpenView/);
+    assert.match(open, /startTransition\(\(\) => \{/);
+    assert.match(open, /addTransitionType\(STORY_OPEN_TRANSITION\)/);
+    assert.match(
+      open,
+      /startTransition\(\(\) => \{\s*addTransitionType\(STORY_OPEN_TRANSITION\);/,
+    );
+    assert.match(open, /router\.push\(href, \{ transitionTypes: \[STORY_OPEN_TRANSITION\] \}\)/);
+    assert.match(open, /captureMagazineRails/);
+    assert.match(open, /recordMagazineHref/);
+    assert.doesNotMatch(open, /history\.back\(\)/);
+
+    assert.match(card, /PrintOpenLink/);
+    assert.match(card, /data-story-media=\{publication\.slug\}/);
+    assert.match(card, /story-hero-media/);
+    assert.match(card, /hero/);
+    assert.doesNotMatch(card, /MagazineLink/);
+
+    assert.match(rail, /data-magazine-rail="print"/);
+    assert.match(rail, /PrintCoverCard/);
+    assert.doesNotMatch(rail, /href=/);
+
+    assert.match(page, /hero/);
+    assert.match(page, /StoryCopyTransition/);
+    assert.doesNotMatch(page, /PrintOpenLink/);
+
+    assert.match(loading, /bg-white/);
+    assert.match(loading, /aspect-\[3\/4\]/);
+    assert.doesNotMatch(loading, /animate-pulse/);
+
+    assert.match(morph, /\/print\//);
+    assert.match(morph, /restoreMagazineRails/);
+    assert.doesNotMatch(morph, /startViewTransition/);
+    assert.doesNotMatch(back, /document\.startViewTransition/);
+    assert.match(back, /window\.history\.back\(\)/);
+    assert.match(back, /playStoryBackMorph/);
+
+    assert.match(storyOpen, /`\/story\/\$\{storyId\}`/);
+    assert.doesNotMatch(storyOpen, /\/print\//);
+    assert.match(storyCard, /StoryOpenLink/);
+    assert.doesNotMatch(storyCard, /PrintOpenLink/);
   });
 
   it("still orders the full catalogue when asked, without making that a page", () => {
