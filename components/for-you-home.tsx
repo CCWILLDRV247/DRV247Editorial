@@ -7,7 +7,11 @@ import { OpenerRecentSync } from "@/components/opener-recent-sync";
 import { SectionIntro } from "@/components/site-chrome";
 import { StoryCard, StoryHero } from "@/components/story-card";
 import type { EditorialInterlude } from "@/lib/engine/editorial-interlude";
-import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
+import {
+  HOMEPAGE_COMPOSITION,
+  MAGAZINE_LAYOUT,
+  isSoloMagazineRail,
+} from "@/lib/engine/editorial-composition";
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import type { PrintModule } from "@/lib/engine/print";
 import { PrintModuleRail } from "@/components/print-module";
@@ -17,14 +21,17 @@ import type { StoryDto } from "@/lib/stories";
 
 type ForYouLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
 
-const PAGE_GUTTER =
-  "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))]";
-
 function storyCardGrid(cards: StoryDto[]) {
   if (cards.length === 0) return null;
   return (
-    <div className={PAGE_GUTTER}>
-      <div className="grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4">
+    <div className={MAGAZINE_LAYOUT.gutter}>
+      <div
+        className={
+          isSoloMagazineRail(cards.length)
+            ? "grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-1"
+            : "grid w-full min-w-0 gap-3 md:grid-cols-2 md:gap-4"
+        }
+      >
         {cards.map((story) => (
           <StoryCard key={story.id} story={story} />
         ))}
@@ -47,27 +54,36 @@ function InterestLane({
   if (stories.length === 0 && !empty) return null;
 
   return (
-    <section className={`min-w-0 ${PAGE_GUTTER}`}>
-      <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
-        {heading}
-      </p>
-      {dek ? (
-        <p className="mt-2 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/50 md:mt-1.5 md:text-xs md:text-[#1b1d1f]/55">
-          {dek}
+    <section className="min-w-0">
+      <div className={MAGAZINE_LAYOUT.gutter}>
+        <p className={HOMEPAGE_COMPOSITION.sectionTitle}>
+          {heading}
         </p>
-      ) : null}
-      {empty && stories.length === 0 ? (
-        <p className="mt-4 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/75 md:mt-3">
-          {empty}
-        </p>
-      ) : null}
+        {dek ? (
+          <p className="mt-2 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/50 md:mt-1.5 md:text-xs md:text-[#1b1d1f]/55">
+            {dek}
+          </p>
+        ) : null}
+        {empty && stories.length === 0 ? (
+          <p className="mt-4 max-w-xl text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f]/75 md:mt-3">
+            {empty}
+          </p>
+        ) : null}
+      </div>
       {stories.length > 0 ? (
         <div
           data-magazine-rail="interests"
-          className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2"
+          data-magazine-rail-solo={isSoloMagazineRail(stories.length) ? "" : undefined}
+          className={`${MAGAZINE_LAYOUT.gutter} ${
+            isSoloMagazineRail(stories.length) ? MAGAZINE_LAYOUT.railSolo : MAGAZINE_LAYOUT.rail
+          }`}
         >
           {stories.map((story) => (
-            <CarouselStoryCard key={story.id} story={story} />
+            <CarouselStoryCard
+              key={story.id}
+              story={story}
+              solo={isSoloMagazineRail(stories.length)}
+            />
           ))}
         </div>
       ) : null}
@@ -138,7 +154,7 @@ export function ForYouHome({
       <InterludeRecentSync interludeIds={interludes.map((item) => item.interlude.id)} />
       <OpenerRecentSync openerIds={openerIds} />
       <div
-        className={`mx-auto flex w-full min-w-0 max-w-3xl flex-col pb-20 md:max-w-6xl md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}
+        className={`flex flex-col pb-20 md:pb-24 ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}
       >
       <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
         {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
@@ -151,7 +167,7 @@ export function ForYouHome({
             homeSpacing
           />
           {forYourCar.empty ? (
-            <p className={`text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f] ${PAGE_GUTTER}`}>
+            <p className={`text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f] ${MAGAZINE_LAYOUT.gutter}`}>
               {forYourCar.empty}
             </p>
           ) : null}

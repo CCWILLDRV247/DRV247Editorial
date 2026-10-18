@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { HOMEPAGE_COMPOSITION, interludeCompositionVariant } from "./editorial-composition";
+import {
+  HOMEPAGE_COMPOSITION,
+  MAGAZINE_LAYOUT,
+  interludeCompositionVariant,
+  isSoloMagazineRail,
+} from "./editorial-composition";
 
 describe("editorial composition", () => {
   it("assigns the strongest variant to before-categories", () => {
@@ -21,8 +26,42 @@ describe("editorial composition", () => {
     assert.equal(interludeCompositionVariant("mid-categories", "SHORT_PUNCH"), "accent");
   });
 
-  it("paints Picks as a full-width light grey band", () => {
-    assert.match(HOMEPAGE_COMPOSITION.picksBand, /bg-\[#f6f6f6\]/);
-    assert.match(HOMEPAGE_COMPOSITION.picksBand, /shadow-\[100vw_0_0_0_#f6f6f6/);
+  it("paints Picks as a full-width black band with white type", () => {
+    assert.match(HOMEPAGE_COMPOSITION.picksBand, /bg-\[#1b1d1f\]/);
+    assert.match(HOMEPAGE_COMPOSITION.picksBand, /text-white/);
+    assert.match(HOMEPAGE_COMPOSITION.picksBand, /shadow-\[100vw_0_0_0_#1b1d1f/);
+    assert.match(HOMEPAGE_COMPOSITION.picksHeading, /text-white/);
+    assert.doesNotMatch(HOMEPAGE_COMPOSITION.sectionTitle, /text-white/);
+  });
+
+  it("keeps a desktop reading measure and one rail scale", () => {
+    assert.match(MAGAZINE_LAYOUT.page, /lg:max-w-\[1080px\]/);
+    assert.match(MAGAZINE_LAYOUT.page, /lg:pl-8/);
+    assert.match(MAGAZINE_LAYOUT.reading, /lg:pl-8/);
+    assert.match(MAGAZINE_LAYOUT.header, /lg:px-8/);
+    assert.match(MAGAZINE_LAYOUT.gutter, /lg:px-0/);
+    assert.doesNotMatch(MAGAZINE_LAYOUT.page, /lg:px-8/);
+    assert.match(MAGAZINE_LAYOUT.storyRailCard, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.storyRailCardSolo, /lg:w-full/);
+    assert.doesNotMatch(MAGAZINE_LAYOUT.storyRailCardSolo, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.storyRailCardSolo, /w-\[200px\]/);
+    assert.match(MAGAZINE_LAYOUT.railSolo, /lg:mt-5/);
+    assert.match(MAGAZINE_LAYOUT.pickRailCard, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.pickRailCardSolo, /lg:w-full/);
+    assert.doesNotMatch(MAGAZINE_LAYOUT.pickRailCardSolo, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.pickRailCardSolo, /w-\[218px\]/);
+    assert.match(MAGAZINE_LAYOUT.printRailCard, /lg:w-\[260px\]/);
+    assert.match(MAGAZINE_LAYOUT.storyRailImage, /lg:h-\[300px\]/);
+    assert.match(MAGAZINE_LAYOUT.pickRailImage, /lg:h-\[300px\]/);
+    assert.match(MAGAZINE_LAYOUT.picksInner, /lg:pl-8/);
+    assert.match(MAGAZINE_LAYOUT.featuredPick, /^block$/);
+    assert.match(MAGAZINE_LAYOUT.heroHeight, /lg:h-\[420px\]/);
+    assert.match(HOMEPAGE_COMPOSITION.sectionTitle, /lg:text-\[40px\]/);
+  });
+
+  it("treats a one-story rail as full width and two or more as a carousel", () => {
+    assert.equal(isSoloMagazineRail(1), true);
+    assert.equal(isSoloMagazineRail(2), false);
+    assert.equal(isSoloMagazineRail(0), false);
   });
 });

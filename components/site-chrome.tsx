@@ -10,6 +10,7 @@ import {
   interludeFromText,
   type EditorialInterlude,
 } from "@/lib/engine/editorial-interlude";
+import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 
 const mobileNav = PRIMARY_NAV.filter((item) =>
   (MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
@@ -29,7 +30,7 @@ export function SiteHeader({
 }) {
   return (
     <header className="site-header sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 md:h-16 md:px-6">
+      <div className={`${MAGAZINE_LAYOUT.header} flex h-14 items-center gap-3 md:h-16`}>
         {backHref ? (
           <MagazineBack
             href={backHref}
@@ -58,7 +59,7 @@ export function SiteHeader({
           Desk
         </Link>
       </div>
-      <nav className="mx-auto hidden max-w-6xl items-center gap-4 px-6 pb-3 md:flex">
+      <nav className={`${MAGAZINE_LAYOUT.header} hidden items-center gap-4 pb-3 md:flex`}>
         <div className="flex min-w-0 flex-1 items-center gap-6 overflow-x-auto">
           {mobileNav.map((item) => (
             <MagazineLink
@@ -112,7 +113,7 @@ export function SiteHeader({
 
 export function EmptyStories({ category }: { category: string }) {
   return (
-    <div className="px-7 py-16 text-[#1b1d1f]">
+    <div className="px-7 py-16 text-[#1b1d1f] lg:px-0">
       <p className="font-display text-5xl font-black uppercase leading-[0.62] tracking-[-0.02em]">
         Nothing
         <br />
@@ -145,7 +146,7 @@ export function SectionIntro({
   const kickerWords = kicker.split(/\s+/).filter(Boolean);
 
   return (
-    <div className="pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))] text-[#1b1d1f] md:px-0">
+    <div className="pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))] text-[#1b1d1f] md:px-0 lg:px-0">
       {stackKickerOnMobile ? (
         <>
           <p className={`${kickerClass} text-[80px] md:hidden`}>
@@ -168,7 +169,7 @@ export function SectionIntro({
         </p>
       )}
       <p
-        className={`${homeSpacing ? "mt-[52px]" : "mt-8"} font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]`}
+        className={`${homeSpacing ? "mt-[52px]" : "mt-8"} ${HOMEPAGE_COMPOSITION.sectionTitle}`}
       >
         {dek}
       </p>

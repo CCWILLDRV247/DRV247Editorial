@@ -2,7 +2,11 @@ import { cn } from "cn";
 import { MagazineLink } from "@/components/magazine-link";
 import { StoryMediaTarget } from "@/components/story-media-transition";
 import { StoryOpenLink } from "@/components/story-open-link";
-import { HOMEPAGE_COMPOSITION } from "@/lib/engine/editorial-composition";
+import {
+  HOMEPAGE_COMPOSITION,
+  MAGAZINE_LAYOUT,
+  isSoloMagazineRail,
+} from "@/lib/engine/editorial-composition";
 import type { StoryDto } from "@/lib/stories";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { StoryImage } from "./story-image";
@@ -13,13 +17,22 @@ export type CategoryLane = {
   stories: StoryDto[];
 };
 
-export function CarouselStoryCard({ story }: { story: StoryDto }) {
+export function CarouselStoryCard({
+  story,
+  solo = false,
+}: {
+  story: StoryDto;
+  solo?: boolean;
+}) {
   return (
     <StoryOpenLink
       storyId={story.id}
-      className="w-[200px] shrink-0 snap-start md:w-[220px]"
+      className={solo ? MAGAZINE_LAYOUT.storyRailCardSolo : MAGAZINE_LAYOUT.storyRailCard}
     >
-      <StoryMediaTarget storyId={story.id} className="relative h-[220px] overflow-hidden rounded-[12px] bg-[#1b1d1f] md:h-[240px]">
+      <StoryMediaTarget
+        storyId={story.id}
+        className={solo ? MAGAZINE_LAYOUT.storyRailImageSolo : MAGAZINE_LAYOUT.storyRailImage}
+      >
         <StoryImage src={story.imageUrl} sources={story.imageSources} category={story.category.name} alt="" video={isVideoStory(story)} />
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#1b1d1f]/85" />
         <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1.5">
@@ -28,7 +41,7 @@ export function CarouselStoryCard({ story }: { story: StoryDto }) {
           </p>
         </div>
       </StoryMediaTarget>
-      <p className="mt-2 line-clamp-2 font-display text-base font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-[#1b1d1f] md:text-[18px]">
+      <p className={solo ? MAGAZINE_LAYOUT.railTitleSolo : MAGAZINE_LAYOUT.railTitle}>
         {story.title}
       </p>
     </StoryOpenLink>
@@ -40,9 +53,11 @@ export function CategoryCarousel({ slug, name, stories, lead = false }: Category
     return null;
   }
 
+  const solo = isSoloMagazineRail(stories.length);
+
   return (
-    <section className={cn("min-w-0 pl-4 pr-0 md:px-0", lead && "pt-1 md:pt-2")}>
-      <div className="flex min-w-0 items-baseline justify-between gap-3 pr-4 md:pr-0">
+    <section className={cn("min-w-0 pl-4 pr-0 md:px-0 lg:px-0", lead && "pt-1 md:pt-2")}>
+      <div className="flex min-w-0 items-baseline justify-between gap-3 pr-4 md:pr-0 lg:pr-8">
         <MagazineLink
           href={`/category/${slug}`}
           className={HOMEPAGE_COMPOSITION.sectionTitle}
@@ -58,10 +73,11 @@ export function CategoryCarousel({ slug, name, stories, lead = false }: Category
       </div>
       <div
         data-magazine-rail={`category:${slug}`}
-        className="mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2"
+        data-magazine-rail-solo={solo ? "" : undefined}
+        className={solo ? MAGAZINE_LAYOUT.railSolo : MAGAZINE_LAYOUT.rail}
       >
         {stories.map((story) => (
-          <CarouselStoryCard key={`${slug}-${story.id}`} story={story} />
+          <CarouselStoryCard key={`${slug}-${story.id}`} story={story} solo={solo} />
         ))}
       </div>
     </section>
