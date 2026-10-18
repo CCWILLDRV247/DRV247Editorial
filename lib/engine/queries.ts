@@ -136,6 +136,9 @@ type FeedArticle = Pick<
   | "metadata"
 >;
 
+/** Rank/list paths omit metadata JSON (~multi‑MB corpus); single-article fetch keeps it. */
+type RankArticle = Omit<FeedArticle, "metadata"> & { metadata?: string | null };
+
 const ARTICLE_FEED_COLUMNS = {
   id: articles.id,
   sourceId: articles.sourceId,
@@ -154,6 +157,25 @@ const ARTICLE_FEED_COLUMNS = {
   aiSummary: articles.aiSummary,
   duplicateGroupId: articles.duplicateGroupId,
   metadata: articles.metadata,
+};
+
+const ARTICLE_RANK_COLUMNS = {
+  id: articles.id,
+  sourceId: articles.sourceId,
+  publication: articles.publication,
+  title: articles.title,
+  url: articles.url,
+  canonicalUrl: articles.canonicalUrl,
+  author: articles.author,
+  publishedAt: articles.publishedAt,
+  firstSeen: articles.firstSeen,
+  lastProcessed: articles.lastProcessed,
+  imageUrl: articles.imageUrl,
+  excerpt: articles.excerpt,
+  editorialScore: articles.editorialScore,
+  ingestionMethod: articles.ingestionMethod,
+  aiSummary: articles.aiSummary,
+  duplicateGroupId: articles.duplicateGroupId,
 };
 
 type ArticleGraph = {
@@ -185,27 +207,43 @@ export const loadDeskPickRows = cache(async () => {
 });
 
 type EditorialCorpus = {
-  selected: FeedArticle[];
+  selected: RankArticle[];
   graph: ArticleGraph;
   deskRows: (typeof deskPicks.$inferSelect)[];
 };
 
 async function loadEditorialCorpusFresh(): Promise<EditorialCorpus> {
   const db = await getDb();
-  const [selected, graph, deskRows] = await Promise.all([
-    db.select(ARTICLE_FEED_COLUMNS).from(articles).orderBy(desc(articles.publishedAt)),
-    loadArticleGraph(),
-    loadDeskPickRows(),
-  ]);
-  return { selected, graph, deskRows };
+  const [selected, entities, categories, interests, locations, primaries, sources, deskRows] =
+    await Promise.all([
+      db.select(ARTICLE_RANK_COLUMNS).from(articles).orderBy(desc(articles.publishedAt)),
+      db.select().from(articleEntities),
+      db.select().from(articleCategories),
+      db.select().from(articleInterests),
+      db.select().from(articleLocations),
+      db.select().from(articlePrimary),
+      db.select().from(mediaSources),
+      db.select().from(deskPicks),
+    ]);
+  return {
+    selected,
+    graph: { entities, categories, interests, locations, primaries, sources },
+    deskRows,
+  };
 }
 
-/** Shared across isolates for 60s — same freshness as the former in-process memo. */
+const corpusMemo = globalThis as unknown as {
+  drvEditorialCorpus?: { at: number; value: EditorialCorpus };
+};
+
+/** In-process 60s memo. Full corpus is ~5MB — too large for Next `unstable_cache` (2MB cap). */
 export async function loadEditorialCorpus() {
-  return unstable_cache(loadEditorialCorpusFresh, ["editorial-corpus"], {
-    revalidate: 60,
-    tags: ["editorial"],
-  })();
+  const now = Date.now();
+  const memo = corpusMemo.drvEditorialCorpus;
+  if (memo && now - memo.at < 60_000) return memo.value;
+  const value = await loadEditorialCorpusFresh();
+  corpusMemo.drvEditorialCorpus = { at: now, value };
+  return value;
 }
 
 function emptyExtras() {
@@ -258,7 +296,7 @@ function primariesFromGraph(graph: ArticleGraph) {
 }
 
 function toDto(
-  article: FeedArticle,
+  article: RankArticle | FeedArticle,
   extras: {
     makes: string[];
     models: string[];
@@ -288,7 +326,7 @@ function toDto(
     editorialExclusionReason?: EditorialExclusionReason | null;
   },
 ): EditorialDto {
-  const image = parseImagePayload(article.metadata);
+  const image = parseImagePayload("metadata" in article ? article.metadata : null);
   const imageUrls = displayImageUrls(article.imageUrl, image);
   return {
     id: article.id,
@@ -320,8 +358,12 @@ function toDto(
     locations: extras.locations,
     duplicateGroupId: article.duplicateGroupId,
     primaryCategory: extras.primaryCategory,
-    primaryConfidence: extras.primaryConfidence ?? parseClassificationSnapshot(article.metadata)?.primaryConfidence ?? null,
-    classification: extras.classification ?? parseClassificationSnapshot(article.metadata),
+    primaryConfidence:
+      extras.primaryConfidence ??
+      parseClassificationSnapshot("metadata" in article ? article.metadata : null)?.primaryConfidence ??
+      null,
+    classification:
+      extras.classification ?? parseClassificationSnapshot("metadata" in article ? article.metadata : null),
     related: extras.related ?? [],
     why: extras.why ?? [],
     rankSignals: extras.rankSignals ?? [],
@@ -400,7 +442,7 @@ export async function getDemoUser(userId: string) {
   return { ...user, vehicles, interests };
 }
 
-export async function listEditorial(options?: {
+type ListEditorialOptions = {
   userId?: string;
   sourceId?: string;
   vehicleId?: string;
@@ -414,7 +456,48 @@ export async function listEditorial(options?: {
   testProfile?: ForYouTestProfile;
   hardFilter?: boolean;
   limit?: number;
-}): Promise<EditorialDto[]> {
+};
+
+function editorialListCacheKey(options?: ListEditorialOptions): string | null {
+  if (!options) return "for-you:80";
+  if (options.testProfile && forYouTestIsActive(options.testProfile)) return null;
+  if (
+    options.userId ||
+    options.vehicleId ||
+    options.sourceId ||
+    options.q ||
+    options.make ||
+    options.model ||
+    options.generation ||
+    options.category ||
+    options.interest
+  ) {
+    return null;
+  }
+  const section = options.section && options.section !== "for-you" ? options.section : "for-you";
+  const limit = options.limit ?? 40;
+  return `${section}:${limit}`;
+}
+
+export async function listEditorial(options?: ListEditorialOptions): Promise<EditorialDto[]> {
+  const cacheKey = editorialListCacheKey(options);
+  if (cacheKey) {
+    return unstable_cache(
+      async (key: string) => {
+        const [section, limitStr] = key.split(":");
+        return listEditorialUncached({
+          section: section === "for-you" ? "for-you" : section,
+          limit: Number(limitStr),
+        });
+      },
+      ["editorial-ranked-list"],
+      { revalidate: 60, tags: ["editorial"] },
+    )(cacheKey);
+  }
+  return listEditorialUncached(options);
+}
+
+async function listEditorialUncached(options?: ListEditorialOptions): Promise<EditorialDto[]> {
   const db = await getDb();
   const { selected, graph, deskRows } = await loadEditorialCorpus();
   const deskMap = liveDeskByArticle(deskRows);
@@ -430,8 +513,16 @@ export async function listEditorial(options?: {
     );
   }
 
-  const extrasMap = extrasFromGraph(graph, rows.map((row) => row.id));
   const primaryMap = primariesFromGraph(graph);
+  if (options?.section && isContentPrimary(options.section)) {
+    const section = options.section;
+    rows = rows.filter((row) => {
+      const primary = primaryMap.get(row.id);
+      return primary ? primary === section : true;
+    });
+  }
+
+  const extrasMap = extrasFromGraph(graph, rows.map((row) => row.id));
   const sourceMap = new Map(graph.sources.map((source) => [source.id, source]));
   rows = rows.filter((row) =>
     evaluateEditorialEligibility({
@@ -492,7 +583,7 @@ export async function listEditorial(options?: {
   const applyQualityGate = personalizedForYou(useTestProfile, curated);
   const ranked = rows.map((article) => {
     const extras = extrasMap.get(article.id) ?? emptyExtras();
-    const snap = parseClassificationSnapshot(article.metadata);
+    const snap = parseClassificationSnapshot("metadata" in article ? article.metadata : null);
     const primaryCategory =
       (primaryMap.get(article.id) as EditorialDto["primaryCategory"] | undefined) ??
       classifyPrimary({

@@ -1,21 +1,15 @@
-import { ForYouHome } from "@/components/for-you-home";
-import { ForYouTestFilter } from "@/components/for-you-test-filter";
-import { MagazinePageTransition } from "@/components/magazine-page-transition";
+import { Suspense } from "react";
 import { MagazineQueryProvider } from "@/components/magazine-link";
+import { HomeFeed } from "@/components/magazine/home-feed";
+import { ForYouTestFilterSection } from "@/components/magazine/for-you-test-filter-section";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+import RootLoading from "./loading";
 import {
   forYouTestSearchString,
   parseForYouTestProfile,
-  withProfileInCatalog,
 } from "@/lib/engine/for-you-test";
-import { INTERLUDE_RECENT_COOKIE, parseInterludeRecentIds } from "@/lib/engine/interlude-recent";
-import { OPENER_RECENT_COOKIE, parseOpenerRecent } from "@/lib/engine/opener-recent";
-import { getMagazineHome } from "@/lib/engine/magazine";
-import { loadForYouTestCatalog } from "@/lib/engine/queries";
-import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 export default async function HomePage({
   searchParams,
@@ -25,34 +19,23 @@ export default async function HomePage({
   const params = await searchParams;
   const testProfile = parseForYouTestProfile(params);
   const testQuery = forYouTestSearchString(testProfile) || undefined;
-  const cookieStore = await cookies();
-  const recentIds = parseInterludeRecentIds(cookieStore.get(INTERLUDE_RECENT_COOKIE)?.value);
-  const openerRecent = parseOpenerRecent(cookieStore.get(OPENER_RECENT_COOKIE)?.value);
-  const [home, catalogRows] = await Promise.all([
-    getMagazineHome(testProfile, recentIds, openerRecent),
-    loadForYouTestCatalog(),
-  ]);
-  const catalog = withProfileInCatalog(catalogRows, testProfile);
+
   return (
     <MagazineQueryProvider testQuery={testQuery}>
       <div className="min-h-full overflow-x-clip bg-white">
-        <SiteHeader title={home.copy.headerTitle} testQuery={testQuery} />
-        <ForYouTestFilter initial={testProfile} catalog={catalog} pathname="/" />
-        <MagazinePageTransition>
-        <main className="relative z-0 pt-2">
-          <ForYouHome
-            copy={home.copy}
-            forYourCar={home.forYourCar}
-            yourInterests={home.yourInterests}
-            discover={home.discover}
-            picks={home.picks}
-            carousels={home.carousels}
-            interludes={home.interludes}
-            print={home.print}
-            testQuery={testQuery}
-          />
-        </main>
-        </MagazinePageTransition>
+        <SiteHeader title="For You" testQuery={testQuery} />
+        <Suspense
+          fallback={
+            <section className="mx-auto w-full max-w-3xl px-4 pt-3 md:max-w-6xl md:px-6 lg:max-w-[1080px] lg:pl-8 lg:pr-8">
+              <div className="h-24 animate-pulse rounded-[8px] bg-[#eee]" />
+            </section>
+          }
+        >
+          <ForYouTestFilterSection testProfile={testProfile} pathname="/" />
+        </Suspense>
+        <Suspense fallback={<RootLoading />}>
+          <HomeFeed testProfile={testProfile} testQuery={testQuery} />
+        </Suspense>
         <SiteFooter />
       </div>
     </MagazineQueryProvider>
