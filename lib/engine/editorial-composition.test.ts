@@ -29,7 +29,10 @@ describe("editorial composition", () => {
   it("paints Picks as a full-width black band with white type", () => {
     assert.match(HOMEPAGE_COMPOSITION.picksBand, /bg-\[#1b1d1f\]/);
     assert.match(HOMEPAGE_COMPOSITION.picksBand, /text-white/);
-    assert.match(HOMEPAGE_COMPOSITION.picksBand, /shadow-\[100vw_0_0_0_#1b1d1f/);
+    assert.match(HOMEPAGE_COMPOSITION.picksBand, /w-full/);
+    assert.match(HOMEPAGE_COMPOSITION.picksBand, /max-w-none/);
+    assert.doesNotMatch(HOMEPAGE_COMPOSITION.picksBand, /max-w-\[1080px\]/);
+    assert.doesNotMatch(HOMEPAGE_COMPOSITION.picksBand, /shadow-\[100vw/);
     assert.match(HOMEPAGE_COMPOSITION.picksHeading, /text-white/);
     assert.doesNotMatch(HOMEPAGE_COMPOSITION.sectionTitle, /text-white/);
   });
