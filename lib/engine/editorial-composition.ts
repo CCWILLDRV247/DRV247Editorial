@@ -94,7 +94,23 @@ export const HOMEPAGE_COMPOSITION = {
     "relative z-10 w-full max-w-none min-w-0 overflow-visible bg-[#1b1d1f] py-8 md:py-10 text-white",
   picksHeading:
     "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-white lg:text-[40px] lg:leading-[0.66]",
+  /**
+   * Full-bleed magazine footer. Same ink as Picks; lives outside the
+   * page column so the black runs edge to edge. Copy sits on MAGAZINE_LAYOUT.page.
+   */
+  footerBand:
+    "relative z-10 w-full max-w-none min-w-0 bg-[#1b1d1f] py-8 md:py-10 text-white",
+  footerCopy: "max-w-xl text-[13px] leading-5 text-white/75 md:text-sm md:leading-6",
+  footerLink: "text-white underline-offset-2 hover:text-white hover:underline",
   /** Matches SectionIntro dek — e.g. “Ferrari F355 GTB · Classic · Performance”. */
   sectionTitle:
     "font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f] lg:text-[40px] lg:leading-[0.66]",
+} as const;
+
+export const SITE_FOOTER = {
+  legal: "DRV247 is a trading name of DriveClub Limited.",
+  privacyLabel: "Privacy Policy",
+  contactLabel: "Contact Us",
+  privacyHref: "https://drv247.app/tos",
+  contactHref: "mailto:support@drv247.com",
 } as const;

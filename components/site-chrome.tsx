@@ -10,7 +10,11 @@ import {
   interludeFromText,
   type EditorialInterlude,
 } from "@/lib/engine/editorial-interlude";
-import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
+import {
+  HOMEPAGE_COMPOSITION,
+  MAGAZINE_LAYOUT,
+  SITE_FOOTER,
+} from "@/lib/engine/editorial-composition";
 
 const mobileNav = PRIMARY_NAV.filter((item) =>
   (MOBILE_NAV_SLUGS as readonly string[]).includes(item.slug),
@@ -108,6 +112,30 @@ export function SiteHeader({
         ) : null}
       </nav>
     </header>
+  );
+}
+
+export function SiteFooter() {
+  return (
+    <footer className={HOMEPAGE_COMPOSITION.footerBand}>
+      <div className={`${MAGAZINE_LAYOUT.page} ${MAGAZINE_LAYOUT.gutter}`}>
+        <p className={HOMEPAGE_COMPOSITION.footerCopy}>{SITE_FOOTER.legal}</p>
+        <p className={`mt-2 ${HOMEPAGE_COMPOSITION.footerCopy}`}>
+          <a
+            href={SITE_FOOTER.privacyHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={HOMEPAGE_COMPOSITION.footerLink}
+          >
+            {SITE_FOOTER.privacyLabel}
+          </a>
+          {" | "}
+          <a href={SITE_FOOTER.contactHref} className={HOMEPAGE_COMPOSITION.footerLink}>
+            {SITE_FOOTER.contactLabel}
+          </a>
+        </p>
+      </div>
+    </footer>
   );
 }
 

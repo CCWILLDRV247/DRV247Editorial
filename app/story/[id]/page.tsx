@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { MagazineLink, MagazineQueryProvider } from "@/components/magazine-link";
-import { SiteHeader } from "@/components/site-chrome";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { StoryCopyTransition } from "@/components/story-copy-transition";
 import { StoryImage } from "@/components/story-image";
 import { StoryHeroMedia } from "@/components/story-media-transition";
@@ -95,6 +95,7 @@ export default async function StoryPage({
         </div>
         </StoryCopyTransition>
       </article>
+      <SiteFooter />
     </div>
     </MagazineQueryProvider>
   );

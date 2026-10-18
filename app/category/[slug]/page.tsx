@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { ForYouTestFilter } from "@/components/for-you-test-filter";
 import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import { MagazineQueryProvider } from "@/components/magazine-link";
-import { SiteHeader } from "@/components/site-chrome";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { StoryFeed } from "@/components/story-feed";
 import { LEGACY_NAV_TO_PRIMARY, contentPrimaryBySlug } from "@/config/magazine-nav";
 import {
@@ -65,6 +65,7 @@ export default async function CategoryPage({
           />
         </main>
         </MagazinePageTransition>
+        <SiteFooter />
       </div>
     </MagazineQueryProvider>
   );

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MagazineQueryProvider } from "@/components/magazine-link";
-import { SiteHeader } from "@/components/site-chrome";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { PrintCoverCard } from "@/components/print-cover-card";
 import { StoryCopyTransition } from "@/components/story-copy-transition";
 import { forYouTestSearchString, parseForYouTestProfile } from "@/lib/engine/for-you-test";
@@ -99,6 +99,7 @@ export default async function PrintDetailPage({
             </div>
           </StoryCopyTransition>
         </article>
+        <SiteFooter />
       </div>
     </MagazineQueryProvider>
   );

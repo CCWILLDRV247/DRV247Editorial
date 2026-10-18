@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   HOMEPAGE_COMPOSITION,
   MAGAZINE_LAYOUT,
+  SITE_FOOTER,
   interludeCompositionVariant,
   isSoloMagazineRail,
 } from "./editorial-composition";
@@ -35,6 +36,18 @@ describe("editorial composition", () => {
     assert.doesNotMatch(HOMEPAGE_COMPOSITION.picksBand, /shadow-\[100vw/);
     assert.match(HOMEPAGE_COMPOSITION.picksHeading, /text-white/);
     assert.doesNotMatch(HOMEPAGE_COMPOSITION.sectionTitle, /text-white/);
+  });
+
+  it("paints a full-bleed black footer with light type and mail contact", () => {
+    assert.match(HOMEPAGE_COMPOSITION.footerBand, /bg-\[#1b1d1f\]/);
+    assert.match(HOMEPAGE_COMPOSITION.footerBand, /text-white/);
+    assert.match(HOMEPAGE_COMPOSITION.footerBand, /w-full/);
+    assert.match(HOMEPAGE_COMPOSITION.footerBand, /max-w-none/);
+    assert.match(HOMEPAGE_COMPOSITION.footerCopy, /text-white\/75/);
+    assert.equal(SITE_FOOTER.legal, "DRV247 is a trading name of DriveClub Limited.");
+    assert.equal(SITE_FOOTER.privacyHref, "https://drv247.app/tos");
+    assert.equal(SITE_FOOTER.contactHref, "mailto:support@drv247.com");
+    assert.doesNotMatch(SITE_FOOTER.contactHref, /drv247\.app/);
   });
 
   it("keeps a desktop reading measure and one rail scale", () => {
