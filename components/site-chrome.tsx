@@ -36,7 +36,6 @@ export function SiteHeader({
   return (
     <header className="site-header sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
       <div className={`${MAGAZINE_LAYOUT.header} flex h-14 items-center gap-2 md:h-16 md:gap-3`}>
-        <MobileNavMenu testQuery={testQuery} className="md:hidden" />
         {backHref ? (
           <MagazineBack
             href={backHref}
@@ -64,6 +63,7 @@ export function SiteHeader({
         >
           Desk
         </Link>
+        <MobileNavMenu testQuery={testQuery} className="md:hidden" />
       </div>
       <nav className={`${MAGAZINE_LAYOUT.header} hidden items-center gap-4 pb-3 md:flex`}>
         <div className="flex min-w-0 flex-1 items-center gap-6 overflow-x-auto">

@@ -47,11 +47,11 @@ export function MobileNavMenu({
         <span className="sr-only">Open menu</span>
       </SheetTrigger>
       <SheetContent
-        side="left"
+        side="right"
         showCloseButton
         className="w-[min(100vw,20rem)] gap-0 border-[#1b1d1f]/10 bg-white p-0 sm:max-w-xs"
       >
-        <div className="flex items-center justify-between border-b border-[#1b1d1f]/10 px-5 py-4 pr-14">
+        <div className="flex items-center justify-between border-b border-[#1b1d1f]/10 py-4 pl-5 pr-14">
           <SheetTitle className="sr-only">Site navigation</SheetTitle>
           <MagazineLink
             href="/"
