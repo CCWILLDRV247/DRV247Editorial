@@ -23,7 +23,9 @@ export async function CategoryFeed({
   testQuery?: string;
 }) {
   const testActive = forYouTestIsActive(testProfile);
-  const openerRecent = parseOpenerRecent((await cookies()).get(OPENER_RECENT_COOKIE)?.value);
+  const openerRecent = testActive
+    ? parseOpenerRecent((await cookies()).get(OPENER_RECENT_COOKIE)?.value)
+    : undefined;
   const stories = await listMagazineStories({
     navSlug: slug,
     testProfile: testActive ? testProfile : undefined,

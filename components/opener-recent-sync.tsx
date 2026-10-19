@@ -7,6 +7,7 @@ import {
   mergeOpenerRecent,
   parseOpenerRecent,
   serializeOpenerRecent,
+  shouldSetOpenerCookie,
 } from "@/lib/engine/opener-recent";
 
 /** Persist this week's opening-card ids so they cannot open next week. */
@@ -17,6 +18,7 @@ export function OpenerRecentSync({ openerIds }: { openerIds: number[] }) {
     const merged = mergeOpenerRecent(existing, openerIds);
     const payload = serializeOpenerRecent(merged);
     window.localStorage.setItem(OPENER_RECENT_STORAGE_KEY, payload);
+    if (!shouldSetOpenerCookie(window.location.pathname)) return;
     document.cookie = `${OPENER_RECENT_COOKIE}=${encodeURIComponent(payload)}; path=/; max-age=1209600; SameSite=Lax`;
   }, [openerIds.join("|")]);
   return null;

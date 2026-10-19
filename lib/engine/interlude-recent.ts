@@ -3,6 +3,11 @@ export const INTERLUDE_RECENT_STORAGE_KEY = "drv247-interlude-recent";
 export const INTERLUDE_RECENT_COOKIE = "drv247-interlude-recent";
 export const INTERLUDE_RECENT_MAX = 8;
 
+/** Interlude cookie is for personalised / off-home paths, not cacheable `/`. */
+export function shouldSetInterludeCookie(pathname: string): boolean {
+  return pathname !== "/";
+}
+
 export function parseInterludeRecentIds(raw: string | null | undefined): string[] {
   if (!raw?.trim()) return [];
   try {

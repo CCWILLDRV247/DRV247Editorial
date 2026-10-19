@@ -15,8 +15,8 @@ import {
 import type { ForYouCopy, ForYouLane } from "@/lib/engine/for-you-home";
 import type { PrintModule } from "@/lib/engine/print";
 import { PrintModuleRail } from "@/components/print-module";
-import { HOMEPAGE_LEAD_CARD_MAX } from "@/lib/engine/homepage-hierarchy";
 import type { SelectedHomepageInterlude } from "@/lib/engine/interlude-selection";
+import { selectHomeLead } from "@/lib/engine/home-lead";
 import type { StoryDto } from "@/lib/stories";
 
 type ForYouLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
@@ -105,6 +105,121 @@ function HomepageInterlude({
   return <EditorialInterludeBlock interlude={interlude} slot={slot} size="home" />;
 }
 
+export function ForYouHomeHero({
+  copy,
+  forYourCar,
+  yourInterests,
+  picks,
+}: {
+  copy: ForYouCopy;
+  forYourCar: ForYouLaneDisplay;
+  yourInterests: ForYouLaneDisplay;
+  picks: StoryDto[];
+}) {
+  const { hero, leadCards, openerIds } = selectHomeLead(forYourCar, yourInterests, picks);
+  return (
+    <>
+      <OpenerRecentSync openerIds={openerIds} />
+      <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
+        <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
+          {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
+          <div className="flex min-w-0 flex-col gap-6 md:gap-7">
+            <SectionIntro
+              kicker={copy.kicker}
+              dek={copy.dek}
+              blurb={copy.blurb}
+              stackKickerOnMobile
+              homeSpacing
+            />
+            {forYourCar.empty ? (
+              <p className={`text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f] ${MAGAZINE_LAYOUT.gutter}`}>
+                {forYourCar.empty}
+              </p>
+            ) : null}
+            {leadCards.length > 0 ? storyCardGrid(leadCards) : null}
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}
+
+export function ForYouHomeRest({
+  forYourCar,
+  yourInterests,
+  picks,
+  carousels,
+  interludes,
+  print,
+  testQuery,
+}: {
+  forYourCar: ForYouLaneDisplay;
+  yourInterests: ForYouLaneDisplay;
+  picks: StoryDto[];
+  carousels: CategoryLane[];
+  interludes: SelectedHomepageInterlude[];
+  print?: PrintModule | null;
+  testQuery?: string;
+}) {
+  const carouselOpeners = carousels.flatMap((lane) => (lane.stories[0] ? [lane.stories[0].id] : []));
+  const { openerIds } = selectHomeLead(forYourCar, yourInterests, picks, carouselOpeners);
+  const bySlot = interludeMap(interludes);
+  const afterPicks = bySlot.get("after-picks");
+  const beforeCategories = bySlot.get("before-categories");
+  const midCategories = bySlot.get("mid-categories");
+  const beforeViewAll = bySlot.get("before-view-all");
+  const midCarouselIndex = Math.floor((carousels.length - 1) / 2);
+  const preCategoryInterludes: { slot: "after-picks" | "before-categories"; interlude: EditorialInterlude }[] = [];
+  if (afterPicks) preCategoryInterludes.push({ slot: "after-picks", interlude: afterPicks });
+  if (beforeCategories) preCategoryInterludes.push({ slot: "before-categories", interlude: beforeCategories });
+  const firstInterlude = preCategoryInterludes[0];
+  const remainingInterludes = preCategoryInterludes.slice(1);
+
+  return (
+    <>
+      <InterludeRecentSync interludeIds={interludes.map((item) => item.interlude.id)} />
+      <OpenerRecentSync openerIds={openerIds} />
+      <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
+        {yourInterests.stories.length > 0 ? (
+          <InterestLane
+            heading={yourInterests.heading}
+            dek={yourInterests.dek}
+            empty={yourInterests.empty}
+            stories={yourInterests.stories}
+          />
+        ) : null}
+
+        {firstInterlude ? (
+          <HomepageInterlude interlude={firstInterlude.interlude} slot={firstInterlude.slot} />
+        ) : null}
+      </div>
+
+      <DeskModule stories={picks} />
+
+      <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
+        {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
+
+        {remainingInterludes.map((item) => (
+          <HomepageInterlude key={item.slot} interlude={item.interlude} slot={item.slot} />
+        ))}
+
+        <div className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.railGap}`}>
+          {carousels.map((lane, index) => (
+            <Fragment key={lane.slug}>
+              <CategoryCarousel {...lane} lead={index === 0} />
+              {midCategories && index === midCarouselIndex ? (
+                <HomepageInterlude interlude={midCategories} slot="mid-categories" />
+              ) : null}
+            </Fragment>
+          ))}
+        </div>
+
+        {beforeViewAll ? <HomepageInterlude interlude={beforeViewAll} slot="before-view-all" /> : null}
+      </div>
+    </>
+  );
+}
+
 export function ForYouHome({
   copy,
   forYourCar,
@@ -125,94 +240,23 @@ export function ForYouHome({
   print?: PrintModule | null;
   testQuery?: string;
 }) {
-  const pickIds = new Set(picks.map((story) => story.id));
-  const vehicleStories = forYourCar.stories.filter((story) => !pickIds.has(story.id));
-  const hero =
-    vehicleStories[0] ??
-    yourInterests.stories.find((story) => !pickIds.has(story.id)) ??
-    null;
-  const leadCards = vehicleStories.slice(1, 1 + HOMEPAGE_LEAD_CARD_MAX);
-  const openerIds = [
-    ...(hero ? [hero.id] : []),
-    ...leadCards.map((story) => story.id),
-    ...carousels.flatMap((lane) => (lane.stories[0] ? [lane.stories[0].id] : [])),
-  ];
-  const bySlot = interludeMap(interludes);
-  const afterPicks = bySlot.get("after-picks");
-  const beforeCategories = bySlot.get("before-categories");
-  const midCategories = bySlot.get("mid-categories");
-  const beforeViewAll = bySlot.get("before-view-all");
-  const midCarouselIndex = Math.floor((carousels.length - 1) / 2);
-  const preCategoryInterludes: { slot: "after-picks" | "before-categories"; interlude: EditorialInterlude }[] = [];
-  if (afterPicks) preCategoryInterludes.push({ slot: "after-picks", interlude: afterPicks });
-  if (beforeCategories) preCategoryInterludes.push({ slot: "before-categories", interlude: beforeCategories });
-  const firstInterlude = preCategoryInterludes[0];
-  const remainingInterludes = preCategoryInterludes.slice(1);
-
   return (
-    <>
-      <InterludeRecentSync interludeIds={interludes.map((item) => item.interlude.id)} />
-      <OpenerRecentSync openerIds={openerIds} />
-      <div
-        className={`flex flex-col pb-20 md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}
-      >
-      <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
-      <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
-        {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
-        <div className="flex min-w-0 flex-col gap-6 md:gap-7">
-          <SectionIntro
-            kicker={copy.kicker}
-            dek={copy.dek}
-            blurb={copy.blurb}
-            stackKickerOnMobile
-            homeSpacing
-          />
-          {forYourCar.empty ? (
-            <p className={`text-base leading-[22px] tracking-[-0.32px] text-[#1b1d1f] ${MAGAZINE_LAYOUT.gutter}`}>
-              {forYourCar.empty}
-            </p>
-          ) : null}
-          {leadCards.length > 0 ? storyCardGrid(leadCards) : null}
-        </div>
-      </section>
-
-      {yourInterests.stories.length > 0 ? (
-        <InterestLane
-          heading={yourInterests.heading}
-          dek={yourInterests.dek}
-          empty={yourInterests.empty}
-          stories={yourInterests.stories}
-        />
-      ) : null}
-
-      {firstInterlude ? (
-        <HomepageInterlude interlude={firstInterlude.interlude} slot={firstInterlude.slot} />
-      ) : null}
-      </div>
-
-      <DeskModule stories={picks} />
-
-      <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
-      {print ? <PrintModuleRail module={print} testQuery={testQuery} /> : null}
-
-      {remainingInterludes.map((item) => (
-        <HomepageInterlude key={item.slot} interlude={item.interlude} slot={item.slot} />
-      ))}
-
-      <div className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.railGap}`}>
-        {carousels.map((lane, index) => (
-          <Fragment key={lane.slug}>
-            <CategoryCarousel {...lane} lead={index === 0} />
-            {midCategories && index === midCarouselIndex ? (
-              <HomepageInterlude interlude={midCategories} slot="mid-categories" />
-            ) : null}
-          </Fragment>
-        ))}
-      </div>
-
-      {beforeViewAll ? <HomepageInterlude interlude={beforeViewAll} slot="before-view-all" /> : null}
-      </div>
-      </div>
-    </>
+    <div className={`flex flex-col pb-20 md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}>
+      <ForYouHomeHero
+        copy={copy}
+        forYourCar={forYourCar}
+        yourInterests={yourInterests}
+        picks={picks}
+      />
+      <ForYouHomeRest
+        forYourCar={forYourCar}
+        yourInterests={yourInterests}
+        picks={picks}
+        carousels={carousels}
+        interludes={interludes}
+        print={print}
+        testQuery={testQuery}
+      />
+    </div>
   );
 }

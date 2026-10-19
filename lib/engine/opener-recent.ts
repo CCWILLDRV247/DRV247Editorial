@@ -4,6 +4,11 @@ export const OPENER_RECENT_STORAGE_KEY = "drv247-opener-recent";
 export const OPENER_RECENT_COOKIE = "drv247-opener-recent";
 export const OPENER_RECENT_MAX = 16;
 
+/** Last-week opener cookie is for category / personalised paths, not cacheable `/`. */
+export function shouldSetOpenerCookie(pathname: string): boolean {
+  return pathname !== "/";
+}
+
 export type OpenerRecentState = {
   weekStart: number;
   ids: number[];
