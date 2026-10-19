@@ -6,6 +6,7 @@ import {
   INTERLUDE_RECENT_STORAGE_KEY,
   mergeInterludeRecent,
   parseInterludeRecentIds,
+  shouldSetInterludeCookie,
 } from "@/lib/engine/interlude-recent";
 
 /** Persist homepage interlude ids for cross-profile rotation on the next SSR request. */
@@ -16,6 +17,7 @@ export function InterludeRecentSync({ interludeIds }: { interludeIds: string[] }
     const merged = mergeInterludeRecent(existing, interludeIds);
     const payload = JSON.stringify(merged);
     window.localStorage.setItem(INTERLUDE_RECENT_STORAGE_KEY, payload);
+    if (!shouldSetInterludeCookie(window.location.pathname)) return;
     document.cookie = `${INTERLUDE_RECENT_COOKIE}=${encodeURIComponent(payload)}; path=/; max-age=604800; SameSite=Lax`;
   }, [interludeIds.join("|")]);
   return null;

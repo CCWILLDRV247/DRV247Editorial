@@ -1,5 +1,9 @@
 import type { CategoryLane } from "@/components/category-carousel";
+import type { ForYouCopy, ForYouLane } from "./for-you-home";
 import type { StoryDto } from "@/lib/stories";
+import type { SelectedHomepageInterlude } from "./interlude-selection";
+import type { PrintModule } from "./print";
+import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import {
   LEGACY_NAV_TO_PRIMARY,
@@ -168,10 +172,52 @@ export function magazineCacheKey(testProfile?: ForYouTestProfile) {
 
 const MAGAZINE_TTL_MS = 60_000;
 
+type HomeLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
+
+type MagazineHomePlan = {
+  copy: ForYouCopy;
+  forYourCar: HomeLaneDisplay;
+  yourInterests: HomeLaneDisplay;
+  discover: HomeLaneDisplay;
+  picks: StoryDto[];
+  pickIds: Set<number>;
+  featuredIds: Set<number>;
+  pinnedRails: { slug: string; stories: FreshArticle[] }[];
+  forYouArticles: EditorialDto[];
+  interestArticles: EditorialDto[];
+  deskArticles: EditorialDto[];
+  testProfile?: ForYouTestProfile;
+};
+
+export type MagazineHomeHero = {
+  copy: ForYouCopy;
+  forYourCar: HomeLaneDisplay;
+  yourInterests: HomeLaneDisplay;
+  picks: StoryDto[];
+};
+
+export type MagazineHome = MagazineHomeHero & {
+  discover: HomeLaneDisplay;
+  carousels: CategoryLane[];
+  interludes: SelectedHomepageInterlude[];
+  print: PrintModule | null;
+  stories: StoryDto[];
+};
+
 const magazineMemo = globalThis as unknown as {
-  drvMagazineHome?: Map<string, { at: number; value: Awaited<ReturnType<typeof getMagazineHomeFresh>> }>;
+  drvMagazineHomePlan?: Map<string, { at: number; value: MagazineHomePlan }>;
+  drvMagazineHome?: Map<string, { at: number; value: MagazineHome }>;
   drvMagazineStories?: Map<string, { at: number; value: StoryDto[] }>;
 };
+
+const homePlanInflight = cache(() => new Map<string, Promise<MagazineHomePlan>>());
+
+function homePlanKey(
+  testProfile?: ForYouTestProfile,
+  openerRecent: OpenerRecentState = emptyOpenerRecent(),
+) {
+  return `${magazineCacheKey(testProfile)}|open:${openerCacheKey(openerRecent)}`;
+}
 
 function memoGet<T>(
   store: Map<string, { at: number; value: T }> | undefined,
@@ -244,11 +290,10 @@ function uniqueStories(stories: StoryDto[]) {
   });
 }
 
-async function getMagazineHomeFresh(
+async function composeMagazineHomePlan(
   testProfile?: ForYouTestProfile,
-  recentIds: readonly string[] = [],
   openerRecent: OpenerRecentState = emptyOpenerRecent(),
-) {
+): Promise<MagazineHomePlan> {
   const personalized = forYouTestIsActive(testProfile ?? { interests: [] });
   const [deskArticles, ranked] = await Promise.all([
     listDeskHomepage(3),
@@ -262,7 +307,7 @@ async function getMagazineHomeFresh(
   const pickIds = pickArticleIds(
     deskArticles.map((article) => article.desk).filter((desk): desk is NonNullable<typeof desk> => Boolean(desk)),
   );
-  const plan = curateForYouHome(ranked, testProfile, pickIds);
+  const curated = curateForYouHome(ranked, testProfile, pickIds);
   const byId = new Map(ranked.map((article) => [article.id, article]));
   const resolveFresh = (items: { id: number }[]) =>
     items
@@ -270,8 +315,8 @@ async function getMagazineHomeFresh(
       .filter((article): article is EditorialDto => Boolean(article))
       .map(withFreshness);
   const rankedFresh = ranked.filter((article) => !pickIds.has(article.id)).map(withFreshness);
-  const vehicleFresh = resolveFresh(plan.forYourCar.stories);
-  const discoverFresh = resolveFresh(plan.discover.stories).filter((article) => !pickIds.has(article.id));
+  const vehicleFresh = resolveFresh(curated.forYourCar.stories);
+  const discoverFresh = resolveFresh(curated.discover.stories).filter((article) => !pickIds.has(article.id));
   const forYouPreferred = vehicleFresh.length ? vehicleFresh : personalized ? [] : rankedFresh;
   const forYouRanked = vehicleFresh.length
     ? rankedFresh.filter(
@@ -308,20 +353,20 @@ async function getMagazineHomeFresh(
         .map((article) => toMagazineStory(article, storyOpts(lane))),
     );
   const forYourCar = {
-    ...plan.forYourCar,
+    ...curated.forYourCar,
     empty: vehicleFresh.length
-      ? plan.forYourCar.empty
+      ? curated.forYourCar.empty
       : pinned.forYou.length
         ? undefined
-        : plan.forYourCar.empty,
+        : curated.forYourCar.empty,
     stories: toStories(pinned.forYou, "vehicle"),
   };
   const yourInterests = {
-    ...plan.yourInterests,
-    stories: toStories(plan.yourInterests.stories, "interests"),
+    ...curated.yourInterests,
+    stories: toStories(curated.yourInterests.stories, "interests"),
   };
   const discover = {
-    ...plan.discover,
+    ...curated.discover,
     stories: toStories(discoverFresh, "discover").filter((story) => !pickIds.has(story.id)),
   };
   const featuredIds = new Set(
@@ -329,14 +374,37 @@ async function getMagazineHomeFresh(
       (story) => story.id,
     ),
   );
-  const carousels: CategoryLane[] = pinned.rails.flatMap((rail) => {
+  const forYouArticles = pinned.forYou
+    .map((item) => byId.get(item.id))
+    .filter((article): article is EditorialDto => Boolean(article));
+  const interestArticles = curated.yourInterests.stories
+    .map((item) => byId.get(item.id))
+    .filter((article): article is EditorialDto => Boolean(article));
+  return {
+    copy: curated.copy,
+    forYourCar,
+    yourInterests,
+    discover,
+    picks,
+    pickIds,
+    featuredIds,
+    pinnedRails: pinned.rails,
+    forYouArticles,
+    interestArticles,
+    deskArticles,
+    testProfile,
+  };
+}
+
+function finishMagazineHome(plan: MagazineHomePlan, recentIds: readonly string[] = []): MagazineHome {
+  const carousels: CategoryLane[] = plan.pinnedRails.flatMap((rail) => {
     const nav = MAGAZINE_NAV.find((item) => item.slug === rail.slug);
     if (!nav) return [];
     const lane = rail.stories.map((article) =>
       toMagazineStory(article, { lane: "carousel", showExplanation: false }),
     );
     const opener = lane[0];
-    const rest = lane.filter((story) => story.id !== opener?.id && !featuredIds.has(story.id));
+    const rest = lane.filter((story) => story.id !== opener?.id && !plan.featuredIds.has(story.id));
     const stories = uniqueStories([...(opener ? [opener] : []), ...rest, ...lane]).slice(
       0,
       HOMEPAGE_CATEGORY_STORY_MAX,
@@ -347,36 +415,61 @@ async function getMagazineHomeFresh(
   const carouselArticles = HOMEPAGE_CATEGORY_SLUGS.flatMap((slug) => {
     const nav = MAGAZINE_NAV.find((item) => item.slug === slug);
     if (!nav) return [];
-    const pinnedRail = pinned.rails.find((rail) => rail.slug === slug);
-    const articles = (pinnedRail?.stories ?? ranked.filter((article) => articleMatchesNav(article, nav.slug))).slice(
-      0,
-      HOMEPAGE_CATEGORY_STORY_MAX,
-    );
+    const pinnedRail = plan.pinnedRails.find((rail) => rail.slug === slug);
+    const articles = (pinnedRail?.stories ?? []).slice(0, HOMEPAGE_CATEGORY_STORY_MAX);
     if (articles.length === 0) return [];
     return [{ slug: nav.slug, articles }];
   });
   const interludes = selectHomepageInterludes({
-    picks: deskArticles,
-    forYourCar: pinned.forYou
-      .map((item) => byId.get(item.id))
-      .filter((article): article is EditorialDto => Boolean(article)),
-    yourInterests: plan.yourInterests.stories
-      .map((item) => byId.get(item.id))
-      .filter((article): article is EditorialDto => Boolean(article)),
+    picks: plan.deskArticles,
+    forYourCar: plan.forYouArticles,
+    yourInterests: plan.interestArticles,
     carousels: carouselArticles,
-    profile: testProfile,
+    profile: plan.testProfile,
     recentIds,
   });
   return {
     copy: plan.copy,
-    forYourCar,
-    yourInterests,
-    discover,
-    picks,
+    forYourCar: plan.forYourCar,
+    yourInterests: plan.yourInterests,
+    discover: plan.discover,
+    picks: plan.picks,
     carousels,
     interludes,
-    print: printModuleForYou(testProfile),
-    stories: [...forYourCar.stories, ...yourInterests.stories, ...discover.stories],
+    print: printModuleForYou(plan.testProfile),
+    stories: [...plan.forYourCar.stories, ...plan.yourInterests.stories, ...plan.discover.stories],
+  };
+}
+
+export async function loadMagazineHomePlan(
+  testProfile?: ForYouTestProfile,
+  openerRecent: OpenerRecentState = emptyOpenerRecent(),
+): Promise<MagazineHomePlan> {
+  const key = homePlanKey(testProfile, openerRecent);
+  const cached = memoGet(magazineMemo.drvMagazineHomePlan, key, MAGAZINE_TTL_MS);
+  if (cached) return cached;
+  const inflight = homePlanInflight();
+  const pending = inflight.get(key);
+  if (pending) return pending;
+  const work = composeMagazineHomePlan(testProfile, openerRecent).then((value) => {
+    (magazineMemo.drvMagazineHomePlan ??= new Map()).set(key, { at: Date.now(), value });
+    inflight.delete(key);
+    return value;
+  });
+  inflight.set(key, work);
+  return work;
+}
+
+export async function getMagazineHero(
+  testProfile?: ForYouTestProfile,
+  openerRecent: OpenerRecentState = emptyOpenerRecent(),
+): Promise<MagazineHomeHero> {
+  const plan = await loadMagazineHomePlan(testProfile, openerRecent);
+  return {
+    copy: plan.copy,
+    forYourCar: plan.forYourCar,
+    yourInterests: plan.yourInterests,
+    picks: plan.picks,
   };
 }
 
@@ -384,11 +477,12 @@ export async function getMagazineHome(
   testProfile?: ForYouTestProfile,
   recentIds: readonly string[] = [],
   openerRecent: OpenerRecentState = emptyOpenerRecent(),
-) {
-  const key = `${magazineCacheKey(testProfile)}|open:${openerCacheKey(openerRecent)}`;
+): Promise<MagazineHome> {
+  const key = homePlanKey(testProfile, openerRecent);
   const cached = memoGet(magazineMemo.drvMagazineHome, key, MAGAZINE_TTL_MS);
   if (cached) return cached;
-  const value = await getMagazineHomeFresh(testProfile, recentIds, openerRecent);
+  const plan = await loadMagazineHomePlan(testProfile, openerRecent);
+  const value = finishMagazineHome(plan, recentIds);
   (magazineMemo.drvMagazineHome ??= new Map()).set(key, { at: Date.now(), value });
   return value;
 }
