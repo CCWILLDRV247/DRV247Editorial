@@ -41,6 +41,13 @@ export const MAGAZINE_LAYOUT = {
   /** Phone gutters only — flush to the page edge from 1024px up. */
   gutter:
     "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-[calc(10px+env(safe-area-inset-right,0px))] lg:px-0",
+  /**
+   * Left phone gutter for a horizontal rail. Right stays 0 so cards can
+   * peek to the screen edge. Wrap the overflow scroller with this — do not
+   * put it on the snap container, where mandatory snap ignores padding.
+   */
+  railGutter:
+    "min-w-0 pl-[calc(10px+env(safe-area-inset-left,0px))] pr-0 lg:pl-0 lg:pr-0",
   rail: "mt-4 flex min-w-0 gap-2.5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:thin] md:mt-5 md:gap-2 lg:gap-3 lg:pl-0 lg:pr-0",
   /** One story on desktop — fill the magazine measure instead of a 260px tile. */
   railSolo: "mt-4 min-w-0 md:mt-5 lg:mt-5",

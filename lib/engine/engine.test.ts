@@ -1499,7 +1499,10 @@ describe("for you test profile", () => {
     assert.match(src, /captureMagazineRails/);
     assert.match(morph, /restoreMagazineRails/);
     assert.match(carousel, /data-magazine-rail=\{`category:\$\{slug\}`\}/);
+    assert.match(carousel, /pl-4 pr-0 md:px-0 lg:px-0/);
     assert.match(interests, /data-magazine-rail="interests"/);
+    assert.match(interests, /className=\{MAGAZINE_LAYOUT\.railGutter\}/);
+    assert.doesNotMatch(interests, /MAGAZINE_LAYOUT\.gutter\} \$\{/);
     assert.match(feed, /data-magazine-rail="picks"/);
   });
 
