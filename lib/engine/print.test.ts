@@ -28,6 +28,12 @@ describe("print catalogue", () => {
     assert.ok(publications.every((row) => row.coverImageUrl?.startsWith("/print/") && row.imageKind === "cover"));
   });
 
+  it("caches print JPEGs as immutable static files", () => {
+    const nextConfig = readFileSync(new URL("../../next.config.ts", import.meta.url), "utf8");
+    assert.match(nextConfig, /source: "\/print\/:file\.jpg"/);
+    assert.match(nextConfig, /max-age=31536000, immutable/);
+  });
+
   it("leaves purchase CTAs off when shop or subscribe URLs are empty", () => {
     const christophorus = getPrintPublication("christophorus");
     const maxers = getPrintPublication("maxers");

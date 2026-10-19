@@ -9,8 +9,13 @@ import {
 
 describe("durable ranked lists", () => {
   it("parses section:limit keys used by listEditorial", () => {
-    assert.deepEqual(parseRankedListKey("for-you:80"), { section: "for-you", limit: 80 });
-    assert.deepEqual(parseRankedListKey("cars:80"), { section: "cars", limit: 80 });
+    assert.deepEqual(parseRankedListKey("for-you:80"), {
+      section: "for-you",
+      limit: 80,
+      profileQuery: null,
+    });
+    assert.deepEqual(parseRankedListKey("cars:80"), { section: "cars", limit: 80, profileQuery: null });
+    assert.equal(parseRankedListKey("for-you:80:profile=A&make=Ferrari")?.profileQuery, "profile=A&make=Ferrari");
     assert.equal(parseRankedListKey("nope"), null);
   });
 
@@ -48,5 +53,17 @@ describe("durable ranked lists", () => {
     assert.match(db, /magazineReadPathReady/);
     assert.match(db, /ranked_list_entries LIMIT 1/);
     assert.match(db, /if \(!ready\) \{/);
+  });
+
+  it("caches and persists demo garages A–D, not ad-hoc make/model filters", () => {
+    const queries = readFileSync(new URL("./queries.ts", import.meta.url), "utf8");
+    const cacheFn = queries.slice(
+      queries.indexOf("function editorialListCacheKey"),
+      queries.indexOf("export function bustEditorialCorpusMemo"),
+    );
+    assert.match(cacheFn, /isForYouDemoId\(options\.testProfile\.preset\)/);
+    assert.match(cacheFn, /return null;/);
+    assert.match(queries, /for \(const id of \["A", "B", "C", "D"\]/);
+    assert.match(queries, /for-you:\$\{RANKED_LIST_LIMIT\}:\$\{forYouTestSearchString\(profile\)\}/);
   });
 });
