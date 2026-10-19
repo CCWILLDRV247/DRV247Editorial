@@ -70,7 +70,7 @@ export function ForYouTestFilter({
       <section className="relative z-30 w-full min-w-0">
         <details>
           <summary
-            className={`flex cursor-pointer list-none items-center gap-2.5 border-y border-[#1b1d1f]/12 pt-2.5 pb-2.5 ${MAGAZINE_LAYOUT.gutter} [&::-webkit-details-marker]:hidden`}
+            className={`flex cursor-pointer list-none items-center gap-2.5 border-y border-[#1b1d1f]/12 pt-1.5 pb-1.5 ${MAGAZINE_LAYOUT.gutter} [&::-webkit-details-marker]:hidden`}
           >
             <FilterSlidersIcon />
             <p className="min-w-0 font-display text-[20px] font-extrabold uppercase tracking-[0.04em] text-[#1b1d1f]">
