@@ -71,20 +71,22 @@ function InterestLane({
         ) : null}
       </div>
       {stories.length > 0 ? (
-        <div
-          data-magazine-rail="interests"
-          data-magazine-rail-solo={isSoloMagazineRail(stories.length) ? "" : undefined}
-          className={`${MAGAZINE_LAYOUT.gutter} ${
-            isSoloMagazineRail(stories.length) ? MAGAZINE_LAYOUT.railSolo : MAGAZINE_LAYOUT.rail
-          }`}
-        >
-          {stories.map((story) => (
-            <CarouselStoryCard
-              key={story.id}
-              story={story}
-              solo={isSoloMagazineRail(stories.length)}
-            />
-          ))}
+        <div className={MAGAZINE_LAYOUT.railGutter}>
+          <div
+            data-magazine-rail="interests"
+            data-magazine-rail-solo={isSoloMagazineRail(stories.length) ? "" : undefined}
+            className={
+              isSoloMagazineRail(stories.length) ? MAGAZINE_LAYOUT.railSolo : MAGAZINE_LAYOUT.rail
+            }
+          >
+            {stories.map((story) => (
+              <CarouselStoryCard
+                key={story.id}
+                story={story}
+                solo={isSoloMagazineRail(stories.length)}
+              />
+            ))}
+          </div>
         </div>
       ) : null}
     </section>

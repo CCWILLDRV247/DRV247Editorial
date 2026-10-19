@@ -147,7 +147,9 @@ describe("print stays off magazine chrome", () => {
     assert.doesNotMatch(card, /MagazineLink/);
 
     assert.match(rail, /data-magazine-rail="print"/);
+    assert.match(rail, /MAGAZINE_LAYOUT\.railGutter/);
     assert.match(rail, /PrintCoverCard/);
+    assert.doesNotMatch(rail, /\$\{PAGE_GUTTER\} \$\{MAGAZINE_LAYOUT\.rail\}/);
     assert.doesNotMatch(rail, /href=/);
 
     assert.match(page, /hero/);
