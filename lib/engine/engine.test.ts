@@ -1596,6 +1596,36 @@ describe("for you test profile", () => {
     assert.match(autoSubmit, /"use client"/);
   });
 
+  it("For You test filter matches the Events bar and keeps A–D URL controls", () => {
+    const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
+    const home = readFileSync(new URL("../../components/for-you-home.tsx", import.meta.url), "utf8");
+    const homeFeed = readFileSync(new URL("../../components/magazine/home-feed.tsx", import.meta.url), "utf8");
+    const storyFeed = readFileSync(new URL("../../components/story-feed.tsx", import.meta.url), "utf8");
+    const categoryFeed = readFileSync(
+      new URL("../../components/magazine/category-feed.tsx", import.meta.url),
+      "utf8",
+    );
+    const page = readFileSync(new URL("../../app/page.tsx", import.meta.url), "utf8");
+    const categoryPage = readFileSync(new URL("../../app/category/[slug]/page.tsx", import.meta.url), "utf8");
+    assert.match(filter, /Content filtered by your vehicle & interests\./);
+    assert.doesNotMatch(filter, /Events filtered/i);
+    assert.doesNotMatch(filter, /Test personalization — placeholder/);
+    assert.doesNotMatch(filter, /border-dashed/);
+    assert.doesNotMatch(filter, /Set test/);
+    assert.doesNotMatch(filter, /open=\{active\}/);
+    assert.match(filter, /<details/);
+    assert.match(filter, /FOR_YOU_DEMO_PROFILES/);
+    assert.match(filter, /forYouTestSearchString/);
+    assert.match(filter, /MAGAZINE_LAYOUT\.gutter/);
+    assert.match(filter, /border-t border-\[#1b1d1f\]\/12/);
+    assert.match(home, /StoryHero[\s\S]*\{filter\}/);
+    assert.match(storyFeed, /StoryHero[\s\S]*\{filter\}/);
+    assert.match(homeFeed, /ForYouTestFilterSection/);
+    assert.match(categoryFeed, /ForYouTestFilterSection/);
+    assert.doesNotMatch(page, /ForYouTestFilterSection/);
+    assert.doesNotMatch(categoryPage, /ForYouTestFilterSection/);
+  });
+
   it("does not invent a vehicle match when the story has no entities", async () => {
     const { scoreArticle } = await import("./rank");
     const unmatched = scoreArticle({
