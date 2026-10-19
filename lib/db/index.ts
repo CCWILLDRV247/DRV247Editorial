@@ -432,15 +432,33 @@ async function ensureRankedLists(client: Client) {
   }
 }
 
+async function magazineReadPathReady(client: Client) {
+  try {
+    const [sources, articleRows, ranked] = await Promise.all([
+      client.execute("SELECT 1 AS ok FROM media_sources LIMIT 1"),
+      client.execute("SELECT 1 AS ok FROM articles LIMIT 1"),
+      client.execute("SELECT 1 AS ok FROM ranked_list_entries LIMIT 1"),
+    ]);
+    return Boolean(sources.rows.length && articleRows.rows.length && ranked.rows.length);
+  } catch {
+    return false;
+  }
+}
+
 async function createDb() {
   const client = globalForDb.drvLibsql ?? createClient(connection());
   globalForDb.drvLibsql = client;
-  await ensureSchema(client);
-  await ensureIntelligenceSchema(client);
+  const ready = await magazineReadPathReady(client);
+  if (!ready) {
+    await ensureSchema(client);
+    await ensureIntelligenceSchema(client);
+  }
   const db = drizzle(client, { schema: appSchema });
-  await seedIfEmpty(db as never);
-  await seedEngine(db as never);
-  await seedIntelligence(db as never);
+  if (!ready) {
+    await seedIfEmpty(db as never);
+    await seedEngine(db as never);
+    await seedIntelligence(db as never);
+  }
   globalForDb.drvDb = db;
   return db;
 }

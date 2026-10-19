@@ -42,4 +42,11 @@ describe("durable ranked lists", () => {
     assert.match(desk, /persistDefaultRankedLists/);
     assert.match(desk, /after\(/);
   });
+
+  it("skips schema/seed on a Turso that already has ranked IDs", () => {
+    const db = readFileSync(new URL("../db/index.ts", import.meta.url), "utf8");
+    assert.match(db, /magazineReadPathReady/);
+    assert.match(db, /ranked_list_entries LIMIT 1/);
+    assert.match(db, /if \(!ready\) \{/);
+  });
 });
