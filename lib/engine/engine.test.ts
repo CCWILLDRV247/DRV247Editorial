@@ -1616,14 +1616,15 @@ describe("for you test profile", () => {
     assert.doesNotMatch(filter, /open=\{active\}/);
     assert.doesNotMatch(filter, /text-\[11px\]/);
     assert.match(filter, /SlidersHorizontal/);
-    assert.match(filter, /text-\[15px\]/);
+    assert.match(filter, /text-\[20px\]/);
+    assert.doesNotMatch(filter, /text-\[15px\]/);
     assert.match(filter, /font-extrabold/);
     assert.match(filter, /text-\[#1b1d1f\]/);
     assert.match(filter, /<details/);
     assert.match(filter, /FOR_YOU_DEMO_PROFILES/);
     assert.match(filter, /forYouTestSearchString/);
     assert.match(filter, /MAGAZINE_LAYOUT\.gutter/);
-    assert.match(filter, /border-t border-\[#1b1d1f\]\/12/);
+    assert.match(filter, /border-y border-\[#1b1d1f\]\/12/);
     assert.match(home, /StoryHero[\s\S]*\{filter\}/);
     assert.match(storyFeed, /StoryHero[\s\S]*\{filter\}/);
     assert.match(homeFeed, /ForYouTestFilterSection/);

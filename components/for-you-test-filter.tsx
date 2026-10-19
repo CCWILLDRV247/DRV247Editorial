@@ -29,7 +29,7 @@ function FilterSlidersIcon() {
   return (
     <SlidersHorizontal
       aria-hidden
-      className="size-4 shrink-0 text-[#1b1d1f]"
+      className="size-5 shrink-0 text-[#1b1d1f]"
       strokeWidth={2.25}
     />
   );
@@ -67,13 +67,13 @@ export function ForYouTestFilter({
   return (
     <>
       <ForYouTestStorageSync query={initialQuery} />
-      <section className="relative z-30 w-full min-w-0 border-t border-[#1b1d1f]/12">
+      <section className="relative z-30 w-full min-w-0">
         <details>
           <summary
-            className={`flex cursor-pointer list-none items-center gap-2.5 py-4 ${MAGAZINE_LAYOUT.gutter} [&::-webkit-details-marker]:hidden`}
+            className={`flex cursor-pointer list-none items-center gap-2.5 border-y border-[#1b1d1f]/12 py-4 ${MAGAZINE_LAYOUT.gutter} [&::-webkit-details-marker]:hidden`}
           >
             <FilterSlidersIcon />
-            <p className="min-w-0 font-display text-[15px] font-extrabold uppercase tracking-[0.04em] text-[#1b1d1f]">
+            <p className="min-w-0 font-display text-[20px] font-extrabold uppercase tracking-[0.04em] text-[#1b1d1f]">
               Content filtered by your vehicle & interests
             </p>
           </summary>
