@@ -1,5 +1,5 @@
 import { desc, eq, inArray } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getDb } from "@/lib/db";
 import {
@@ -17,6 +17,12 @@ import {
   mediaSources,
   type Article,
 } from "@/lib/db/schema";
+import {
+  DEFAULT_RANKED_LIST_KEYS,
+  parseRankedListKey,
+  readRankedList,
+  writeRankedList,
+} from "./ranked-list";
 import {
   diversifyByVehicle,
   explainArticle,
@@ -382,12 +388,12 @@ function toDto(
   };
 }
 
-async function extrasByArticleIds(articleIds: number[]) {
+async function extrasByArticleIds(articleIds: number[], scoped = articleIds.length <= 4) {
   const map = new Map<number, ReturnType<typeof emptyExtras>>();
   for (const id of articleIds) map.set(id, emptyExtras());
   if (!articleIds.length) return map;
 
-  if (articleIds.length <= 4) {
+  if (scoped) {
     const db = await getDb();
     const [entities, cats, interests, locations] = await Promise.all([
       db.select().from(articleEntities).where(inArray(articleEntities.articleId, articleIds)),
@@ -479,20 +485,115 @@ function editorialListCacheKey(options?: ListEditorialOptions): string | null {
   return `${section}:${limit}`;
 }
 
+export function bustEditorialCorpusMemo() {
+  corpusMemo.drvEditorialCorpus = undefined;
+}
+
+async function listEditorialFromSnapshot(key: string): Promise<EditorialDto[] | null> {
+  const entries = await readRankedList(key);
+  if (!entries.length) return null;
+  const ids = entries.map((row) => row.articleId);
+  const db = await getDb();
+  const [selected, extrasMap, primaryMap, deskRows] = await Promise.all([
+    db.select(ARTICLE_RANK_COLUMNS).from(articles).where(inArray(articles.id, ids)),
+    extrasByArticleIds(ids, true),
+    loadArticlePrimaries(ids),
+    loadDeskPickRows(),
+  ]);
+  const deskMap = liveDeskByArticle(deskRows);
+  const sourceIds = [...new Set(selected.map((row) => row.sourceId))];
+  const sourceRows = sourceIds.length
+    ? await db.select().from(mediaSources).where(inArray(mediaSources.id, sourceIds))
+    : [];
+  const sourceMap = new Map(sourceRows.map((source) => [source.id, source]));
+  const byId = new Map(selected.map((row) => [row.id, row]));
+  const out: EditorialDto[] = [];
+  for (const entry of entries) {
+    const article = byId.get(entry.articleId);
+    if (!article) continue;
+    const extras = extrasMap.get(article.id) ?? emptyExtras();
+    const desk = deskMap.get(article.id) ?? null;
+    const eligibility = evaluateEditorialEligibility({
+      url: article.url,
+      canonicalUrl: article.canonicalUrl,
+      title: article.title,
+      excerpt: article.excerpt,
+      sourceId: article.sourceId,
+      sourceUrl: sourceMap.get(article.sourceId)?.url,
+      deskPick: Boolean(desk),
+    });
+    if (!eligibility.editorialEligible) continue;
+    const primaryCategory =
+      (primaryMap.get(article.id) as EditorialDto["primaryCategory"] | undefined) ??
+      classifyPrimary({
+        title: article.title,
+        excerpt: article.excerpt,
+        publication: article.publication,
+        categories: extras.categories,
+        interests: extras.interests,
+      });
+    out.push(
+      toDto(article, {
+        ...extras,
+        rankScore: entry.score,
+        primaryCategory,
+        desk,
+        vehicleTier: entry.vehicleTier,
+        qualityBand: entry.qualityBand,
+        showInPrimaryFeed: entry.showInPrimaryFeed,
+        editorialEligible: true,
+        editorialExclusionReason: null,
+      }),
+    );
+  }
+  return out;
+}
+
+async function listEditorialDurable(key: string): Promise<EditorialDto[]> {
+  const hydrated = await listEditorialFromSnapshot(key);
+  if (hydrated?.length) return hydrated;
+  const parsed = parseRankedListKey(key);
+  const ranked = await listEditorialUncached({
+    section: parsed?.section === "for-you" || !parsed?.section ? "for-you" : parsed.section,
+    limit: parsed?.limit,
+  });
+  await writeRankedList(key, ranked);
+  return ranked;
+}
+
+export async function persistDefaultRankedLists() {
+  bustEditorialCorpusMemo();
+  const magazineMemos = globalThis as unknown as {
+    drvMagazineHomePlan?: Map<string, unknown>;
+    drvMagazineHome?: Map<string, unknown>;
+    drvMagazineStories?: Map<string, unknown>;
+  };
+  magazineMemos.drvMagazineHomePlan = undefined;
+  magazineMemos.drvMagazineHome = undefined;
+  magazineMemos.drvMagazineStories = undefined;
+  for (const key of DEFAULT_RANKED_LIST_KEYS) {
+    const parsed = parseRankedListKey(key);
+    if (!parsed) continue;
+    const ranked = await listEditorialUncached({
+      section: parsed.section,
+      limit: parsed.limit,
+    });
+    await writeRankedList(key, ranked);
+  }
+  try {
+    revalidateTag("editorial", "max");
+  } catch {
+    // Local scripts / tsx have no Next data cache.
+  }
+}
+
 export async function listEditorial(options?: ListEditorialOptions): Promise<EditorialDto[]> {
   const cacheKey = editorialListCacheKey(options);
   if (cacheKey) {
-    return unstable_cache(
-      async (key: string) => {
-        const [section, limitStr] = key.split(":");
-        return listEditorialUncached({
-          section: section === "for-you" ? "for-you" : section,
-          limit: Number(limitStr),
-        });
-      },
-      ["editorial-ranked-list"],
-      { revalidate: 60, tags: ["editorial"] },
-    )(cacheKey);
+    return unstable_cache(listEditorialDurable, ["editorial-ranked-list"], {
+      revalidate: 60,
+      tags: ["editorial"],
+    })(cacheKey);
   }
   return listEditorialUncached(options);
 }

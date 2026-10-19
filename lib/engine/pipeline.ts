@@ -137,6 +137,8 @@ export async function ingestEnabledSources(ids?: string[]): Promise<SourceIngest
   }
   await extractMissingSummaries();
   await extractMissingImages();
+  const { persistDefaultRankedLists } = await import("./queries");
+  await persistDefaultRankedLists();
   return results;
 }
 

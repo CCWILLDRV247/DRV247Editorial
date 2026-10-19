@@ -151,6 +151,8 @@ export async function ingestWeeklyCronBatch(options: {
     await extractMissingSummaries();
     await extractMissingImages();
     extractedMissing = true;
+    const { persistDefaultRankedLists } = await import("./queries");
+    await persistDefaultRankedLists();
   }
 
   return {

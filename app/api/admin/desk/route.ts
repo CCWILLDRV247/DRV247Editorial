@@ -1,5 +1,5 @@
 import { eq, like } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { getDb } from "@/lib/db";
@@ -10,6 +10,7 @@ import {
   toDeskPublic,
   upsertDeskPick,
 } from "@/lib/engine/desk";
+import { persistDefaultRankedLists } from "@/lib/engine/queries";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ function bustDeskCache() {
   revalidateTag("editorial", "max");
   revalidatePath("/");
   revalidatePath("/admin/engine");
+  after(() => persistDefaultRankedLists().catch(() => undefined));
 }
 
 export async function GET(request: Request) {
