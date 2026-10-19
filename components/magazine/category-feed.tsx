@@ -1,4 +1,5 @@
 import { StoryFeed } from "@/components/story-feed";
+import { ForYouTestFilterSection } from "@/components/magazine/for-you-test-filter-section";
 import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import {
   forYouTestIsActive,
@@ -43,6 +44,12 @@ export async function CategoryFeed({
           categoryName={categoryName}
           print={print}
           testQuery={testQuery}
+          filter={
+            <ForYouTestFilterSection
+              testProfile={testProfile}
+              pathname={`/category/${slug}`}
+            />
+          }
         />
       </main>
     </MagazinePageTransition>

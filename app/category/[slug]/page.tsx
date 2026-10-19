@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { MagazineQueryProvider } from "@/components/magazine-link";
 import { CategoryFeed } from "@/components/magazine/category-feed";
-import { ForYouTestFilterSection } from "@/components/magazine/for-you-test-filter-section";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import CategoryLoading from "./loading";
 import { LEGACY_NAV_TO_PRIMARY, contentPrimaryBySlug } from "@/config/magazine-nav";
@@ -35,15 +34,6 @@ export default async function CategoryPage({
     <MagazineQueryProvider testQuery={testQuery}>
       <div className="min-h-full overflow-x-clip bg-white">
         <SiteHeader title={category.name} backHref="/" testQuery={testQuery} />
-        <Suspense
-          fallback={
-            <section className="mx-auto w-full max-w-3xl px-4 pt-3 md:max-w-6xl md:px-6 lg:max-w-[1080px] lg:pl-8 lg:pr-8">
-              <div className="h-24 animate-pulse rounded-[8px] bg-[#eee]" />
-            </section>
-          }
-        >
-          <ForYouTestFilterSection testProfile={testProfile} pathname={`/category/${slug}`} />
-        </Suspense>
         <Suspense fallback={<CategoryLoading />}>
           <CategoryFeed
             slug={slug}

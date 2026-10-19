@@ -1,5 +1,6 @@
 import { Suspense, cache } from "react";
 import { ForYouHomeHero, ForYouHomeRest } from "@/components/for-you-home";
+import { ForYouTestFilterSection } from "@/components/magazine/for-you-test-filter-section";
 import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import {
@@ -58,6 +59,7 @@ async function HomeHero({
       forYourCar={home.forYourCar}
       yourInterests={home.yourInterests}
       picks={home.picks}
+      filter={<ForYouTestFilterSection testProfile={testProfile} pathname="/" />}
     />
   );
 }

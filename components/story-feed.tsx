@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { CATEGORY_COPY } from "@/lib/db/seed";
 import type { StoryDto } from "@/lib/stories";
 import {
@@ -76,6 +76,7 @@ export function StoryFeed({
   carousels = [],
   print,
   testQuery,
+  filter,
 }: {
   stories: StoryDto[];
   copyKey: string;
@@ -84,6 +85,7 @@ export function StoryFeed({
   carousels?: CategoryLane[];
   print?: PrintModule | null;
   testQuery?: string;
+  filter?: ReactNode;
 }) {
   const lane = (slug: string) =>
     carousels.find((item) => item.slug === slug && item.stories.length > 0);
@@ -91,7 +93,9 @@ export function StoryFeed({
   const deskVisual = true;
   if (stories.length === 0) {
     return (
-      <div className={`flex flex-col gap-8 py-10 ${MAGAZINE_LAYOUT.page}`}>
+      <div className={`flex flex-col ${MAGAZINE_LAYOUT.page}`}>
+        {filter}
+        <div className="flex flex-col gap-8 py-10">
         <SectionIntro
           kicker={copy.kicker}
           dek={copy.dek}
@@ -104,6 +108,7 @@ export function StoryFeed({
         {carousels.map((item) => (
           <CategoryCarousel key={item.slug} {...item} />
         ))}
+        </div>
       </div>
     );
   }
@@ -192,11 +197,14 @@ export function StoryFeed({
             : "flex min-w-0 flex-col gap-8"
         }
       >
+        <div className="flex min-w-0 flex-col">
         <StoryHero
           story={hero}
           titleLeading={looseHero || deskVisual ? "loose" : "tight"}
           square={deskVisual}
         />
+        {filter}
+        </div>
         <div
           className={
             deskVisual

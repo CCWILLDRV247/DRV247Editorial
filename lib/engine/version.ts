@@ -1,4 +1,4 @@
-export const ENGINE_BRANCH = "cursor/desktop-layout-6c5d";
+export const ENGINE_BRANCH = "cursor/for-you-filter-bar-526c";
 export const ENGINE_WAVE = "wave-7-02";
 
 export function engineCommit() {

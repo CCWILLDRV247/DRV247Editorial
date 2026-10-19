@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { CarouselStoryCard, CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
 import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
@@ -112,11 +112,13 @@ export function ForYouHomeHero({
   forYourCar,
   yourInterests,
   picks,
+  filter,
 }: {
   copy: ForYouCopy;
   forYourCar: ForYouLaneDisplay;
   yourInterests: ForYouLaneDisplay;
   picks: StoryDto[];
+  filter?: ReactNode;
 }) {
   const { hero, leadCards, openerIds } = selectHomeLead(forYourCar, yourInterests, picks);
   return (
@@ -124,7 +126,10 @@ export function ForYouHomeHero({
       <OpenerRecentSync openerIds={openerIds} />
       <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
         <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
-          {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
+          <div className="flex min-w-0 flex-col">
+            {hero ? <StoryHero story={hero} titleLeading="loose" square composition /> : null}
+            {filter}
+          </div>
           <div className="flex min-w-0 flex-col gap-6 md:gap-7">
             <SectionIntro
               kicker={copy.kicker}
@@ -231,6 +236,7 @@ export function ForYouHome({
   interludes,
   print,
   testQuery,
+  filter,
 }: {
   copy: ForYouCopy;
   forYourCar: ForYouLaneDisplay;
@@ -241,6 +247,7 @@ export function ForYouHome({
   interludes: SelectedHomepageInterlude[];
   print?: PrintModule | null;
   testQuery?: string;
+  filter?: ReactNode;
 }) {
   return (
     <div className={`flex flex-col pb-20 md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}>
@@ -249,6 +256,7 @@ export function ForYouHome({
         forYourCar={forYourCar}
         yourInterests={yourInterests}
         picks={picks}
+        filter={filter}
       />
       <ForYouHomeRest
         forYourCar={forYourCar}
