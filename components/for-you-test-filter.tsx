@@ -7,6 +7,7 @@ import {
   type ForYouTestProfile,
 } from "@/lib/engine/for-you-test";
 import { MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
+import { SlidersHorizontal } from "lucide-react";
 import { ForYouTestAutoSubmit } from "./for-you-test-auto-submit";
 import { ForYouTestStorageSync } from "./for-you-test-storage";
 
@@ -24,21 +25,13 @@ function hrefFor(pathname: string, profile: ForYouTestProfile) {
   return query ? `${pathname}?${query}` : pathname;
 }
 
-function FilterListIcon() {
+function FilterSlidersIcon() {
   return (
-    <svg
+    <SlidersHorizontal
       aria-hidden
-      viewBox="0 0 16 16"
-      className="size-3.5 shrink-0 text-[#1b1d1f]/70"
-      fill="none"
-    >
-      <path
-        d="M2.5 4.25h11M2.5 8h11M2.5 11.75h11"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinecap="round"
-      />
-    </svg>
+      className="size-4 shrink-0 text-[#1b1d1f]"
+      strokeWidth={2.25}
+    />
   );
 }
 
@@ -77,11 +70,11 @@ export function ForYouTestFilter({
       <section className="relative z-30 w-full min-w-0 border-t border-[#1b1d1f]/12">
         <details>
           <summary
-            className={`flex cursor-pointer list-none items-center gap-2 py-3 ${MAGAZINE_LAYOUT.gutter} [&::-webkit-details-marker]:hidden`}
+            className={`flex cursor-pointer list-none items-center gap-2.5 py-4 ${MAGAZINE_LAYOUT.gutter} [&::-webkit-details-marker]:hidden`}
           >
-            <FilterListIcon />
-            <p className="min-w-0 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/70">
-              Content filtered by your vehicle & interests.
+            <FilterSlidersIcon />
+            <p className="min-w-0 font-display text-[15px] font-extrabold uppercase tracking-[0.04em] text-[#1b1d1f]">
+              Content filtered by your vehicle & interests
             </p>
           </summary>
           <div className={`${MAGAZINE_LAYOUT.gutter} pb-4`}>
