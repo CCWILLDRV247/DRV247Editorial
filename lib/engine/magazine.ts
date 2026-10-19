@@ -21,7 +21,7 @@ import {
   type ForYouTestProfile,
 } from "./for-you-test";
 import { getEditorial, listEditorial, listDeskHomepage, type EditorialDto } from "./queries";
-import { classifyPrimary } from "./taxonomy";
+import { classifyPrimary, isContentPrimary } from "./taxonomy";
 import { curateForYouHome } from "./for-you-home";
 import { contextFromTestProfile } from "./personalize";
 import { pickArticleIds } from "./desk";
@@ -252,10 +252,12 @@ export async function listMagazineStories(options?: {
   });
   const cached = memoGet(magazineMemo.drvMagazineStories, key, MAGAZINE_TTL_MS);
   if (cached) return cached;
+  const section = navSlug && navSlug !== "for-you" ? navSlug : "for-you";
   const articles = await listEditorial({
-    section: navSlug && navSlug !== "for-you" ? navSlug : "for-you",
+    section,
     testProfile,
     limit: 80,
+    ...(isContentPrimary(section) ? { hardFilter: false } : {}),
   });
   const fresh = articles.map(withFreshness);
   const opening = selectOpeningStories(fresh, fresh, {

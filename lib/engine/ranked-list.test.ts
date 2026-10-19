@@ -55,6 +55,13 @@ describe("durable ranked lists", () => {
     assert.match(db, /if \(!ready\) \{/);
   });
 
+  it("applies articleMatchesForYouTest only when hardFilter is true", () => {
+    const queries = readFileSync(new URL("./queries.ts", import.meta.url), "utf8");
+    const block = queries.slice(queries.indexOf("const applyHardFilter"), queries.indexOf("let vehicles"));
+    assert.match(block, /options\?\.hardFilter === true/);
+    assert.doesNotMatch(block, /isContentPrimary/);
+  });
+
   it("caches and persists demo garages A–D, not ad-hoc make/model filters", () => {
     const queries = readFileSync(new URL("./queries.ts", import.meta.url), "utf8");
     const cacheFn = queries.slice(

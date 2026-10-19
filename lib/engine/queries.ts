@@ -662,13 +662,8 @@ async function listEditorialUncached(options?: ListEditorialOptions): Promise<Ed
   const testProfile = options?.testProfile;
   const useTestProfile = Boolean(testProfile && forYouTestIsActive(testProfile));
   const curated = options?.section === "for-you" || (!options?.userId && !options?.vehicleId);
-  const applyHardFilter = Boolean(
-    useTestProfile &&
-      testProfile &&
-      (options?.hardFilter === true ||
-        (options?.hardFilter !== false &&
-          Boolean(options?.section && isContentPrimary(options.section)))),
-  );
+  // Rank-only personalization by default (For You + category pages). Opt in with hardFilter: true (API ?strict=1).
+  const applyHardFilter = Boolean(useTestProfile && testProfile && options?.hardFilter === true);
   let vehicles: GarageVehicle[] = [];
   let userInterests: string[] = [];
   let userLocation: string | null = null;

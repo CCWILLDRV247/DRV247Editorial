@@ -17,6 +17,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const testProfile = parseForYouTestProfile(searchParams);
   const testing = forYouTestIsActive(testProfile);
+  // strict=1 applies articleMatchesForYouTest (AND hide). Category pages and default API responses rank-only.
   const strict = searchParams.get("strict") === "1";
   const profileContext = testing ? contextFromTestProfile(testProfile) : null;
   const articles = await listEditorial({
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
     section: searchParams.get("section") ?? "for-you",
     sourceId: searchParams.get("source") ?? undefined,
     testProfile: testing ? testProfile : undefined,
-    hardFilter: strict || undefined,
+    hardFilter: strict ? true : undefined,
     make: testing ? undefined : (searchParams.get("make") ?? undefined),
     model: testing ? undefined : (searchParams.get("model") ?? undefined),
     generation: testing ? undefined : (searchParams.get("generation") ?? undefined),
