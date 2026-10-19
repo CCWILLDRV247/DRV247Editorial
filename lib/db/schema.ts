@@ -315,10 +315,24 @@ export const deskPicks = sqliteTable("desk_picks", {
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
+export const rankedListEntries = sqliteTable("ranked_list_entries", {
+  listKey: text("list_key").notNull(),
+  position: integer("position").notNull(),
+  articleId: integer("article_id")
+    .notNull()
+    .references(() => articles.id),
+  score: integer("score").notNull().default(0),
+  qualityBand: text("quality_band").notNull().default("eligible"),
+  showInPrimaryFeed: integer("show_in_primary_feed", { mode: "boolean" }).notNull().default(true),
+  vehicleTier: text("vehicle_tier").notNull().default("none"),
+  computedAt: integer("computed_at").notNull(),
+});
+
 export type MediaSource = typeof mediaSources.$inferSelect;
 export type Article = typeof articles.$inferSelect;
 export type IngestionRun = typeof ingestionRuns.$inferSelect;
 export type DemoUser = typeof demoUsers.$inferSelect;
 export type DemoVehicle = typeof demoVehicles.$inferSelect;
 export type DeskPick = typeof deskPicks.$inferSelect;
+export type RankedListEntry = typeof rankedListEntries.$inferSelect;
 

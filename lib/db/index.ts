@@ -248,6 +248,7 @@ async function ensureSchema(client: Client) {
   await ensureMetadataFoundation(client);
   await ensureDeskPicks(client);
   await ensureYoutubeSourceColumns(client);
+  await ensureRankedLists(client);
 }
 
 const INDEX_STATEMENTS = [
@@ -402,6 +403,31 @@ async function ensureYoutubeSourceColumns(client: Client) {
       await client.execute(sql);
     } catch {
       // Column/index already exists on live Turso / local sqlite.
+    }
+  }
+}
+
+const RANKED_LIST_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS ranked_list_entries (
+      list_key TEXT NOT NULL,
+      position INTEGER NOT NULL,
+      article_id INTEGER NOT NULL REFERENCES articles(id),
+      score INTEGER NOT NULL DEFAULT 0,
+      quality_band TEXT NOT NULL DEFAULT 'eligible',
+      show_in_primary_feed INTEGER NOT NULL DEFAULT 1,
+      vehicle_tier TEXT NOT NULL DEFAULT 'none',
+      computed_at INTEGER NOT NULL,
+      PRIMARY KEY (list_key, position)
+    )`,
+  `CREATE INDEX IF NOT EXISTS ranked_list_entries_article_idx ON ranked_list_entries (article_id)`,
+];
+
+async function ensureRankedLists(client: Client) {
+  for (const sql of RANKED_LIST_STATEMENTS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Table/index already exists on live Turso / local sqlite.
     }
   }
 }
