@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { Drv247Wordmark } from "@/components/drv247-wordmark";
 import { MagazineBack, MagazineLink } from "@/components/magazine-link";
+import { MobileNavMenu } from "@/components/mobile-nav-menu";
 import { MoreNav } from "@/components/more-nav";
 import { MOBILE_NAV_SLUGS, PRIMARY_NAV } from "@/config/magazine-nav";
 import {
@@ -34,7 +35,8 @@ export function SiteHeader({
 }) {
   return (
     <header className="site-header sticky top-0 z-40 border-b border-[#1b1d1f]/5 bg-white">
-      <div className={`${MAGAZINE_LAYOUT.header} flex h-14 items-center gap-3 md:h-16`}>
+      <div className={`${MAGAZINE_LAYOUT.header} flex h-14 items-center gap-2 md:h-16 md:gap-3`}>
+        <MobileNavMenu testQuery={testQuery} className="md:hidden" />
         {backHref ? (
           <MagazineBack
             href={backHref}
@@ -71,30 +73,6 @@ export function SiteHeader({
               href={item.href}
               query={testQuery}
               className="shrink-0 font-display text-lg font-bold uppercase tracking-[-0.02em] text-[#1b1d1f]/70 hover:text-[#1b1d1f]"
-            >
-              {item.name}
-            </MagazineLink>
-          ))}
-        </div>
-        {moreNav.length > 0 ? (
-          <MoreNav
-            items={moreNav.map((item) => ({
-              slug: item.slug,
-              name: item.name,
-              href: item.href,
-              query: testQuery,
-            }))}
-          />
-        ) : null}
-      </nav>
-      <nav className="flex items-center gap-4 px-4 pb-3 md:hidden">
-        <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
-          {mobileNav.map((item) => (
-            <MagazineLink
-              key={item.slug}
-              href={item.href}
-              query={testQuery}
-              className="shrink-0 font-display text-base font-bold uppercase text-[#1b1d1f]/70"
             >
               {item.name}
             </MagazineLink>
