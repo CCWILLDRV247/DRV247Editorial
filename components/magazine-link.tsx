@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   useEffect,
-  useLayoutEffect,
   type AnchorHTMLAttributes,
   type MouseEvent,
   type ReactNode,
@@ -23,7 +22,6 @@ import {
   writeMagazineHistory,
 } from "@/lib/engine/magazine-history";
 import { playStoryBackMorph } from "@/lib/engine/story-back-morph";
-import { nameListingForStoryBack } from "@/lib/engine/start-story-view-transition";
 
 const MagazineQueryContext = createContext<string | undefined>(undefined);
 
@@ -51,11 +49,6 @@ export function recordMagazineHref(href: string) {
 
 function MagazineHistorySync() {
   const pathname = usePathname();
-  useLayoutEffect(() => {
-    if (pathname === "/" || pathname.startsWith("/category/")) {
-      nameListingForStoryBack();
-    }
-  }, [pathname]);
   useEffect(() => {
     if (!isMagazinePath(pathname)) return;
     saveStack(
