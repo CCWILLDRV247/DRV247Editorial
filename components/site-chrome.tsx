@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { Drv247Wordmark } from "@/components/drv247-wordmark";
@@ -57,13 +56,8 @@ export function SiteHeader({
         <p className="min-w-0 flex-1 truncate text-center font-display text-2xl font-semibold text-[#1b1d1f]">
           {title}
         </p>
-        <Link
-          href="/admin/engine"
-          className="rounded-lg bg-[#1b1d1f] px-3 py-1.5 font-display text-[12px] font-bold uppercase leading-6 text-white"
-        >
-          Desk
-        </Link>
         <MobileNavMenu testQuery={testQuery} className="md:hidden" />
+        <span className="hidden size-9 shrink-0 md:block" aria-hidden />
       </div>
       <nav className={`${MAGAZINE_LAYOUT.header} hidden items-center gap-4 pb-3 md:flex`}>
         <div className="flex min-w-0 flex-1 items-center gap-6 overflow-x-auto">
