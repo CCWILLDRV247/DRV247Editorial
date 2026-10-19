@@ -19,6 +19,7 @@ import {
 } from "@/lib/db/schema";
 import {
   DEFAULT_RANKED_LIST_KEYS,
+  RANKED_LIST_LIMIT,
   parseRankedListKey,
   readRankedList,
   writeRankedList,
@@ -47,7 +48,11 @@ import { relatedForArticle } from "./related";
 import {
   articleMatchesForYouTest,
   buildForYouTestCatalog,
+  FOR_YOU_DEMO_PROFILES,
   forYouTestIsActive,
+  forYouTestSearchString,
+  isForYouDemoId,
+  parseForYouTestProfile,
   type ForYouTestProfile,
 } from "./for-you-test";
 import {
@@ -465,8 +470,7 @@ type ListEditorialOptions = {
 };
 
 function editorialListCacheKey(options?: ListEditorialOptions): string | null {
-  if (!options) return "for-you:80";
-  if (options.testProfile && forYouTestIsActive(options.testProfile)) return null;
+  if (!options) return `for-you:${RANKED_LIST_LIMIT}`;
   if (
     options.userId ||
     options.vehicleId ||
@@ -482,6 +486,12 @@ function editorialListCacheKey(options?: ListEditorialOptions): string | null {
   }
   const section = options.section && options.section !== "for-you" ? options.section : "for-you";
   const limit = options.limit ?? 40;
+  if (options.testProfile && forYouTestIsActive(options.testProfile)) {
+    if (options.testProfile.preset && isForYouDemoId(options.testProfile.preset)) {
+      return `${section}:${limit}:${forYouTestSearchString(options.testProfile)}`;
+    }
+    return null;
+  }
   return `${section}:${limit}`;
 }
 
@@ -553,9 +563,13 @@ async function listEditorialDurable(key: string): Promise<EditorialDto[]> {
   const hydrated = await listEditorialFromSnapshot(key);
   if (hydrated?.length) return hydrated;
   const parsed = parseRankedListKey(key);
+  const testProfile = parsed?.profileQuery
+    ? parseForYouTestProfile(Object.fromEntries(new URLSearchParams(parsed.profileQuery)))
+    : undefined;
   const ranked = await listEditorialUncached({
     section: parsed?.section === "for-you" || !parsed?.section ? "for-you" : parsed.section,
     limit: parsed?.limit,
+    testProfile: testProfile && forYouTestIsActive(testProfile) ? testProfile : undefined,
   });
   await writeRankedList(key, ranked);
   return ranked;
@@ -579,6 +593,15 @@ export async function persistDefaultRankedLists() {
       limit: parsed.limit,
     });
     await writeRankedList(key, ranked);
+  }
+  for (const id of ["A", "B", "C", "D"] as const) {
+    const profile = FOR_YOU_DEMO_PROFILES[id];
+    const ranked = await listEditorialUncached({
+      section: "for-you",
+      limit: RANKED_LIST_LIMIT,
+      testProfile: profile,
+    });
+    await writeRankedList(`for-you:${RANKED_LIST_LIMIT}:${forYouTestSearchString(profile)}`, ranked);
   }
   try {
     revalidateTag("editorial", "max");

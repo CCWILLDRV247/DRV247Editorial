@@ -23,13 +23,15 @@ export type RankedListSnapshotRow = {
   computedAt: number;
 };
 
-export function parseRankedListKey(key: string): { section: string; limit: number } | null {
-  const sep = key.lastIndexOf(":");
-  if (sep <= 0) return null;
-  const section = key.slice(0, sep);
-  const limit = Number(key.slice(sep + 1));
-  if (!section || !Number.isFinite(limit) || limit <= 0) return null;
-  return { section, limit };
+export function parseRankedListKey(
+  key: string,
+): { section: string; limit: number; profileQuery: string | null } | null {
+  const parts = key.split(":");
+  if (parts.length < 2 || !parts[0]) return null;
+  const limit = Number(parts[1]);
+  if (!Number.isFinite(limit) || limit <= 0) return null;
+  const profileQuery = parts.slice(2).join(":") || null;
+  return { section: parts[0], limit, profileQuery };
 }
 
 export async function readRankedList(listKey: string): Promise<RankedListSnapshotRow[]> {

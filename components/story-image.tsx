@@ -47,6 +47,7 @@ export function StoryImage({
       category={category}
       priority={priority}
       eager={eager}
+      optimize={priority || eager}
     />
   );
   if (!video) return image;

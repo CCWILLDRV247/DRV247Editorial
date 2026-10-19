@@ -1,10 +1,54 @@
 "use client";
 
-import type { SyntheticEvent } from "react";
+import { useState, type SyntheticEvent } from "react";
+import Image from "next/image";
 import { cn } from "cn";
 import { StoryImageFallback } from "./story-image-fallback";
 
+const HERO_SIZES = "(max-width: 1080px) 100vw, 1080px";
+const HERO_QUALITY = 75;
+
 export function StoryImageFrame({
+  urls,
+  alt,
+  className,
+  category,
+  priority = false,
+  eager = false,
+  optimize = false,
+}: {
+  urls: string[];
+  alt: string;
+  className?: string;
+  category?: string;
+  priority?: boolean;
+  eager?: boolean;
+  optimize?: boolean;
+}) {
+  if (optimize) {
+    return (
+      <OptimizedStoryImageFrame
+        urls={urls}
+        alt={alt}
+        className={className}
+        category={category}
+        priority={priority}
+      />
+    );
+  }
+  return (
+    <NativeStoryImageFrame
+      urls={urls}
+      alt={alt}
+      className={className}
+      category={category}
+      priority={priority}
+      eager={eager}
+    />
+  );
+}
+
+function NativeStoryImageFrame({
   urls,
   alt,
   className,
@@ -36,7 +80,7 @@ export function StoryImageFrame({
 
   return (
     <span className="relative block size-full">
-      {/* Remote hosts vary per feed; skip next/image optimization. */}
+      {/* Rail / fallback path: remote hosts vary; keep a lazy native img. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={urls[0]}
@@ -52,6 +96,56 @@ export function StoryImageFrame({
       <span hidden className="absolute inset-0">
         <StoryImageFallback className={className} category={category} />
       </span>
+    </span>
+  );
+}
+
+function OptimizedStoryImageFrame({
+  urls,
+  alt,
+  className,
+  category,
+  priority = false,
+}: {
+  urls: string[];
+  alt: string;
+  className?: string;
+  category?: string;
+  priority?: boolean;
+}) {
+  const [useNative, setUseNative] = useState(false);
+  const src = urls[0];
+
+  if (useNative || !src) {
+    if (!urls.length) {
+      return <StoryImageFallback className={className} category={category} />;
+    }
+    return (
+      <NativeStoryImageFrame
+        urls={urls}
+        alt={alt}
+        className={className}
+        category={category}
+        priority={priority}
+        eager
+      />
+    );
+  }
+
+  return (
+    <span className="relative block size-full">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={HERO_SIZES}
+        quality={HERO_QUALITY}
+        preload={priority}
+        loading={priority ? undefined : "eager"}
+        decoding="async"
+        onError={() => setUseNative(true)}
+        className={cn("object-cover", className)}
+      />
     </span>
   );
 }
