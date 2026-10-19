@@ -1,5 +1,6 @@
 import { StoryFeed } from "@/components/story-feed";
 import { ForYouTestFilterSection } from "@/components/magazine/for-you-test-filter-section";
+import { ListingMain } from "@/components/listing-main";
 import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import {
   forYouTestIsActive,
@@ -37,7 +38,7 @@ export async function CategoryFeed({
 
   return (
     <MagazinePageTransition>
-      <main className="pt-2">
+      <ListingMain className="pt-2">
         <StoryFeed
           stories={stories}
           copyKey={copyKey}
@@ -51,7 +52,7 @@ export async function CategoryFeed({
             />
           }
         />
-      </main>
+      </ListingMain>
     </MagazinePageTransition>
   );
 }

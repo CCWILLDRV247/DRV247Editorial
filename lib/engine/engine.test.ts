@@ -1583,8 +1583,19 @@ describe("for you test profile", () => {
     assert.match(css, /mix-blend-mode:\s*normal/);
     const copy = readFileSync(new URL("../../components/story-copy-transition.tsx", import.meta.url), "utf8");
     const feed = readFileSync(new URL("../../components/magazine-page-transition.tsx", import.meta.url), "utf8");
+    const listingMain = readFileSync(new URL("../../components/listing-main.tsx", import.meta.url), "utf8");
+    const homeFeed = readFileSync(new URL("../../components/magazine/home-feed.tsx", import.meta.url), "utf8");
+    const categoryFeed = readFileSync(
+      new URL("../../components/magazine/category-feed.tsx", import.meta.url),
+      "utf8",
+    );
     assert.match(copy, /default="none"/);
     assert.match(feed, /default="none"/);
+    assert.match(listingMain, /viewTransitionClass:\s*"story-feed"/);
+    assert.match(listingMain, /nameListingForStoryBack/);
+    assert.match(homeFeed, /<ListingMain/);
+    assert.match(categoryFeed, /<ListingMain/);
+    assert.doesNotMatch(back, /nameListingForStoryBack/);
     const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
     const autoSubmit = readFileSync(
       new URL("../../components/for-you-test-auto-submit.tsx", import.meta.url),

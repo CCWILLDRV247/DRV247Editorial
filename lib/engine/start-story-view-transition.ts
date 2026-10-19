@@ -110,7 +110,11 @@ function setViewTransitionClass(node: Element | null, className: string) {
   if ("viewTransitionClass" in style) style.viewTransitionClass = className;
 }
 
-/** Used by listing layout after a chevron pop so the opened card remorphs. */
+/**
+ * Name the last-opened card after the listing `<main>` has hydrated.
+ * Call this from that `<main>`, not from a parent outside its Suspense
+ * boundary — otherwise the feed class lands on server HTML before hydrate.
+ */
 export function nameListingForStoryBack() {
   applyLastStoryMediaName();
   setViewTransitionClass(document.querySelector("main"), "story-feed");

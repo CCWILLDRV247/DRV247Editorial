@@ -1,6 +1,7 @@
 import { Suspense, cache } from "react";
 import { ForYouHomeHero, ForYouHomeRest } from "@/components/for-you-home";
 import { ForYouTestFilterSection } from "@/components/magazine/for-you-test-filter-section";
+import { ListingMain } from "@/components/listing-main";
 import { MagazinePageTransition } from "@/components/magazine-page-transition";
 import { HOMEPAGE_COMPOSITION, MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
 import {
@@ -95,7 +96,7 @@ export function HomeFeed({
 }) {
   return (
     <MagazinePageTransition>
-      <main className="relative z-0 pt-2">
+      <ListingMain className="relative z-0 pt-2">
         <div className={`flex flex-col pb-20 md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}>
           <Suspense fallback={<HomeHeroFallback />}>
             <HomeHero testProfile={testProfile} />
@@ -104,7 +105,7 @@ export function HomeFeed({
             <HomeRest testProfile={testProfile} testQuery={testQuery} />
           </Suspense>
         </div>
-      </main>
+      </ListingMain>
     </MagazinePageTransition>
   );
 }
