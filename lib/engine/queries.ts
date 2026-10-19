@@ -488,7 +488,11 @@ function editorialListCacheKey(options?: ListEditorialOptions): string | null {
   const limit = options.limit ?? 40;
   if (options.testProfile && forYouTestIsActive(options.testProfile)) {
     if (options.testProfile.preset && isForYouDemoId(options.testProfile.preset)) {
-      return `${section}:${limit}:${forYouTestSearchString(options.testProfile)}`;
+      let profileQuery = forYouTestSearchString(options.testProfile);
+      if (options.hardFilter === true) {
+        profileQuery = profileQuery ? `${profileQuery}&strict=1` : "strict=1";
+      }
+      return `${section}:${limit}:${profileQuery}`;
     }
     return null;
   }
@@ -563,13 +567,17 @@ async function listEditorialDurable(key: string): Promise<EditorialDto[]> {
   const hydrated = await listEditorialFromSnapshot(key);
   if (hydrated?.length) return hydrated;
   const parsed = parseRankedListKey(key);
-  const testProfile = parsed?.profileQuery
-    ? parseForYouTestProfile(Object.fromEntries(new URLSearchParams(parsed.profileQuery)))
+  const profileParams = parsed?.profileQuery ? new URLSearchParams(parsed.profileQuery) : null;
+  const strict = profileParams?.get("strict") === "1";
+  profileParams?.delete("strict");
+  const testProfile = profileParams
+    ? parseForYouTestProfile(Object.fromEntries(profileParams))
     : undefined;
   const ranked = await listEditorialUncached({
     section: parsed?.section === "for-you" || !parsed?.section ? "for-you" : parsed.section,
     limit: parsed?.limit,
     testProfile: testProfile && forYouTestIsActive(testProfile) ? testProfile : undefined,
+    hardFilter: strict ? true : undefined,
   });
   await writeRankedList(key, ranked);
   return ranked;
