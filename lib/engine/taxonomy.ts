@@ -95,7 +95,7 @@ export const INTEREST_TO_PRIMARY: Record<string, ContentPrimary> = {
   Styling: "culture",
   Supercars: "cars",
   Track: "motorsport",
-  Tunning: "cars",
+  Tuning: "cars",
   VAG: "culture",
   // Legacy article_interests (pre-normalization) → primary
   Classics: "cars",

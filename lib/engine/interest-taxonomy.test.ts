@@ -11,7 +11,8 @@ describe("interest taxonomy", () => {
     assert.equal(canonicalInterest("Classic"), "Classic");
     assert.equal(canonicalInterest("Classics"), "Classic");
     assert.equal(canonicalInterest("Air-cooled"), "Aircooled");
-    assert.equal(canonicalInterest("Tuning"), "Tunning");
+    assert.equal(canonicalInterest("Tuning"), "Tuning");
+    assert.equal(canonicalInterest("Tunning"), "Tuning");
     assert.equal(canonicalInterest("Drift"), "Drifting");
     assert.equal(canonicalInterest("Collector Cars"), "Classic");
     assert.equal(canonicalInterest("Car Culture"), "Styling");
@@ -27,7 +28,7 @@ describe("interest taxonomy", () => {
 
   it("exposes the verified app filter vocabulary", () => {
     assert.ok(DRV247_USER_INTERESTS.includes("Aircooled"));
-    assert.ok(DRV247_USER_INTERESTS.includes("Tunning"));
+    assert.ok(DRV247_USER_INTERESTS.includes("Tuning"));
     assert.equal(DRV247_USER_INTERESTS.length, 23);
   });
 });

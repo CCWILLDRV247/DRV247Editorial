@@ -245,7 +245,7 @@ function extractInterests(text: string): Interest[] {
     ["Supercars", ["supercar", "hypercar"]],
     ["Modern", ["modern classic", "youngtimer"]],
     ["Modified", ["modified", "stance", "restomod", "engine swap", "ls swap", "k-swap"]],
-    ["Tunning", ["tuning", "tuned", "aftermarket"]],
+    ["Tuning", ["tuning", "tuned", "aftermarket"]],
     ["JDM", ["jdm"]],
     ["VAG", [" vag ", "vag ", "euro"]],
     ["Muscle", ["american muscle", "muscle car", "muscle"]],

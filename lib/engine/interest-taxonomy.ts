@@ -1,8 +1,8 @@
 /**
  * DRV247 user interest labels — must match the Titanium app filter UI exactly.
  *
- * Verified by Chris, 20 Oct 2026 (app product strings). Spelling **Tunning** is
- * intentional on the product side; editorial alias `Tuning` → `Tunning`.
+ * Verified by Chris, 20 Oct 2026 (app product strings). Legacy typo **Tunning**
+ * in URLs/DB aliases to **Tuning**.
  */
 export const DRV247_USER_INTERESTS = [
   "4x4",
@@ -26,7 +26,7 @@ export const DRV247_USER_INTERESTS = [
   "Styling",
   "Supercars",
   "Track",
-  "Tunning",
+  "Tuning",
   "VAG",
 ] as const;
 
@@ -48,8 +48,8 @@ export const INTEREST_ALIASES: Record<string, UserInterest> = {
   aircooled: "Aircooled",
   "air-cooled": "Aircooled",
   "air cooled": "Aircooled",
-  tuning: "Tunning",
-  tunning: "Tunning",
+  tuning: "Tuning",
+  tunning: "Tuning",
   "camper/bus": "Camper/Bus",
   camper: "Camper/Bus",
   "oem+": "OEM+",
