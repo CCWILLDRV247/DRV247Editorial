@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Alumni_Sans } from "next/font/google";
 import Script from "next/script";
 import { STORY_MEDIA_BOOT_SCRIPT } from "@/lib/engine/story-media-boot";
+import { buildSiteVerificationMetadata } from "@/lib/seo/site-verification";
 import "./globals.css";
 
 const alumni = Alumni_Sans({
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  ...buildSiteVerificationMetadata(),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
