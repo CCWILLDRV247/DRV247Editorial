@@ -1,5 +1,6 @@
 import { Suspense, cache } from "react";
 import { ForYouHomeHero, ForYouHomeRest } from "@/components/for-you-home";
+import { PersonalizationOnboardSection } from "@/components/personalization-onboard-section";
 import { ForYouTestFilterSection } from "@/components/magazine/for-you-test-filter-section";
 import { ListingMain } from "@/components/listing-main";
 import { MagazinePageTransition } from "@/components/magazine-page-transition";
@@ -96,6 +97,7 @@ export function HomeFeed({
 }) {
   return (
     <MagazinePageTransition>
+      <PersonalizationOnboardSection urlProfile={testProfile} pathname="/" />
       <ListingMain className="relative z-0">
         <div className={`flex flex-col pb-20 md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}>
           <Suspense fallback={<HomeHeroFallback />}>
