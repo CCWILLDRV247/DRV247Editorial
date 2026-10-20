@@ -13,12 +13,13 @@ const alumni = Alumni_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://editorial.drv247.com"),
   title: {
     default: "DRV247 Editorial",
     template: "%s · DRV247",
   },
   description:
-    "Drive 24/7 editorial desk — For You, Cars, Culture, Driving, and Events. Metadata, summaries, and the original link. Never the full article.",
+    "Drive 24/7 editorial — For You, Cars, Culture, Driving, and Events. Summaries and the original link. Never the full article.",
   icons: {
     icon: [
       { url: "/drv247-favicon.svg", type: "image/svg+xml" },

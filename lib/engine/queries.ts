@@ -613,6 +613,8 @@ export async function persistDefaultRankedLists() {
   }
   try {
     revalidateTag("editorial", "max");
+    const { revalidateSitemapCache } = await import("@/lib/seo/revalidate-public");
+    revalidateSitemapCache();
   } catch {
     // Local scripts / tsx have no Next data cache.
   }
