@@ -112,7 +112,7 @@ export function ForYouTestFilterPanel({
               {forYouTestFilterSummary(applied)}
             </p>
           ) : null}
-          <div className="flex flex-col gap-3">
+          <div className={`flex flex-col gap-3${showAppliedSummary ? "" : " pt-[18px]"}`}>
             <select
               aria-label="Make"
               className={selectClass}
