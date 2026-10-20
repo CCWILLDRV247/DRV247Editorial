@@ -142,6 +142,7 @@ export function EngineDesk({ sources, runs, articles, classified, children }: Pr
         <div className="flex w-full min-w-0 flex-wrap gap-2 md:w-auto md:justify-end">
           <Link
             href="/admin"
+            rel="nofollow"
             className="inline-flex h-8 items-center rounded-lg border border-border px-2.5 text-sm"
           >
             v1 desk
