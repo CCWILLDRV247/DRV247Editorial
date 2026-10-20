@@ -20,12 +20,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 const selectClass =
-  "h-11 min-w-0 w-full appearance-none rounded-xl border border-[#1b1d1f] bg-white px-3.5 pr-10 font-sans text-[15px] font-normal text-[#1b1d1f]";
+  "h-11 min-w-0 w-full appearance-none rounded-lg border border-[#1b1d1f] bg-white px-3.5 pr-10 font-sans text-[15px] font-normal text-[#1b1d1f]";
 
 function interestChipClass(on: boolean) {
   return on
-    ? "flex h-11 w-full items-center justify-center rounded-xl border border-[#1b1d1f] bg-[#1b1d1f] px-1 text-center font-display text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-white"
-    : "flex h-11 w-full items-center justify-center rounded-xl border border-[#1b1d1f] bg-white px-1 text-center font-display text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-[#1b1d1f]";
+    ? "flex h-11 w-full items-center justify-center rounded-lg border border-[#1b1d1f] bg-[#1b1d1f] px-1 text-center font-display text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-white"
+    : "flex h-11 w-full items-center justify-center rounded-lg border border-[#1b1d1f] bg-white px-1 text-center font-display text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-[#1b1d1f]";
 }
 
 export function PersonalizationInterestsModal({
@@ -98,7 +98,7 @@ export function PersonalizationInterestsModal({
         className="flex max-h-[min(92vh,820px)] w-[calc(100%-2rem)] max-w-[25.5rem] flex-col gap-0 overflow-hidden rounded-[1.25rem] border border-[#1b1d1f]/20 bg-white p-0 text-[#1b1d1f] shadow-none ring-0 sm:max-w-[25.5rem] [&_[data-slot=dialog-close]]:top-3.5 [&_[data-slot=dialog-close]]:right-3.5 [&_[data-slot=dialog-close]]:text-[#1b1d1f] [&_[data-slot=dialog-close]]:hover:bg-transparent"
       >
         <DialogHeader className="gap-0 px-5 pt-12 pb-4 text-left sm:px-5">
-          <DialogTitle className="font-display text-[2.95rem] font-black italic uppercase leading-[0.74] tracking-[-0.045em] text-[#1b1d1f]">
+          <DialogTitle className="font-display text-[2.95rem] font-black uppercase leading-[0.74] tracking-[-0.045em] text-[#1b1d1f]">
             <span className="block">Create a</span>
             <span className="block">personalised</span>
             <span className="block">magazine</span>
@@ -179,7 +179,7 @@ export function PersonalizationInterestsModal({
           <button
             type="button"
             onClick={applyPersonalisation}
-            className="h-11 shrink-0 rounded-lg bg-[#1b1d1f] px-6 font-display text-[12px] font-bold uppercase tracking-[0.12em] text-white"
+            className="h-11 shrink-0 rounded-lg bg-[#1b1d1f] px-7 font-display text-[12px] font-bold uppercase tracking-[0.12em] text-white"
           >
             Personalise
           </button>
