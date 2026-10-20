@@ -1441,6 +1441,24 @@ describe("for you test profile", () => {
     assert.equal(withTestQuery("/category/cars", undefined), "/category/cars");
   });
 
+  it("forYouTestFilterSearchString strips preset and vehicle dimensions for the filter panel", async () => {
+    const { forYouTestFilterSearchString, parseForYouTestProfile } = await import("./for-you-test");
+    const legacy = parseForYouTestProfile({
+      profile: "A",
+      make: "Ferrari",
+      model: "F355",
+      generation: "x",
+      variant: "GTB",
+      location: "Maranello",
+      interest: ["Classic"],
+    });
+    const query = forYouTestFilterSearchString(legacy);
+    assert.equal(query, "make=Ferrari&interest=Classic&interest=Performance");
+    assert.doesNotMatch(query, /model=/);
+    assert.doesNotMatch(query, /profile=/);
+    assert.doesNotMatch(query, /location=/);
+  });
+
   it("keeps profile=A on magazine hrefs and pops in-app history without referrer", async () => {
     const { forYouTestSearchString, parseForYouTestProfile } = await import("./for-you-test");
     const {
@@ -1607,7 +1625,7 @@ describe("for you test profile", () => {
     assert.match(autoSubmit, /"use client"/);
   });
 
-  it("For You test filter matches the Events bar and keeps A–D URL controls", () => {
+  it("For You test filter matches the Events bar with make and interests only", () => {
     const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
     const home = readFileSync(new URL("../../components/for-you-home.tsx", import.meta.url), "utf8");
     const homeFeed = readFileSync(new URL("../../components/magazine/home-feed.tsx", import.meta.url), "utf8");
@@ -1632,8 +1650,13 @@ describe("for you test profile", () => {
     assert.match(filter, /font-extrabold/);
     assert.match(filter, /text-\[#1b1d1f\]/);
     assert.match(filter, /<details/);
-    assert.match(filter, /FOR_YOU_DEMO_PROFILES/);
-    assert.match(filter, /forYouTestSearchString/);
+    assert.doesNotMatch(filter, /FOR_YOU_DEMO_PROFILES/);
+    assert.match(filter, /forYouTestFilterSearchString/);
+    assert.doesNotMatch(filter, /name="model"/);
+    assert.doesNotMatch(filter, /name="generation"/);
+    assert.doesNotMatch(filter, /name="variant"/);
+    assert.doesNotMatch(filter, /name="location"/);
+    assert.doesNotMatch(filter, /name="profile"/);
     assert.match(filter, /MAGAZINE_LAYOUT\.gutter/);
     assert.match(filter, /border-y border-\[#1b1d1f\]\/12/);
     assert.match(home, /StoryHero[\s\S]*\{filter\}/);
