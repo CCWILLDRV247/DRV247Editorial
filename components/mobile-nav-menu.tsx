@@ -50,8 +50,9 @@ export function MobileNavMenu({
       </SheetTrigger>
       <SheetContent
         side="right"
+        fullWidth
         showCloseButton
-        className="inset-x-0 w-full max-w-none gap-0 border-[#1b1d1f]/10 bg-white p-0 sm:max-w-none"
+        className="gap-0 border-[#1b1d1f]/10 bg-white p-0"
       >
         <div className="flex items-center justify-between border-b border-[#1b1d1f]/10 py-4 pl-5 pr-14">
           <SheetTitle className="sr-only">Site navigation</SheetTitle>
