@@ -101,7 +101,7 @@ export const INTEREST_TO_PRIMARY: Record<string, ContentPrimary> = {
   Classics: "cars",
   "Air-cooled": "cars",
   "Modern Classics": "cars",
-  Tuning: "cars",
+  Tunning: "cars",
   Collecting: "cars",
   "Car Culture": "culture",
   "Automotive Design": "culture",
