@@ -7,6 +7,7 @@ import {
   type Scene,
 } from "./catalog";
 import { extractEntities, includesToken, type ExtractedEntity } from "./extract";
+import { normalizeInterestList } from "./interest-taxonomy";
 import { canonicalEntityId, slugify } from "./normalize";
 import { classifyPrimaryDetailed, type ClassifyInput } from "./taxonomy";
 import type { ContentPrimary } from "../../config/magazine-nav";
@@ -246,7 +247,9 @@ export function classifyArticle(
     });
   }
 
-  const interestTags: ClassifiedTag[] = extracted.interests.map((name) => ({
+  const interests = normalizeInterestList(extracted.interests);
+
+  const interestTags: ClassifiedTag[] = interests.map((name) => ({
     name,
     confidence: includesToken(titleHay, name.toLowerCase()) ? 78 : 68,
     source: "rule" as const,
@@ -257,7 +260,7 @@ export function classifyArticle(
     excerpt: [excerpt, paragraph].filter(Boolean).join(" "),
     publication,
     categories: extracted.categories,
-    interests: extracted.interests,
+    interests,
     contentTypes: contentTypes.map((row) => row.name),
     scenes: scenes.map((row) => row.name),
   };
@@ -272,7 +275,7 @@ export function classifyArticle(
     models: extracted.models,
     generations: extracted.generations,
     variants: extracted.variants,
-    interests: extracted.interests,
+    interests,
     interestTags,
     categories: extracted.categories,
     contentTypes,

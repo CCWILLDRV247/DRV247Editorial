@@ -219,8 +219,8 @@ export async function seedEngine(db: Db) {
       },
     ]);
     await db.insert(demoUserInterests).values([
-      { userId: "demo-chris", interest: "Classic" },
-      { userId: "demo-chris", interest: "Collector Cars" },
+      { userId: "demo-chris", interest: "Classics" },
+      { userId: "demo-chris", interest: "Collecting" },
       { userId: "demo-chris", interest: "Photography" },
       { userId: "demo-355", interest: "Performance" },
       { userId: "demo-355", interest: "Sports Cars" },

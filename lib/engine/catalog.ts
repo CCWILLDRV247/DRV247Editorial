@@ -508,35 +508,15 @@ export const VEHICLE_CATALOG: VehicleRecord[] = [
   ]),
 ];
 
-export const INTEREST_TAXONOMY = [
-  "Classic",
-  "Air-cooled",
-  "Performance",
-  "Sports Cars",
-  "Supercars",
-  "Modern Classics",
-  "Modified",
-  "Tuning",
-  "JDM",
-  "Euro",
-  "American",
-  "Motorsport",
-  "Rally",
-  "Drift",
-  "Drag Racing",
-  "Track",
-  "Design",
-  "Automotive Design",
-  "Car Culture",
-  "Road Trips",
-  "Collector Cars",
-  "Collecting",
-  "Restoration",
-  "Detailing",
-  "Photography",
-  "Events",
-  "Engine Swaps",
-] as const;
+export {
+  DRV247_USER_INTERESTS,
+  INTEREST_TAXONOMY,
+  type Interest,
+  type UserInterest,
+  canonicalInterest,
+  isKnownInterest,
+  normalizeInterestList,
+} from "./interest-taxonomy";
 
 export const EDITORIAL_CATEGORIES = [
   "News",
@@ -563,7 +543,6 @@ export const EDITORIAL_CATEGORIES = [
   "Video",
 ] as const;
 
-export type Interest = (typeof INTEREST_TAXONOMY)[number];
 export type EditorialCategory = (typeof EDITORIAL_CATEGORIES)[number];
 
 export const EDITORIAL_LOCATIONS = [

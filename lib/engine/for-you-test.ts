@@ -1,4 +1,5 @@
-import { EDITORIAL_LOCATIONS, INTEREST_TAXONOMY, VEHICLE_CATALOG } from "./catalog";
+import { EDITORIAL_LOCATIONS, DRV247_USER_INTERESTS, VEHICLE_CATALOG } from "./catalog";
+import { canonicalInterest, interestsMatch } from "./personalize";
 
 export const FOR_YOU_TEST_STORAGE_KEY = "drv247-for-you-test";
 
@@ -26,7 +27,7 @@ export const FOR_YOU_DEMO_PROFILES: Record<
     make: "Ferrari",
     model: "F355",
     variant: "GTB",
-    interests: ["Classic", "Performance"],
+    interests: ["Classics", "Performance"],
   },
   B: {
     id: "B",
@@ -36,7 +37,7 @@ export const FOR_YOU_DEMO_PROFILES: Record<
     model: "911",
     generation: "964",
     variant: "C2",
-    interests: ["Air-cooled", "Classic", "Road Trips"],
+    interests: ["Air-cooled", "Classics", "Road Trips"],
   },
   C: {
     id: "C",
@@ -118,6 +119,7 @@ export function parseForYouTestProfile(
     ...new Set(
       [...(demo?.interests ?? []), ...getAll("interest")]
         .map((item) => sanitizeFilterToken(item))
+        .map((item) => canonicalInterest(item))
         .filter(Boolean),
     ),
   ];
@@ -170,13 +172,18 @@ export function articleMatchesForYouTest(
   const models = extras.models.map(norm);
   const generations = (extras.generations ?? []).map(norm);
   const variants = (extras.variants ?? []).map(norm);
-  const interests = extras.interests.map(norm);
+  const interests = extras.interests.map((item) => norm(canonicalInterest(item)));
   const locations = extras.locations.map(norm);
   if (profile.make && !makes.includes(norm(profile.make))) return false;
   if (profile.model && !models.includes(norm(profile.model))) return false;
   if (profile.generation && !generations.includes(norm(profile.generation))) return false;
   if (profile.variant && !variants.includes(norm(profile.variant))) return false;
-  if (profile.interests.length && !profile.interests.some((interest) => interests.includes(norm(interest)))) {
+  if (
+    profile.interests.length &&
+    !profile.interests.some((interest) =>
+      interests.some((articleInterest) => interestsMatch(articleInterest, interest)),
+    )
+  ) {
     return false;
   }
   if (profile.location && !locations.includes(norm(profile.location))) return false;
@@ -267,7 +274,7 @@ export function buildForYouTestCatalog(live?: LiveTaxonomy): ForYouTestCatalog {
   upsertValue(nineEleven?.variants ?? [], "GT3");
   upsertValue(nineEleven?.variants ?? [], "Carrera RS");
 
-  for (const interest of INTEREST_TAXONOMY) upsertValue(interests, interest);
+  for (const interest of DRV247_USER_INTERESTS) upsertValue(interests, interest);
   for (const location of EDITORIAL_LOCATIONS) upsertValue(locations, location);
 
   for (const entity of live?.entities ?? []) {

@@ -12,7 +12,7 @@ export const EDITORIAL_INTERLUDE_CATEGORIES = [
 
 /** Interest and editorial tags drawn from existing personalisation vocabulary. */
 export const EDITORIAL_INTERLUDE_TAGS = [
-  "Classic",
+  "Classics",
   "Performance",
   "Air-cooled",
   "JDM",
@@ -57,7 +57,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     tone: "warm",
     priority: 80,
     active: true,
-    tags: ["Classic", "ownership"],
+    tags: ["Classics", "ownership"],
     categories: ["culture"],
   },
   {
@@ -108,7 +108,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 55,
     active: true,
     categories: ["culture", "cars"],
-    tags: ["collecting", "Classic"],
+    tags: ["collecting", "Classics"],
   },
 
   // —— STATEMENT ——
@@ -167,7 +167,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 49,
     active: true,
     categories: ["cars", "culture"],
-    tags: ["Classic", "restoration"],
+    tags: ["Classics", "restoration"],
   },
   {
     id: "long-journey-feels-short",
@@ -238,7 +238,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 42,
     active: true,
     categories: ["events", "culture"],
-    tags: ["collecting", "Classic"],
+    tags: ["collecting", "Classics"],
   },
 
   // —— PROVOCATION ——
@@ -249,7 +249,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     tone: "debating",
     priority: 41,
     active: true,
-    tags: ["Modified", "Classic"],
+    tags: ["Modified", "Classics"],
     categories: ["cars"],
   },
   {
@@ -432,7 +432,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     tone: "assured",
     priority: 23,
     active: true,
-    tags: ["collecting", "Classic"],
+    tags: ["collecting", "Classics"],
     categories: ["culture"],
   },
   {

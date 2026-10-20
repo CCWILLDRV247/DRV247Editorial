@@ -1279,7 +1279,7 @@ describe("for you test profile", () => {
       model: "911",
       generation: "964",
       variant: "Carrera RS",
-      interests: ["Classic", "NotAThing"],
+      interests: ["Classics", "NotAThing"],
       location: "Goodwood",
     });
     assert.equal(forYouTestIsActive(profile), true);
@@ -2137,13 +2137,13 @@ describe("vehicle-aware For You ranking", () => {
     assert.equal(parsed.make, "Ferrari");
     assert.equal(parsed.model, "F355");
     assert.equal(parsed.variant, "GTB");
-    assert.ok(parsed.interests.includes("Classic"));
+    assert.ok(parsed.interests.includes("Classics"));
     const fromGarage = contextFromDrv247Garage({
       garage: [{ make: "Ferrari", model: "F355", variant: "GTB" }],
       interests: ["Classics", "Performance"],
     });
     assert.equal(fromGarage.vehicles[0]?.model, "F355");
-    assert.ok(fromGarage.interests.includes("Classic"));
+    assert.ok(fromGarage.interests.includes("Classics"));
   });
 
   it("extracts F355 GTB and 964 C2 as variants", () => {
@@ -2225,7 +2225,7 @@ describe("For You centre", () => {
     const copy = forYouCopy(FOR_YOU_DEMO_PROFILES.A);
     assert.equal(copy.headerTitle, "For your Ferrari F355");
     assert.equal(copy.kicker, "FOR YOUR FERRARI F355");
-    assert.equal(copy.dek, "Ferrari F355 GTB · Classic · Performance");
+    assert.equal(copy.dek, "Ferrari F355 GTB · Classics · Performance");
     assert.equal(copy.blurb, "Stories selected around your cars and interests.");
     assert.equal(/personalised recommendations/i.test(copy.kicker + copy.dek + copy.blurb), false);
     const empty = forYouCopy({ interests: [] });
@@ -2461,7 +2461,7 @@ describe("relevance explanations", () => {
         lane: "interests",
         vehicles: [],
       }) ?? "",
-      /Because you like Classic \+ Performance/i,
+      /Because you like Classics \+ Performance/i,
     );
 
     const located = explainArticle({
@@ -2770,7 +2770,7 @@ describe("relevance engine", () => {
     const { pickRelevanceExplanation } = await import("./relevance-explanation");
     const { cultureBridgeTags } = await import("./personalize");
     const garageA = [{ make: "Ferrari", model: "F355", variant: "GTB" }];
-    const bridge = cultureBridgeTags(garageA[0]!, ["Classic"], ["Classic", "Performance"]);
+    const bridge = cultureBridgeTags(garageA[0]!, ["Classics"], ["Classics", "Performance"]);
     assert.deepEqual(bridge, []);
     const breakdown = explainArticle({
       makes: [],
@@ -2789,7 +2789,7 @@ describe("relevance engine", () => {
     });
     assert.equal(breakdown.vehicleTier, "none");
     assert.ok(!breakdown.signals.some((signal) => signal.kind.startsWith("vehicle.")));
-    assert.ok(breakdown.signals.some((signal) => signal.kind === "interest" && signal.detail === "Classic"));
+    assert.ok(breakdown.signals.some((signal) => signal.kind === "interest" && signal.detail === "Classics"));
     assert.equal(
       pickRelevanceExplanation({
         why: breakdown.reasons,
@@ -2798,7 +2798,7 @@ describe("relevance engine", () => {
         lane: "vehicle",
         vehicles: garageA,
       }),
-      "Because you follow Classic",
+      "Because you follow Classics",
     );
   });
 });

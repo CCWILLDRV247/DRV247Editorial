@@ -74,7 +74,7 @@ export const SECONDARY_TO_PRIMARY: Record<string, ContentPrimary> = {
 };
 
 export const INTEREST_TO_PRIMARY: Record<string, ContentPrimary> = {
-  Classic: "cars",
+  Classics: "cars",
   Performance: "cars",
   "Sports Cars": "cars",
   Supercars: "cars",
@@ -82,10 +82,9 @@ export const INTEREST_TO_PRIMARY: Record<string, ContentPrimary> = {
   Modified: "cars",
   Tuning: "cars",
   Restoration: "cars",
-  "Collector Cars": "cars",
   Collecting: "cars",
   Detailing: "cars",
-  "Engine Swaps": "cars",
+  Engineering: "cars",
   JDM: "culture",
   Euro: "culture",
   American: "culture",
@@ -94,12 +93,12 @@ export const INTEREST_TO_PRIMARY: Record<string, ContentPrimary> = {
   Drift: "motorsport",
   "Drag Racing": "motorsport",
   Track: "motorsport",
-  Design: "culture",
   "Automotive Design": "culture",
   "Car Culture": "culture",
   Photography: "culture",
   "Road Trips": "driving",
   Events: "events",
+  "Air-cooled": "cars",
 };
 
 export const SECONDARY_TAXONOMY: { slug: string; name: string; primary: ContentPrimary }[] = [

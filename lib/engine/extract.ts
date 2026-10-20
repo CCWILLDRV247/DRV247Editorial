@@ -1,6 +1,5 @@
 import {
   EDITORIAL_LOCATIONS,
-  INTEREST_TAXONOMY,
   VEHICLE_CATALOG,
   type EditorialCategory,
   type Interest,
@@ -239,13 +238,13 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
 function extractInterests(text: string): Interest[] {
   const hits: Interest[] = [];
   const rules: [Interest, string[]][] = [
-    ["Classic", ["classic", "vintage", "historic"]],
+    ["Classics", ["classic", "classics", "vintage", "historic"]],
     ["Air-cooled", ["air-cooled", "air cooled", "aircooled"]],
     ["Performance", ["performance", "supercar", "hypercar"]],
     ["Sports Cars", ["sports car", "sportscar", "gt car"]],
     ["Supercars", ["supercar", "hypercar"]],
     ["Modern Classics", ["modern classic", "youngtimer"]],
-    ["Modified", ["modified", "stance", "tuned", "restomod"]],
+    ["Modified", ["modified", "stance", "tuned", "restomod", "engine swap", "ls swap", "k-swap"]],
     ["Tuning", ["tuning", "tuned", "aftermarket"]],
     ["JDM", ["jdm"]],
     ["Euro", ["euro"]],
@@ -255,16 +254,15 @@ function extractInterests(text: string): Interest[] {
     ["Drift", ["drift", "drifting"]],
     ["Drag Racing", ["drag racing", "drag strip"]],
     ["Track", ["track day", "time attack"]],
-    ["Design", ["design", "styling", "concept", "studio"]],
-    ["Automotive Design", ["automotive design", "car design"]],
-    ["Car Culture", ["culture", "lifestyle", "scene"]],
+    ["Automotive Design", ["design", "styling", "concept", "studio", "automotive design", "car design"]],
+    ["Car Culture", ["car culture", "culture", "lifestyle", "scene"]],
     ["Road Trips", ["road trip", "touring", "drive"]],
-    ["Collector Cars", ["collector", "concours", "auction"]],
-    ["Collecting", ["collecting"]],
+    ["Collecting", ["collector", "collecting", "concours", "auction"]],
     ["Restoration", ["restoration", "restore", "barn find"]],
+    ["Detailing", ["detailing", "detailer"]],
     ["Photography", ["photography", "photographer", "shoot"]],
     ["Events", ["event", "goodwood", "villa d'este", "retromobile"]],
-    ["Engine Swaps", ["engine swap", "ls swap", "k-swap"]],
+    ["Engineering", ["engineering", "chassis", "aero"]],
   ];
   for (const [interest, needles] of rules) {
     if (needles.some((needle) => text.includes(needle))) hits.push(interest);
@@ -309,6 +307,4 @@ function extractLocations(text: string): string[] {
 
 export { haystack as entityHaystack };
 
-export function isKnownInterest(value: string): value is Interest {
-  return (INTEREST_TAXONOMY as readonly string[]).includes(value);
-}
+export { isKnownInterest } from "./interest-taxonomy";
