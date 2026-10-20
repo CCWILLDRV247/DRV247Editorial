@@ -212,13 +212,13 @@ export function printEditorialCopy(profile?: ForYouTestProfile): { heading: stri
       dek: "Print for the driveway, not the showroom.",
     };
   }
-  if (make === "ferrari" && interests.includes("classics")) {
+  if (make === "ferrari" && interests.includes("classic")) {
     return {
       heading: "Worth holding",
       dek: "Ink, Maranello, and the long read.",
     };
   }
-  if (interests.includes("classics")) {
+  if (interests.includes("classic")) {
     return {
       heading: "Worth holding",
       dek: "The magazines that still take paper seriously.",

@@ -12,13 +12,13 @@ export const EDITORIAL_INTERLUDE_CATEGORIES = [
 
 /** Interest and editorial tags drawn from existing personalisation vocabulary. */
 export const EDITORIAL_INTERLUDE_TAGS = [
-  "Classics",
+  "Classic",
   "Performance",
-  "Air-cooled",
+  "Aircooled",
   "JDM",
   "Modified",
   "Motorsport",
-  "Road Trips",
+  "Camper/Bus",
   "design",
   "collecting",
   "restoration",
@@ -57,7 +57,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     tone: "warm",
     priority: 80,
     active: true,
-    tags: ["Classics", "ownership"],
+    tags: ["Classic", "ownership"],
     categories: ["culture"],
   },
   {
@@ -108,7 +108,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 55,
     active: true,
     categories: ["culture", "cars"],
-    tags: ["collecting", "Classics"],
+    tags: ["collecting", "Classic"],
   },
 
   // —— STATEMENT ——
@@ -167,7 +167,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 49,
     active: true,
     categories: ["cars", "culture"],
-    tags: ["Classics", "restoration"],
+    tags: ["Classic", "restoration"],
   },
   {
     id: "long-journey-feels-short",
@@ -177,7 +177,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 48,
     active: true,
     categories: ["driving"],
-    tags: ["Road Trips"],
+    tags: ["Camper/Bus"],
   },
   {
     id: "naming-colour-art",
@@ -216,7 +216,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     tone: "balanced",
     priority: 44,
     active: true,
-    tags: ["collecting", "Road Trips"],
+    tags: ["collecting", "Camper/Bus"],
     categories: ["driving", "culture"],
   },
   {
@@ -238,7 +238,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 42,
     active: true,
     categories: ["events", "culture"],
-    tags: ["collecting", "Classics"],
+    tags: ["collecting", "Classic"],
   },
 
   // —— PROVOCATION ——
@@ -249,7 +249,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     tone: "debating",
     priority: 41,
     active: true,
-    tags: ["Modified", "Classics"],
+    tags: ["Modified", "Classic"],
     categories: ["cars"],
   },
   {
@@ -321,7 +321,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 34,
     active: true,
     categories: ["events", "driving"],
-    tags: ["collecting", "Road Trips"],
+    tags: ["collecting", "Camper/Bus"],
   },
   {
     id: "blueprint-to-burnout",
@@ -362,7 +362,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 30,
     active: true,
     categories: ["driving"],
-    tags: ["Road Trips"],
+    tags: ["Camper/Bus"],
   },
   {
     id: "choose-long-way",
@@ -372,7 +372,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 29,
     active: true,
     categories: ["driving"],
-    tags: ["Road Trips"],
+    tags: ["Camper/Bus"],
   },
   {
     id: "glance-back-keep-going",
@@ -432,7 +432,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     tone: "assured",
     priority: 23,
     active: true,
-    tags: ["collecting", "Classics"],
+    tags: ["collecting", "Classic"],
     categories: ["culture"],
   },
   {
@@ -443,7 +443,7 @@ export const EDITORIAL_VOICE_LIBRARY: EditorialInterlude[] = [
     priority: 22,
     active: true,
     categories: ["driving"],
-    tags: ["Road Trips", "ownership"],
+    tags: ["Camper/Bus", "ownership"],
   },
 ];
 

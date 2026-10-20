@@ -53,7 +53,7 @@ describe("editorial voice library", () => {
     ]);
     const driving = interludesForCategory("driving");
     assert.ok(driving.length >= 10);
-    const classicTagged = interludesForTag("Classics");
+    const classicTagged = interludesForTag("Classic");
     assert.ok(classicTagged.some((item) => item.id === "some-cars-under-your-skin"));
     const marqueSpecific = EDITORIAL_VOICE_LIBRARY.filter((item) => item.marques?.length);
     assert.ok(marqueSpecific.length >= 1);

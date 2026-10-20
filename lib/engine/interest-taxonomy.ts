@@ -1,41 +1,38 @@
 /**
- * DRV247 user interest labels — shared with the Titanium app filter UI and backend.
+ * DRV247 user interest labels — must match the Titanium app filter UI exactly.
  *
- * Product source of truth is normally `com.fizix.driveclub` in `~/Documents/DriveClub_R296`
- * (not available on cloud agents). This list is derived from in-repo product briefs
- * (`editorial-metadata-brief`, For You profile copy) until that constants file is linked.
+ * Verified by Chris, 20 Oct 2026 (app product strings). Spelling **Tunning** is
+ * intentional on the product side; editorial alias `Tuning` → `Tunning`.
  */
 export const DRV247_USER_INTERESTS = [
-  "Air-cooled",
-  "American",
-  "Automotive Design",
-  "Car Culture",
-  "Classics",
-  "Collecting",
-  "Detailing",
-  "Drag Racing",
-  "Drift",
-  "Engineering",
-  "Euro",
-  "Events",
+  "4x4",
+  "Aircooled",
+  "Camper/Bus",
+  "Classic",
+  "Drifting",
+  "Electric",
+  "Hot Rod",
   "JDM",
-  "Modern Classics",
+  "Lightweight",
+  "Luxury",
+  "Modern",
   "Modified",
   "Motorsport",
+  "Muscle",
+  "OEM+",
   "Performance",
-  "Photography",
-  "Rally",
   "Restoration",
-  "Road Trips",
   "Sports Cars",
+  "Styling",
   "Supercars",
   "Track",
-  "Tuning",
+  "Tunning",
+  "VAG",
 ] as const;
 
 export type UserInterest = (typeof DRV247_USER_INTERESTS)[number];
 
-/** Editorial ingest + filter catalog. Same strings as product; legacy DB values normalize via aliases. */
+/** Filter UI + ingest persistence target list (product labels only). */
 export const INTEREST_TAXONOMY = DRV247_USER_INTERESTS;
 
 export type Interest = UserInterest;
@@ -43,51 +40,70 @@ export type Interest = UserInterest;
 const USER_INTEREST_SET = new Set<string>(DRV247_USER_INTERESTS);
 
 /**
- * Maps legacy editorial strings, URL params, API snake_case, and product synonyms
- * to {@link DRV247_USER_INTERESTS} display labels.
+ * Legacy editorial / URL / API tokens → product display string.
+ * Editorial-only tags are folded into the nearest product interest for matching.
  */
-export const INTEREST_ALIASES: Record<string, UserInterest | string> = {
-  classic: "Classics",
-  classics: "Classics",
-  "collector cars": "Collecting",
-  collector: "Collecting",
-  collecting: "Collecting",
-  design: "Automotive Design",
-  "automotive design": "Automotive Design",
-  "car culture": "Car Culture",
-  culture: "Car Culture",
-  "road trip": "Road Trips",
-  "road trips": "Road Trips",
-  roadtrips: "Road Trips",
-  "drag racing": "Drag Racing",
-  "engine swaps": "Modified",
+export const INTEREST_ALIASES: Record<string, UserInterest> = {
+  // Product spelling variants
+  aircooled: "Aircooled",
+  "air-cooled": "Aircooled",
+  "air cooled": "Aircooled",
+  tuning: "Tunning",
+  tunning: "Tunning",
+  "camper/bus": "Camper/Bus",
+  camper: "Camper/Bus",
+  "oem+": "OEM+",
+  "oem plus": "OEM+",
+  "4x4": "4x4",
+  // Editorial plural / alternate classic
+  classics: "Classic",
+  // Editorial-only → product
+  "collector cars": "Classic",
+  collector: "Classic",
+  collecting: "Classic",
+  "modern classics": "Modern",
+  "automotive design": "Styling",
+  design: "Styling",
+  "car culture": "Styling",
+  culture: "Styling",
+  detailing: "Styling",
+  photography: "Styling",
+  "road trip": "Camper/Bus",
+  "road trips": "Camper/Bus",
+  roadtrips: "Camper/Bus",
+  events: "Motorsport",
+  engineering: "OEM+",
+  euro: "VAG",
+  american: "Muscle",
+  rally: "Motorsport",
+  "drag racing": "Motorsport",
+  drift: "Drifting",
+  drifting: "Drifting",
   "engine swap": "Modified",
-  "modern classics": "Modern Classics",
-  "sports cars": "Sports Cars",
-  "air-cooled": "Air-cooled",
-  "air cooled": "Air-cooled",
-  aircooled: "Air-cooled",
+  "engine swaps": "Modified",
+  // snake_case API
+  sports_cars: "Sports Cars",
+  car_culture: "Styling",
+  road_trips: "Camper/Bus",
+  drag_racing: "Motorsport",
+  air_cooled: "Aircooled",
+  hot_rod: "Hot Rod",
+  // Normalized keys (normKey lowercases)
+  classic: "Classic",
   performance: "Performance",
   modified: "Modified",
   motorsport: "Motorsport",
   jdm: "JDM",
-  tuning: "Tuning",
   restoration: "Restoration",
-  detailing: "Detailing",
-  photography: "Photography",
-  events: "Events",
-  engineering: "Engineering",
-  euro: "Euro",
-  american: "American",
-  rally: "Rally",
-  drift: "Drift",
   track: "Track",
   supercars: "Supercars",
-  // snake_case (editorial taxonomy doc / API)
-  sports_cars: "Sports Cars",
-  car_culture: "Car Culture",
-  road_trips: "Road Trips",
-  drag_racing: "Drag Racing",
+  styling: "Styling",
+  muscle: "Muscle",
+  luxury: "Luxury",
+  modern: "Modern",
+  lightweight: "Lightweight",
+  electric: "Electric",
+  vag: "VAG",
 };
 
 function normKey(value: string) {

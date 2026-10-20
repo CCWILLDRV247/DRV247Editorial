@@ -78,11 +78,11 @@ export function vehicleCultureTags(vehicle: GarageVehicle): string[] {
   const generation = norm(vehicle.generation ?? "");
   const tags = new Set<string>();
   if (make === "ferrari" || model === "f355") {
-    for (const tag of ["Supercars", "Sports Cars", "Performance", "Classics", "Euro"]) tags.add(tag);
+    for (const tag of ["Supercars", "Sports Cars", "Performance", "Classic", "Luxury"]) tags.add(tag);
   }
   if (make === "porsche") {
-    for (const tag of ["Classics", "Euro", "Performance", "Sports Cars"]) tags.add(tag);
-    if (["964", "993"].includes(generation) || model === "356") tags.add("Air-cooled");
+    for (const tag of ["Classic", "Performance", "Sports Cars", "VAG"]) tags.add(tag);
+    if (["964", "993"].includes(generation) || model === "356") tags.add("Aircooled");
   }
   if (make === "nissan" || model === "skyline" || model === "240sx") {
     for (const tag of ["JDM", "Performance", "Modified"]) tags.add(tag);

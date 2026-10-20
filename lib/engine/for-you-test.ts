@@ -1,4 +1,9 @@
-import { EDITORIAL_LOCATIONS, DRV247_USER_INTERESTS, VEHICLE_CATALOG } from "./catalog";
+import {
+  EDITORIAL_LOCATIONS,
+  DRV247_USER_INTERESTS,
+  VEHICLE_CATALOG,
+  isKnownInterest,
+} from "./catalog";
 import { canonicalInterest, interestsMatch } from "./personalize";
 
 export const FOR_YOU_TEST_STORAGE_KEY = "drv247-for-you-test";
@@ -27,7 +32,7 @@ export const FOR_YOU_DEMO_PROFILES: Record<
     make: "Ferrari",
     model: "F355",
     variant: "GTB",
-    interests: ["Classics", "Performance"],
+    interests: ["Classic", "Performance"],
   },
   B: {
     id: "B",
@@ -37,7 +42,7 @@ export const FOR_YOU_DEMO_PROFILES: Record<
     model: "911",
     generation: "964",
     variant: "C2",
-    interests: ["Air-cooled", "Classics", "Road Trips"],
+    interests: ["Aircooled", "Classic", "Track"],
   },
   C: {
     id: "C",
@@ -297,7 +302,10 @@ export function buildForYouTestCatalog(live?: LiveTaxonomy): ForYouTestCatalog {
       upsertValue(model?.variants ?? [], entity.name);
     }
   }
-  for (const interest of live?.interests ?? []) upsertValue(interests, interest);
+  for (const interest of live?.interests ?? []) {
+    const canonical = canonicalInterest(interest);
+    if (isKnownInterest(canonical)) upsertValue(interests, canonical);
+  }
   for (const location of live?.locations ?? []) upsertValue(locations, location);
 
   const sortedMakes = [...makes.values()]
