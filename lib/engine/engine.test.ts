@@ -1260,6 +1260,25 @@ describe("primary taxonomy", () => {
     assert.ok(MAGAZINE_NAV.some((item) => item.slug === "motorsport"));
     assert.ok(contentPrimaryBySlug("motorsport"));
   });
+
+  it("does not expose Desk in the mobile hamburger nav", () => {
+    const menu = readFileSync(
+      new URL("../../components/mobile-nav-menu.tsx", import.meta.url),
+      "utf8",
+    );
+    assert.doesNotMatch(menu, /\/admin\/engine/);
+    assert.doesNotMatch(menu, />\s*Desk\s*</);
+  });
+
+  it("marks remaining Desk admin anchors with nofollow", () => {
+    const adminPage = readFileSync(new URL("../../app/admin/page.tsx", import.meta.url), "utf8");
+    const engineDesk = readFileSync(
+      new URL("../../components/admin/engine-desk.tsx", import.meta.url),
+      "utf8",
+    );
+    assert.match(adminPage, /href="\/admin\/engine"[\s\S]*?rel="nofollow"/);
+    assert.match(engineDesk, /href="\/admin"[\s\S]*?rel="nofollow"/);
+  });
 });
 
 describe("for you test profile", () => {

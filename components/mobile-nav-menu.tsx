@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -85,15 +84,6 @@ export function MobileNavMenu({
                 </li>
               );
             })}
-            <li className="border-b border-[#1b1d1f]/8">
-              <Link
-                href="/admin/engine"
-                onClick={() => setOpen(false)}
-                className="block py-4 font-display text-[1.625rem] font-bold uppercase leading-none tracking-[-0.02em] text-[#1b1d1f]/75"
-              >
-                Desk
-              </Link>
-            </li>
           </ul>
         </nav>
       </SheetContent>
