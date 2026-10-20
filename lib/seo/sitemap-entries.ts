@@ -6,6 +6,7 @@ import { PRIMARY_NAV } from "@/config/magazine-nav";
 import { liveDeskByArticle } from "@/lib/engine/desk";
 import { evaluateEditorialEligibility } from "@/lib/engine/editorial-eligibility";
 import { loadDeskPickRows } from "@/lib/engine/queries";
+import { mainDomainSitemapEntries } from "./main-domain-urls";
 import { EDITORIAL_SITE_URL, SITEMAP_CACHE_TAG } from "./site";
 
 export type IndexableStoryRow = {
@@ -61,12 +62,15 @@ export function buildSitemapEntries(
   sourceById: Map<string, MediaSourceRow>,
   deskArticleIds: Set<number>,
 ): MetadataRoute.Sitemap {
-  const entries: MetadataRoute.Sitemap = staticSitemapPaths().map(({ path, priority }) => ({
+  const entries: MetadataRoute.Sitemap = [...mainDomainSitemapEntries()];
+  entries.push(
+    ...staticSitemapPaths().map(({ path, priority }) => ({
     url: `${EDITORIAL_SITE_URL}${path === "/" ? "" : path}`,
     lastModified: new Date(),
-    changeFrequency: path === "/" ? "hourly" : "daily",
+    changeFrequency: path === "/" ? ("hourly" as const) : ("daily" as const),
     priority,
-  }));
+    })),
+  );
 
   for (const row of stories) {
     if (!isIndexableStory(row, sourceById.get(row.sourceId), deskArticleIds.has(row.id))) {

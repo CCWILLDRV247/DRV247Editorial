@@ -1,14 +1,27 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { MagazineQueryProvider } from "@/components/magazine-link";
 import { HomeFeed } from "@/components/magazine/home-feed";
+import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-import RootLoading from "./loading";
+import { CATEGORY_COPY } from "@/lib/db/seed";
 import {
   forYouTestSearchString,
   parseForYouTestProfile,
 } from "@/lib/engine/for-you-test";
+import { buildWebPageJsonLd } from "@/lib/seo/json-ld";
+import { buildHomeMetadata, editorialCanonicalPath } from "@/lib/seo/metadata";
+import RootLoading from "./loading";
 
 export const runtime = "nodejs";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  return buildHomeMetadata(await searchParams);
+}
 
 export default async function HomePage({
   searchParams,
@@ -18,9 +31,16 @@ export default async function HomePage({
   const params = await searchParams;
   const testProfile = parseForYouTestProfile(params);
   const testQuery = forYouTestSearchString(testProfile) || undefined;
+  const homeCopy = CATEGORY_COPY.home;
+  const jsonLd = buildWebPageJsonLd({
+    name: "For You",
+    description: homeCopy?.blurb ?? "",
+    pageUrl: editorialCanonicalPath("/"),
+  });
 
   return (
     <MagazineQueryProvider testQuery={testQuery}>
+      <JsonLdScript data={jsonLd} />
       <div className="min-h-full overflow-x-clip bg-white">
         <SiteHeader title="For You" testQuery={testQuery} />
         <Suspense fallback={<RootLoading />}>
