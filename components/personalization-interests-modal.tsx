@@ -20,16 +20,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 const selectClass =
-  "h-11 min-w-0 w-full appearance-none rounded-xl border border-[#1b1d1f] bg-white px-3.5 pr-10 font-display text-sm font-bold uppercase tracking-[0.06em] text-[#1b1d1f]";
+  "h-11 min-w-0 w-full appearance-none rounded-xl border border-[#1b1d1f] bg-white px-3.5 pr-10 font-sans text-[15px] font-normal text-[#1b1d1f]";
 
 function interestChipClass(on: boolean) {
   return on
     ? "flex h-11 w-full items-center justify-center rounded-xl border border-[#1b1d1f] bg-[#1b1d1f] px-1 text-center font-display text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-white"
     : "flex h-11 w-full items-center justify-center rounded-xl border border-[#1b1d1f] bg-white px-1 text-center font-display text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-[#1b1d1f]";
-}
-
-function interestDisplayLabel(interest: string) {
-  return interest.replaceAll("/", " / ");
 }
 
 export function PersonalizationInterestsModal({
@@ -115,18 +111,18 @@ export function PersonalizationInterestsModal({
             id="personalization-interests-description"
             className="mt-3 font-sans text-[15px] font-normal leading-[1.35] text-[#1b1d1f]"
           >
-            You can personalise all of the content towards a marquee and the interests you have.
+            You can personalise all of the content towards a marque and the interests you have.
           </DialogDescription>
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 sm:px-5">
           <div className="flex flex-col gap-5">
             <div>
               <p className="mb-2.5 font-display text-[15px] font-bold uppercase tracking-[0.02em] text-[#1b1d1f]">
-                Marquee
+                Marque
               </p>
               <div className="relative">
                 <select
-                  aria-label="Marquee"
+                  aria-label="Marque"
                   className={selectClass}
                   value={draftMake}
                   onChange={(event) => setDraftMake(event.target.value)}
@@ -164,7 +160,7 @@ export function PersonalizationInterestsModal({
                       onClick={() => toggleInterest(interest)}
                       className={interestChipClass(on)}
                     >
-                      {interestDisplayLabel(interest)}
+                      {interest}
                     </button>
                   );
                 })}
@@ -172,20 +168,20 @@ export function PersonalizationInterestsModal({
             </div>
           </div>
         </div>
-        <DialogFooter className="mx-0 mb-0 flex-col items-stretch gap-3 rounded-b-[1.25rem] border-0 bg-white px-5 pt-1 pb-5 sm:flex-col sm:items-stretch sm:justify-stretch sm:px-5">
-          <button
-            type="button"
-            onClick={applyPersonalisation}
-            className="h-11 w-full rounded-lg bg-[#1b1d1f] font-display text-[11px] font-bold uppercase tracking-[0.16em] text-white"
-          >
-            Personalise
-          </button>
+        <DialogFooter className="mx-0 mb-0 flex-row items-center justify-end gap-4 rounded-b-[1.25rem] border-t border-[#1b1d1f]/10 bg-white px-5 py-4 sm:flex-row sm:justify-end sm:px-5">
           <button
             type="button"
             onClick={dismiss}
-            className="self-center font-display text-[11px] font-bold uppercase tracking-[0.1em] text-[#1b1d1f] underline underline-offset-2"
+            className="font-display text-[10px] font-bold uppercase tracking-[0.12em] text-[#1b1d1f]/70"
           >
             Skip for now
+          </button>
+          <button
+            type="button"
+            onClick={applyPersonalisation}
+            className="h-11 shrink-0 rounded-lg bg-[#1b1d1f] px-6 font-display text-[12px] font-bold uppercase tracking-[0.12em] text-white"
+          >
+            Personalise
           </button>
         </DialogFooter>
       </DialogContent>
