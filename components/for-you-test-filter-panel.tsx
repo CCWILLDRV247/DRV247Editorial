@@ -106,9 +106,9 @@ export function ForYouTestFilterPanel({
             Content filtered by your vehicle & interests
           </p>
         </summary>
-        <div className={`${MAGAZINE_LAYOUT.gutter} pb-4`}>
+        <div className={`${MAGAZINE_LAYOUT.gutter} pb-4 pt-6`}>
           {showAppliedSummary ? (
-            <p className="mb-3 font-display text-sm font-bold uppercase text-[#1b1d1f]">
+            <p className="mb-6 font-display text-sm font-bold uppercase text-[#1b1d1f]">
               {forYouTestFilterSummary(applied)}
             </p>
           ) : null}
