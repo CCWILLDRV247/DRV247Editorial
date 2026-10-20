@@ -45,9 +45,27 @@ describe("editorial SEO sitemap", () => {
     assert.match(String(robots.sitemap), /editorial\.drv247\.com\/sitemap\.xml$/);
   });
 
-  it("static sitemap paths include home and PRIMARY_NAV categories", () => {
+  it("static sitemap paths include home, PRIMARY_NAV categories, and /policy", () => {
     const paths = staticSitemapPaths().map((entry) => entry.path);
-    assert.deepEqual(paths, ["/", "/category/cars", "/category/culture", "/category/driving", "/category/events"]);
+    assert.deepEqual(paths, [
+      "/",
+      "/category/cars",
+      "/category/culture",
+      "/category/driving",
+      "/category/events",
+      "/policy",
+    ]);
+  });
+
+  it("lists /policy as a same-host monthly static route", () => {
+    const policy = staticSitemapPaths().find((entry) => entry.path === "/policy");
+    assert.equal(policy?.priority, 0.3);
+    assert.equal(policy?.changeFrequency, "monthly");
+    const entries = buildSitemapEntries([], new Map(), new Set());
+    const row = entries.find((entry) => entry.url === `${EDITORIAL_SITE_URL}/policy`);
+    assert.equal(row?.changeFrequency, "monthly");
+    assert.ok(entries.every((entry) => entry.url.startsWith(EDITORIAL_SITE_URL)));
+    assert.ok(!entries.some((entry) => /drv247\.app/.test(entry.url)));
   });
 
   it("indexable stories require enabled sources and editorial eligibility", () => {

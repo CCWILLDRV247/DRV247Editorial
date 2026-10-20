@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { PRIMARY_NAV } from "../../config/magazine-nav";
 import {
   HOMEPAGE_COMPOSITION,
   MAGAZINE_LAYOUT,
@@ -46,8 +48,37 @@ describe("editorial composition", () => {
     assert.match(HOMEPAGE_COMPOSITION.footerCopy, /text-white\/75/);
     assert.equal(SITE_FOOTER.legal, "DRV247 is a trading name of DriveClub Limited.");
     assert.equal(SITE_FOOTER.privacyHref, "https://drv247.app/tos");
+    assert.equal(SITE_FOOTER.policyLabel, "Policy");
+    assert.equal(SITE_FOOTER.policyHref, "/policy");
     assert.equal(SITE_FOOTER.contactHref, "mailto:support@drv247.com");
     assert.doesNotMatch(SITE_FOOTER.contactHref, /drv247\.app/);
+  });
+
+  it("keeps Policy on the footer, off PRIMARY_NAV and the hamburger", () => {
+    const chrome = readFileSync(new URL("../../components/site-chrome.tsx", import.meta.url), "utf8");
+    const menu = readFileSync(new URL("../../components/mobile-nav-menu.tsx", import.meta.url), "utf8");
+    const privacyIdx = chrome.indexOf("SITE_FOOTER.privacyHref");
+    const policyIdx = chrome.indexOf("SITE_FOOTER.policyHref");
+    const contactIdx = chrome.indexOf("SITE_FOOTER.contactHref");
+    assert.ok(privacyIdx > 0 && policyIdx > privacyIdx && contactIdx > policyIdx);
+    assert.match(chrome, /SITE_FOOTER\.policyHref/);
+    assert.doesNotMatch(menu, /\/policy/);
+    assert.doesNotMatch(menu, />\s*Desk\s*</);
+    assert.doesNotMatch(menu, /\/admin\/engine/);
+    assert.ok(!PRIMARY_NAV.some((item) => item.href === "/policy" || /policy/i.test(item.name)));
+  });
+
+  it("policy page ships approved publisher copy as a magazine reading route", () => {
+    const page = readFileSync(new URL("../../app/policy/page.tsx", import.meta.url), "utf8");
+    assert.match(page, /export function generateMetadata/);
+    assert.match(page, /buildWebPageJsonLd/);
+    assert.match(page, /SiteHeader title="Policy"/);
+    assert.match(page, /vehicle-aware magazine desk/);
+    assert.match(page, /not a privacy policy, a licence/);
+    assert.match(page, /support@drv247\.com/);
+    assert.doesNotMatch(page, /PRIMARY_NAV/);
+    assert.doesNotMatch(page, /fair use/i);
+    assert.doesNotMatch(page, /DMCA/);
   });
 
   it("keeps a desktop reading measure and one rail scale", () => {

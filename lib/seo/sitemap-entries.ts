@@ -24,13 +24,20 @@ export type MediaSourceRow = Pick<
   "id" | "enabled" | "url"
 >;
 
-/** Static indexable routes (home + PRIMARY_NAV category pages, excluding For You). */
-export function staticSitemapPaths(): { path: string; priority: number }[] {
-  const paths: { path: string; priority: number }[] = [{ path: "/", priority: 1 }];
+type StaticSitemapPath = {
+  path: string;
+  priority: number;
+  changeFrequency?: MetadataRoute.Sitemap[number]["changeFrequency"];
+};
+
+/** Static indexable routes (home + PRIMARY_NAV categories + same-host pages such as /policy). */
+export function staticSitemapPaths(): StaticSitemapPath[] {
+  const paths: StaticSitemapPath[] = [{ path: "/", priority: 1 }];
   for (const item of PRIMARY_NAV) {
     if (item.slug === "for-you") continue;
     paths.push({ path: item.href, priority: 0.8 });
   }
+  paths.push({ path: "/policy", priority: 0.3, changeFrequency: "monthly" });
   return paths;
 }
 
@@ -61,12 +68,14 @@ export function buildSitemapEntries(
   sourceById: Map<string, MediaSourceRow>,
   deskArticleIds: Set<number>,
 ): MetadataRoute.Sitemap {
-  const entries: MetadataRoute.Sitemap = staticSitemapPaths().map(({ path, priority }) => ({
-    url: `${EDITORIAL_SITE_URL}${path === "/" ? "" : path}`,
-    lastModified: new Date(),
-    changeFrequency: path === "/" ? ("hourly" as const) : ("daily" as const),
-    priority,
-  }));
+  const entries: MetadataRoute.Sitemap = staticSitemapPaths().map(
+    ({ path, priority, changeFrequency }) => ({
+      url: `${EDITORIAL_SITE_URL}${path === "/" ? "" : path}`,
+      lastModified: new Date(),
+      changeFrequency: changeFrequency ?? (path === "/" ? ("hourly" as const) : ("daily" as const)),
+      priority,
+    }),
+  );
 
   for (const row of stories) {
     if (!isIndexableStory(row, sourceById.get(row.sourceId), deskArticleIds.has(row.id))) {

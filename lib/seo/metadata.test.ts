@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildNewsArticleJsonLd, buildCollectionPageJsonLd } from "./json-ld";
+import { buildNewsArticleJsonLd, buildCollectionPageJsonLd, buildWebPageJsonLd } from "./json-ld";
 import {
+  POLICY_META,
   buildCategoryMetadata,
   buildHomeMetadata,
+  buildPolicyMetadata,
   buildStoryMetadata,
   editorialCanonicalPath,
 } from "./metadata";
@@ -29,6 +31,7 @@ describe("SEO metadata helpers", () => {
     assert.equal(editorialCanonicalPath("/"), "https://editorial.drv247.com");
     assert.equal(editorialCanonicalPath("/category/cars"), "https://editorial.drv247.com/category/cars");
     assert.equal(editorialCanonicalPath("/story/42"), "https://editorial.drv247.com/story/42");
+    assert.equal(editorialCanonicalPath("/policy"), "https://editorial.drv247.com/policy");
   });
 
   it("home metadata stays indexable without query params", () => {
@@ -65,6 +68,15 @@ describe("SEO metadata helpers", () => {
     assert.equal((meta.openGraph as { type?: string } | undefined)?.type, "article");
     assert.equal(meta.alternates?.canonical, "https://editorial.drv247.com/story/9");
   });
+
+  it("policy metadata is indexable with an editorial canonical", () => {
+    const meta = buildPolicyMetadata();
+    assert.equal(meta.title, POLICY_META.title);
+    assert.equal(meta.description, POLICY_META.description);
+    assert.equal(meta.alternates?.canonical, "https://editorial.drv247.com/policy");
+    assert.deepEqual(meta.robots, { index: true, follow: true });
+    assert.equal((meta.openGraph as { type?: string } | undefined)?.type, "website");
+  });
 });
 
 describe("SEO JSON-LD", () => {
@@ -95,5 +107,16 @@ describe("SEO JSON-LD", () => {
     });
     assert.equal(json["@type"], "CollectionPage");
     assert.equal(json.url, "https://editorial.drv247.com/category/cars");
+  });
+
+  it("policy WebPage JSON-LD stays on the editorial host", () => {
+    const json = buildWebPageJsonLd({
+      name: POLICY_META.title,
+      description: POLICY_META.description,
+      pageUrl: "https://editorial.drv247.com/policy",
+    });
+    assert.equal(json["@type"], "WebPage");
+    assert.equal(json.url, "https://editorial.drv247.com/policy");
+    assert.equal(json.name, "Editorial policy");
   });
 });
