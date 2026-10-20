@@ -220,6 +220,19 @@ export function forYouTestSearchString(profile: ForYouTestProfile) {
   return params.toString();
 }
 
+/** Filter panel + localStorage: make and interests only (strips legacy dimensions). */
+export function forYouTestFilterSearchString(profile: ForYouTestProfile) {
+  const params = new URLSearchParams();
+  if (profile.make) params.set("make", profile.make);
+  for (const interest of profile.interests) params.append("interest", interest);
+  return params.toString();
+}
+
+export function forYouTestFilterSummary(profile: ForYouTestProfile) {
+  const parts = [profile.make, profile.interests.join(" · ")].filter(Boolean);
+  return parts.join(" · ");
+}
+
 export function withTestQuery(href: string, query?: string) {
   if (!query) return href;
   return `${href}${href.includes("?") ? "&" : "?"}${query}`;

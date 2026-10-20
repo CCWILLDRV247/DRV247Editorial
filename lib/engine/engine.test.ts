@@ -1441,6 +1441,24 @@ describe("for you test profile", () => {
     assert.equal(withTestQuery("/category/cars", undefined), "/category/cars");
   });
 
+  it("forYouTestFilterSearchString strips preset and vehicle dimensions for the filter panel", async () => {
+    const { forYouTestFilterSearchString, parseForYouTestProfile } = await import("./for-you-test");
+    const legacy = parseForYouTestProfile({
+      profile: "A",
+      make: "Ferrari",
+      model: "F355",
+      generation: "x",
+      variant: "GTB",
+      location: "Maranello",
+      interest: ["Classic"],
+    });
+    const query = forYouTestFilterSearchString(legacy);
+    assert.equal(query, "make=Ferrari&interest=Classic&interest=Performance");
+    assert.doesNotMatch(query, /model=/);
+    assert.doesNotMatch(query, /profile=/);
+    assert.doesNotMatch(query, /location=/);
+  });
+
   it("keeps profile=A on magazine hrefs and pops in-app history without referrer", async () => {
     const { forYouTestSearchString, parseForYouTestProfile } = await import("./for-you-test");
     const {
@@ -1597,18 +1615,18 @@ describe("for you test profile", () => {
     assert.match(categoryFeed, /<ListingMain/);
     assert.doesNotMatch(back, /nameListingForStoryBack/);
     const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
-    const autoSubmit = readFileSync(
-      new URL("../../components/for-you-test-auto-submit.tsx", import.meta.url),
-      "utf8",
-    );
+    const panel = readFileSync(new URL("../../components/for-you-test-filter-panel.tsx", import.meta.url), "utf8");
     assert.doesNotMatch(filter, /<script/);
-    assert.match(filter, /ForYouTestAutoSubmit/);
-    assert.match(autoSubmit, /requestSubmit/);
-    assert.match(autoSubmit, /"use client"/);
+    assert.doesNotMatch(filter, /ForYouTestAutoSubmit/);
+    assert.match(panel, /"use client"/);
+    assert.match(panel, /Apply Filters/);
+    assert.match(panel, /setOpen\(false\)/);
+    assert.match(panel, /type="button"/);
   });
 
-  it("For You test filter matches the Events bar and keeps A–D URL controls", () => {
+  it("For You test filter matches the Events bar with make and interests only", () => {
     const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
+    const panel = readFileSync(new URL("../../components/for-you-test-filter-panel.tsx", import.meta.url), "utf8");
     const home = readFileSync(new URL("../../components/for-you-home.tsx", import.meta.url), "utf8");
     const homeFeed = readFileSync(new URL("../../components/magazine/home-feed.tsx", import.meta.url), "utf8");
     const storyFeed = readFileSync(new URL("../../components/story-feed.tsx", import.meta.url), "utf8");
@@ -1618,24 +1636,31 @@ describe("for you test profile", () => {
     );
     const page = readFileSync(new URL("../../app/page.tsx", import.meta.url), "utf8");
     const categoryPage = readFileSync(new URL("../../app/category/[slug]/page.tsx", import.meta.url), "utf8");
-    assert.match(filter, /Content filtered by your vehicle & interests/);
-    assert.doesNotMatch(filter, /Content filtered by your vehicle & interests\./);
-    assert.doesNotMatch(filter, /Events filtered/i);
-    assert.doesNotMatch(filter, /Test personalization — placeholder/);
-    assert.doesNotMatch(filter, /border-dashed/);
-    assert.doesNotMatch(filter, /Set test/);
-    assert.doesNotMatch(filter, /open=\{active\}/);
-    assert.doesNotMatch(filter, /text-\[11px\]/);
-    assert.match(filter, /SlidersHorizontal/);
-    assert.match(filter, /text-\[20px\]/);
-    assert.doesNotMatch(filter, /text-\[15px\]/);
-    assert.match(filter, /font-extrabold/);
-    assert.match(filter, /text-\[#1b1d1f\]/);
-    assert.match(filter, /<details/);
-    assert.match(filter, /FOR_YOU_DEMO_PROFILES/);
-    assert.match(filter, /forYouTestSearchString/);
-    assert.match(filter, /MAGAZINE_LAYOUT\.gutter/);
-    assert.match(filter, /border-y border-\[#1b1d1f\]\/12/);
+    assert.match(panel, /Content filtered by your vehicle & interests/);
+    assert.doesNotMatch(panel, /Content filtered by your vehicle & interests\./);
+    assert.doesNotMatch(panel, /Events filtered/i);
+    assert.doesNotMatch(panel, /Test personalization — placeholder/);
+    assert.doesNotMatch(panel, /border-dashed/);
+    assert.doesNotMatch(panel, /Set test/);
+    assert.doesNotMatch(panel, /open=\{active\}/);
+    assert.doesNotMatch(panel, /text-\[11px\]/);
+    assert.match(panel, /SlidersHorizontal/);
+    assert.match(panel, /text-\[20px\]/);
+    assert.doesNotMatch(panel, /text-\[15px\]/);
+    assert.match(panel, /font-extrabold/);
+    assert.match(panel, /text-\[#1b1d1f\]/);
+    assert.match(panel, /MAGAZINE_LAYOUT\.gutter/);
+    assert.match(panel, /border-y border-\[#1b1d1f\]\/12/);
+    assert.match(panel, /<details/);
+    assert.doesNotMatch(panel, /FOR_YOU_DEMO_PROFILES/);
+    assert.match(panel, /forYouTestFilterSearchString/);
+    assert.doesNotMatch(panel, /name="model"/);
+    assert.doesNotMatch(panel, /name="generation"/);
+    assert.doesNotMatch(panel, /name="variant"/);
+    assert.doesNotMatch(panel, /name="location"/);
+    assert.doesNotMatch(panel, /name="profile"/);
+    assert.doesNotMatch(panel, /ForYouTestAutoSubmit/);
+    assert.doesNotMatch(panel, /<a[^>]+href=\{hrefFor/);
     assert.match(home, /StoryHero[\s\S]*\{filter\}/);
     assert.match(storyFeed, /StoryHero[\s\S]*\{filter\}/);
     assert.match(homeFeed, /ForYouTestFilterSection/);
