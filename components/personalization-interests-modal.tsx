@@ -150,20 +150,20 @@ export function PersonalizationInterestsModal({
             </div>
           </div>
         </div>
-        <DialogFooter className="flex-col gap-2 border-t border-[#1b1d1f]/12 bg-[#fafafa] px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
-          <button
-            type="button"
-            onClick={dismiss}
-            className="order-2 w-full rounded-[5px] border border-transparent px-3 py-2.5 font-display text-sm font-bold uppercase text-[#1b1d1f]/70 underline sm:order-1 sm:w-auto sm:no-underline"
-          >
-            Skip for now
-          </button>
+        <DialogFooter className="mx-0 mb-0 flex-col gap-2 rounded-b-xl border-t border-[#1b1d1f]/12 bg-[#fafafa] px-4 py-4 sm:flex-row sm:items-center sm:justify-start sm:px-6">
           <button
             type="button"
             onClick={applyPersonalisation}
-            className="order-1 w-full rounded-[5px] border border-[#1b1d1f] bg-[#1b1d1f] px-4 py-2.5 font-display text-sm font-bold uppercase text-white sm:order-2 sm:w-auto"
+            className="w-full rounded-[5px] border border-[#1b1d1f] bg-[#1b1d1f] px-3 py-2 font-display text-xs font-bold uppercase text-white sm:w-auto sm:self-start"
           >
             Personalise
+          </button>
+          <button
+            type="button"
+            onClick={dismiss}
+            className="w-full rounded-[5px] border border-transparent px-3 py-2 font-display text-sm font-bold uppercase text-[#1b1d1f]/70 underline sm:w-auto sm:self-start sm:no-underline"
+          >
+            Skip for now
           </button>
         </DialogFooter>
       </DialogContent>
