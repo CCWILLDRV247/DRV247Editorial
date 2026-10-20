@@ -7,6 +7,7 @@ import "./globals.css";
 const alumni = Alumni_Sans({
   subsets: ["latin"],
   weight: ["600", "700", "800", "900"],
+  style: ["normal", "italic"],
   variable: "--font-alumni",
   display: "swap",
   preload: true,
