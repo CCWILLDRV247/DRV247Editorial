@@ -1,6 +1,5 @@
 import {
   EDITORIAL_LOCATIONS,
-  INTEREST_TAXONOMY,
   VEHICLE_CATALOG,
   type EditorialCategory,
   type Interest,
@@ -239,32 +238,29 @@ export function extractEntities(title: string, excerpt = "", paragraph = ""): Ex
 function extractInterests(text: string): Interest[] {
   const hits: Interest[] = [];
   const rules: [Interest, string[]][] = [
-    ["Classic", ["classic", "vintage", "historic"]],
-    ["Air-cooled", ["air-cooled", "air cooled", "aircooled"]],
-    ["Performance", ["performance", "supercar", "hypercar"]],
+    ["Classic", ["classic", "classics", "vintage", "historic", "collector", "collecting", "concours"]],
+    ["Aircooled", ["air-cooled", "air cooled", "aircooled"]],
+    ["Performance", ["performance"]],
     ["Sports Cars", ["sports car", "sportscar", "gt car"]],
     ["Supercars", ["supercar", "hypercar"]],
-    ["Modern Classics", ["modern classic", "youngtimer"]],
-    ["Modified", ["modified", "stance", "tuned", "restomod"]],
+    ["Modern", ["modern classic", "youngtimer"]],
+    ["Modified", ["modified", "stance", "restomod", "engine swap", "ls swap", "k-swap"]],
     ["Tuning", ["tuning", "tuned", "aftermarket"]],
     ["JDM", ["jdm"]],
-    ["Euro", ["euro"]],
-    ["American", ["american muscle", "muscle car", "hot rod"]],
-    ["Motorsport", ["motorsport", "racing", "grand prix", "le mans", "rally"]],
-    ["Rally", ["rally", "wrc"]],
-    ["Drift", ["drift", "drifting"]],
-    ["Drag Racing", ["drag racing", "drag strip"]],
+    ["VAG", [" vag ", "vag ", "euro"]],
+    ["Muscle", ["american muscle", "muscle car", "muscle"]],
+    ["Hot Rod", ["hot rod", "hotrod"]],
+    ["Motorsport", ["motorsport", "racing", "grand prix", "le mans", "rally", "wrc", "drag racing", "drag strip"]],
+    ["Drifting", ["drift", "drifting"]],
     ["Track", ["track day", "time attack"]],
-    ["Design", ["design", "styling", "concept", "studio"]],
-    ["Automotive Design", ["automotive design", "car design"]],
-    ["Car Culture", ["culture", "lifestyle", "scene"]],
-    ["Road Trips", ["road trip", "touring", "drive"]],
-    ["Collector Cars", ["collector", "concours", "auction"]],
-    ["Collecting", ["collecting"]],
+    ["Styling", ["design", "styling", "concept", "studio", "car culture", "culture", "lifestyle", "scene", "detailing", "photography", "photographer"]],
+    ["Camper/Bus", ["road trip", "touring", "camper", " vw bus", "van life"]],
     ["Restoration", ["restoration", "restore", "barn find"]],
-    ["Photography", ["photography", "photographer", "shoot"]],
-    ["Events", ["event", "goodwood", "villa d'este", "retromobile"]],
-    ["Engine Swaps", ["engine swap", "ls swap", "k-swap"]],
+    ["Electric", ["electric car", " ev ", "battery electric"]],
+    ["4x4", ["4x4", "four-wheel", "off-road", "offroad"]],
+    ["Lightweight", ["lightweight"]],
+    ["Luxury", ["luxury", "bespoke"]],
+    ["OEM+", ["oem+", "oem plus"]],
   ];
   for (const [interest, needles] of rules) {
     if (needles.some((needle) => text.includes(needle))) hits.push(interest);
@@ -309,6 +305,4 @@ function extractLocations(text: string): string[] {
 
 export { haystack as entityHaystack };
 
-export function isKnownInterest(value: string): value is Interest {
-  return (INTEREST_TAXONOMY as readonly string[]).includes(value);
-}
+export { isKnownInterest } from "./interest-taxonomy";

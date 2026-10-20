@@ -1,4 +1,5 @@
 import catalogFile from "@/config/print-publications.json";
+import { canonicalInterest } from "./interest-taxonomy";
 import { forYouTestIsActive, type ForYouTestProfile } from "./for-you-test";
 
 export type PrintPublicationStatus = "active" | "ceased";
@@ -142,7 +143,7 @@ export function printPersonalisationScore(publication: PrintPublication, profile
   if (!forYouTestIsActive(profile)) return 0;
   let score = 0;
   const make = profile.make ? norm(profile.make) : "";
-  const interests = profile.interests.map(norm);
+  const interests = profile.interests.map((item) => norm(canonicalInterest(item)));
 
   if (make && publication.marques.some((marque) => norm(marque) === make)) score += 40;
 
@@ -153,7 +154,7 @@ export function printPersonalisationScore(publication: PrintPublication, profile
   const jdmBoost = rankedBoost(publication.slug, MODIFIED_JDM_FIRST);
   if (modified && jdmBoost != null) score += 70 - jdmBoost * 4;
 
-  const ferrariClassic = make === "ferrari" && interests.includes("classic");
+  const ferrariClassic = make === "ferrari" && interests.includes("classics");
   const ferrariBoost = rankedBoost(publication.slug, CLASSIC_FERRARI_FIRST);
   if (ferrariClassic && ferrariBoost != null) score += 80 - ferrariBoost * 4;
 
@@ -167,7 +168,7 @@ export function printPersonalisationScore(publication: PrintPublication, profile
 function briefRank(publication: PrintPublication, profile: ForYouTestProfile): number | null {
   if (!forYouTestIsActive(profile)) return null;
   const make = profile.make ? norm(profile.make) : "";
-  const interests = profile.interests.map(norm);
+  const interests = profile.interests.map((item) => norm(canonicalInterest(item)));
   if (make === "porsche") return rankedBoost(publication.slug, PORSCHE_FIRST);
   if (interests.includes("modified") || interests.includes("jdm")) {
     return rankedBoost(publication.slug, MODIFIED_JDM_FIRST);
@@ -198,7 +199,7 @@ export function orderPrintCatalogue(
 
 export function printEditorialCopy(profile?: ForYouTestProfile): { heading: string; dek: string } {
   const make = profile?.make ? norm(profile.make) : "";
-  const interests = (profile?.interests ?? []).map(norm);
+  const interests = (profile?.interests ?? []).map((item) => norm(canonicalInterest(item)));
   if (make === "porsche") {
     return {
       heading: "Worth holding",
@@ -231,10 +232,10 @@ export function printEditorialCopy(profile?: ForYouTestProfile): { heading: stri
 
 function briefList(profile: ForYouTestProfile): string[] | null {
   const make = profile.make ? norm(profile.make) : "";
-  const interests = profile.interests.map(norm);
+  const interests = profile.interests.map((item) => norm(canonicalInterest(item)));
   if (make === "porsche") return PORSCHE_FIRST;
   if (interests.includes("modified") || interests.includes("jdm")) return MODIFIED_JDM_FIRST;
-  if (make === "ferrari" && interests.includes("classic")) return CLASSIC_FERRARI_FIRST;
+  if (make === "ferrari" && interests.includes("classics")) return CLASSIC_FERRARI_FIRST;
   return null;
 }
 

@@ -1,5 +1,8 @@
+import { canonicalInterest } from "./interest-taxonomy";
 import type { ForYouTestProfile } from "./for-you-test";
 import type { GarageVehicle } from "./rank";
+
+export { canonicalInterest } from "./interest-taxonomy";
 
 /** Session garage + interests. ScoreArticle never reads DRV247 auth directly. */
 export type PersonalisationContext = {
@@ -23,21 +26,6 @@ export type Drv247User = {
   location?: string | null;
 };
 
-const INTEREST_ALIASES: Record<string, string> = {
-  classic: "Classic",
-  classics: "Classic",
-  performance: "Performance",
-  "air-cooled": "Air-cooled",
-  "air cooled": "Air-cooled",
-  aircooled: "Air-cooled",
-  jdm: "JDM",
-  modified: "Modified",
-  motorsport: "Motorsport",
-  "road trip": "Road Trips",
-  "road trips": "Road Trips",
-  roadtrips: "Road Trips",
-};
-
 const VARIANT_ALIASES: Record<string, string[]> = {
   gtb: ["gtb", "355 gtb", "f355 gtb"],
   tb: ["tb", "348 tb"],
@@ -57,11 +45,6 @@ const VARIANT_ALIASES: Record<string, string[]> = {
 
 function norm(value: string) {
   return value.toLowerCase().trim().replace(/\s+/g, " ");
-}
-
-export function canonicalInterest(value: string): string {
-  const key = norm(value);
-  return INTEREST_ALIASES[key] ?? value.trim();
 }
 
 export function interestsMatch(articleInterest: string, userInterest: string) {
@@ -95,11 +78,11 @@ export function vehicleCultureTags(vehicle: GarageVehicle): string[] {
   const generation = norm(vehicle.generation ?? "");
   const tags = new Set<string>();
   if (make === "ferrari" || model === "f355") {
-    for (const tag of ["Supercars", "Sports Cars", "Performance", "Classic", "Euro"]) tags.add(tag);
+    for (const tag of ["Supercars", "Sports Cars", "Performance", "Classic", "Luxury"]) tags.add(tag);
   }
   if (make === "porsche") {
-    for (const tag of ["Classic", "Euro", "Performance", "Sports Cars"]) tags.add(tag);
-    if (["964", "993"].includes(generation) || model === "356") tags.add("Air-cooled");
+    for (const tag of ["Classic", "Performance", "Sports Cars", "VAG"]) tags.add(tag);
+    if (["964", "993"].includes(generation) || model === "356") tags.add("Aircooled");
   }
   if (make === "nissan" || model === "skyline" || model === "240sx") {
     for (const tag of ["JDM", "Performance", "Modified"]) tags.add(tag);

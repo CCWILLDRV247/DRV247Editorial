@@ -220,11 +220,11 @@ export async function seedEngine(db: Db) {
     ]);
     await db.insert(demoUserInterests).values([
       { userId: "demo-chris", interest: "Classic" },
-      { userId: "demo-chris", interest: "Collector Cars" },
-      { userId: "demo-chris", interest: "Photography" },
+      { userId: "demo-chris", interest: "Luxury" },
+      { userId: "demo-chris", interest: "Styling" },
       { userId: "demo-355", interest: "Performance" },
       { userId: "demo-355", interest: "Sports Cars" },
-      { userId: "demo-355", interest: "Design" },
+      { userId: "demo-355", interest: "Styling" },
       { userId: "demo-m3", interest: "Modified" },
       { userId: "demo-m3", interest: "Performance" },
     ]);

@@ -1317,7 +1317,7 @@ describe("for you test profile", () => {
     const civic = live.makes.find((item) => item.name === "Honda")?.models.find((item) => item.name === "Civic");
     assert.ok(civic?.generations.includes("EK9"));
     assert.ok(civic?.variants.includes("Type R"));
-    assert.ok(live.interests.includes("Vibes"));
+    assert.ok(!live.interests.includes("Vibes"), "off-catalog interests stay out of the product filter UI");
     assert.ok(live.locations.includes("Suzuka"));
     const injected = withProfileInCatalog(gazetteer, honda);
     assert.ok(injected.makes.some((item) => item.name === "Honda"));
@@ -2155,7 +2155,7 @@ describe("vehicle-aware For You ranking", () => {
     assert.ok(c2.generations.includes("964"));
     assert.ok(c2.variants.includes("C2"));
     const air = extractEntities("An air-cooled 911 on the Stelvio");
-    assert.ok(air.interests.includes("Air-cooled"));
+    assert.ok(air.interests.includes("Aircooled"));
   });
 
   it("diversifies a top-five run of the same variant", async () => {
