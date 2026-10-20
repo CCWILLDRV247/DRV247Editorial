@@ -65,7 +65,11 @@ describe("editorial composition", () => {
     assert.doesNotMatch(menu, /\/policy/);
     assert.doesNotMatch(menu, />\s*Desk\s*</);
     assert.doesNotMatch(menu, /\/admin\/engine/);
-    assert.ok(!PRIMARY_NAV.some((item) => item.href === "/policy" || /policy/i.test(item.name)));
+    assert.ok(
+      !PRIMARY_NAV.some(
+        (item) => /policy/i.test(item.href) || /policy/i.test(item.name) || /policy/i.test(item.slug),
+      ),
+    );
   });
 
   it("policy page ships approved publisher copy as a magazine reading route", () => {
