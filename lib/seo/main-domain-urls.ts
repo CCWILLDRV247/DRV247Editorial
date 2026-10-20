@@ -16,7 +16,7 @@ export const MAIN_DOMAIN_INDEXABLE_PATHS = [
   "/qrcode",
 ] as const;
 
-/** Cross-origin marketing URLs prepended to the editorial sitemap urlset. */
+/** Marketing urlset rows for Hostinger `sitemap-marketing.xml` export (not used in editorial sitemap). */
 export function mainDomainSitemapEntries(): MetadataRoute.Sitemap {
   return MAIN_DOMAIN_INDEXABLE_PATHS.map((path) => ({
     url: path === "/" ? MAIN_DOMAIN_ORIGIN : `${MAIN_DOMAIN_ORIGIN}${path}`,
