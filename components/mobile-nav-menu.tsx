@@ -20,6 +20,9 @@ function navHrefActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const MOBILE_NAV_LINK_CLASS =
+  "block py-5 font-display text-[2rem] font-bold uppercase leading-none tracking-[-0.02em] sm:text-[2.125rem]";
+
 export function MobileNavMenu({
   testQuery,
   className,
@@ -48,7 +51,7 @@ export function MobileNavMenu({
       <SheetContent
         side="right"
         showCloseButton
-        className="w-[min(100vw,20rem)] gap-0 border-[#1b1d1f]/10 bg-white p-0 sm:max-w-xs"
+        className="inset-x-0 w-full max-w-none gap-0 border-[#1b1d1f]/10 bg-white p-0 sm:max-w-none"
       >
         <div className="flex items-center justify-between border-b border-[#1b1d1f]/10 py-4 pl-5 pr-14">
           <SheetTitle className="sr-only">Site navigation</SheetTitle>
@@ -75,7 +78,7 @@ export function MobileNavMenu({
                     href={item.href}
                     query={testQuery}
                     onClick={() => setOpen(false)}
-                    className={`block py-4 font-display text-[1.625rem] font-bold uppercase leading-none tracking-[-0.02em] ${
+                    className={`${MOBILE_NAV_LINK_CLASS} ${
                       active ? "text-[#1b1d1f]" : "text-[#1b1d1f]/75"
                     }`}
                   >
