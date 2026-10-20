@@ -2,6 +2,7 @@
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -20,12 +21,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 const selectClass =
-  "h-11 min-w-0 w-full appearance-none rounded-lg border border-[#1b1d1f] bg-white px-3.5 pr-10 font-sans text-[15px] font-normal text-[#1b1d1f]";
+  "h-[47px] min-w-0 w-full appearance-none rounded-[5px] border border-[#1b1d1f] bg-white px-[18px] pr-10 font-sans text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]";
 
 function interestChipClass(on: boolean) {
   return on
-    ? "flex h-11 w-full items-center justify-center rounded-lg border border-[#1b1d1f] bg-[#1b1d1f] px-1 text-center font-display text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-white"
-    : "flex h-11 w-full items-center justify-center rounded-lg border border-[#1b1d1f] bg-white px-1 text-center font-display text-[11px] font-bold uppercase leading-none tracking-[0.04em] text-[#1b1d1f]";
+    ? "flex h-[52px] w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-[#1b1d1f] px-1 text-center font-display text-[18px] font-extrabold uppercase leading-6 text-white"
+    : "flex h-[52px] w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white px-1 text-center font-display text-[18px] font-extrabold uppercase leading-6 text-[#1b1d1f]";
 }
 
 export function PersonalizationInterestsModal({
@@ -93,93 +94,97 @@ export function PersonalizationInterestsModal({
       }}
     >
       <DialogContent
-        showCloseButton
+        showCloseButton={false}
         aria-describedby="personalization-interests-description"
-        className="flex max-h-[min(92vh,820px)] w-[calc(100%-2rem)] max-w-[25.5rem] flex-col gap-0 overflow-hidden rounded-[1.25rem] border border-[#1b1d1f]/20 bg-white p-0 text-[#1b1d1f] shadow-none ring-0 sm:max-w-[25.5rem] [&_[data-slot=dialog-close]]:top-3.5 [&_[data-slot=dialog-close]]:right-3.5 [&_[data-slot=dialog-close]]:text-[#1b1d1f] [&_[data-slot=dialog-close]]:hover:bg-transparent"
+        className="flex max-h-[min(92vh,1073px)] w-[calc(100%-20px)] max-w-[468px] flex-col gap-0 overflow-hidden rounded-[15px] border-[1.5px] border-[#c4c4c4] bg-white p-0 text-[#1b1d1f] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.16)] ring-0 sm:max-w-[468px]"
       >
-        <DialogHeader className="gap-0 px-5 pt-12 pb-4 text-left sm:px-5">
-          <DialogTitle className="font-display text-[2.95rem] font-black uppercase leading-[0.74] tracking-[-0.045em] text-[#1b1d1f]">
-            <span className="block">Create a</span>
-            <span className="block">personalised</span>
-            <span className="block">magazine</span>
-          </DialogTitle>
-          <p className="mt-5 font-display text-[1.375rem] font-extrabold uppercase leading-[0.88] tracking-[-0.02em] text-[#1b1d1f]">
-            <span className="block">We have over 80 sources</span>
-            <span className="block">from around the world</span>
+        <DialogClose className="absolute top-[16.5px] right-[20px] z-10 flex border-0 bg-transparent p-0">
+          <img
+            src="/personalization-close.svg"
+            alt=""
+            width={14.7333}
+            height={14.7333}
+            aria-hidden
+          />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-[17px] pt-[44px] pb-5">
+          <DialogHeader className="gap-5 text-left">
+            <DialogTitle className="font-display text-[clamp(3.75rem,17.1vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">
+              <span className="block">Create a</span>
+              <span className="block">personalised</span>
+              <span className="block">magazine</span>
+            </DialogTitle>
+            <p className="font-display text-[clamp(1.65rem,7.48vw,2.1875rem)] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f]">
+              <span className="block">We have over 80 sources</span>
+              <span className="block">from around the world</span>
+            </p>
+            <DialogDescription
+              id="personalization-interests-description"
+              className="font-sans text-[18px] font-normal leading-[22px] tracking-[-0.02em] text-[#1b1d1f]"
+            >
+              You can personalise all of the content towards a marque and the interests you have.
+            </DialogDescription>
+          </DialogHeader>
+          <p className="font-display text-[clamp(1.25rem,5.34vw,1.5625rem)] font-extrabold uppercase leading-[0.64] text-[#1b1d1f]">
+            Marque
           </p>
-          <DialogDescription
-            id="personalization-interests-description"
-            className="mt-3 font-sans text-[15px] font-normal leading-[1.35] text-[#1b1d1f]"
+          <div className="relative">
+            <select
+              aria-label="Marque"
+              className={selectClass}
+              value={draftMake}
+              onChange={(event) => setDraftMake(event.target.value)}
+            >
+              <option value="">Any make</option>
+              {makes.map((make) => (
+                <option key={make} value={make}>
+                  {make}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#1b1d1f]"
+              strokeWidth={2}
+            />
+          </div>
+          <p className="font-display text-[clamp(1.25rem,5.34vw,1.5625rem)] font-extrabold uppercase leading-[0.64] text-[#1b1d1f]">
+            Interests
+          </p>
+          <div
+            className="grid grid-cols-3 gap-[10px]"
+            role="group"
+            aria-label="Select your interests"
           >
-            You can personalise all of the content towards a marque and the interests you have.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 sm:px-5">
-          <div className="flex flex-col gap-5">
-            <div>
-              <p className="mb-2.5 font-display text-[15px] font-bold uppercase tracking-[0.02em] text-[#1b1d1f]">
-                Marque
-              </p>
-              <div className="relative">
-                <select
-                  aria-label="Marque"
-                  className={selectClass}
-                  value={draftMake}
-                  onChange={(event) => setDraftMake(event.target.value)}
+            {interests.map((interest) => {
+              const on = selected.includes(interest);
+              return (
+                <button
+                  key={interest}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => toggleInterest(interest)}
+                  className={interestChipClass(on)}
                 >
-                  <option value="">Any make</option>
-                  {makes.map((make) => (
-                    <option key={make} value={make}>
-                      {make}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  aria-hidden
-                  className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#1b1d1f]"
-                  strokeWidth={2}
-                />
-              </div>
-            </div>
-            <div>
-              <p className="mb-2.5 font-display text-[15px] font-bold uppercase tracking-[0.02em] text-[#1b1d1f]">
-                Interests
-              </p>
-              <div
-                className="grid grid-cols-3 gap-2.5"
-                role="group"
-                aria-label="Select your interests"
-              >
-                {interests.map((interest) => {
-                  const on = selected.includes(interest);
-                  return (
-                    <button
-                      key={interest}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => toggleInterest(interest)}
-                      className={interestChipClass(on)}
-                    >
-                      {interest}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                  {interest}
+                </button>
+              );
+            })}
           </div>
         </div>
-        <DialogFooter className="mx-0 mb-0 flex-row items-center justify-end gap-4 rounded-b-[1.25rem] border-t border-[#1b1d1f]/10 bg-white px-5 py-4 sm:flex-row sm:justify-end sm:px-5">
+        <DialogFooter className="mx-0 mb-0 flex-row items-center justify-end gap-6 rounded-b-[15px] border-t border-[#e5e5e5] bg-[#fafafa] px-[17px] py-[18px] sm:flex-row sm:justify-end sm:px-[17px]">
           <button
             type="button"
             onClick={dismiss}
-            className="font-display text-[10px] font-bold uppercase tracking-[0.12em] text-[#1b1d1f]/70"
+            className="font-display text-[10.5px] font-extrabold uppercase leading-4 text-[#626262] underline decoration-solid underline-offset-2"
           >
             Skip for now
           </button>
           <button
             type="button"
             onClick={applyPersonalisation}
-            className="h-11 shrink-0 rounded-lg bg-[#1b1d1f] px-7 font-display text-[12px] font-bold uppercase tracking-[0.12em] text-white"
+            className="flex h-[52px] w-[153px] shrink-0 items-center justify-center rounded-[5px] bg-[#1b1d1f] font-display text-[18px] font-extrabold uppercase leading-6 text-white"
           >
             Personalise
           </button>
