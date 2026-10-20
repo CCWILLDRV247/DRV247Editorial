@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { editorialRobots } from "./robots-config";
+import { MAIN_DOMAIN_INDEXABLE_PATHS, MAIN_DOMAIN_ORIGIN } from "./main-domain-urls";
 import {
   buildSitemapEntries,
   countStoryUrlsInSitemap,
@@ -66,8 +67,13 @@ describe("editorial SEO sitemap", () => {
   it("buildSitemapEntries includes static routes and eligible story IDs", () => {
     const sourceMap = new Map<string, MediaSourceRow>([["auto_001", source()]]);
     const entries = buildSitemapEntries([story({ id: 7 }), story({ id: 8, sourceId: "off" })], sourceMap, new Set());
+    assert.ok(entries.some((entry) => entry.url === `${MAIN_DOMAIN_ORIGIN}/partners`));
     assert.ok(entries.some((entry) => entry.url.endsWith("/story/7")));
     assert.ok(!entries.some((entry) => entry.url.endsWith("/story/8")));
     assert.equal(countStoryUrlsInSitemap(entries), 1);
+    assert.equal(
+      entries.filter((entry) => entry.url.startsWith(MAIN_DOMAIN_ORIGIN)).length,
+      MAIN_DOMAIN_INDEXABLE_PATHS.length,
+    );
   });
 });
