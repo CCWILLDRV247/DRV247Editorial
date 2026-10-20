@@ -96,7 +96,7 @@ export function HomeFeed({
 }) {
   return (
     <MagazinePageTransition>
-      <ListingMain className="relative z-0 pt-2">
+      <ListingMain className="relative z-0">
         <div className={`flex flex-col pb-20 md:pb-24 ${HOMEPAGE_COMPOSITION.pageGap}`}>
           <Suspense fallback={<HomeHeroFallback />}>
             <HomeHero testProfile={testProfile} />
