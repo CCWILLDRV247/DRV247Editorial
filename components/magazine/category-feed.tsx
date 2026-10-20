@@ -38,7 +38,7 @@ export async function CategoryFeed({
 
   return (
     <MagazinePageTransition>
-      <ListingMain className="pt-2">
+      <ListingMain>
         <StoryFeed
           stories={stories}
           copyKey={copyKey}

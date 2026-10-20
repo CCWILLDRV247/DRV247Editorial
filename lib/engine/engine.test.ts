@@ -1632,6 +1632,8 @@ describe("for you test profile", () => {
     assert.match(listingMain, /nameListingForStoryBack/);
     assert.match(homeFeed, /<ListingMain/);
     assert.match(categoryFeed, /<ListingMain/);
+    assert.doesNotMatch(homeFeed, /ListingMain className="[^"]*\bpt-2\b/);
+    assert.doesNotMatch(categoryFeed, /ListingMain className="[^"]*\bpt-2\b/);
     assert.doesNotMatch(back, /nameListingForStoryBack/);
     const filter = readFileSync(new URL("../../components/for-you-test-filter.tsx", import.meta.url), "utf8");
     const panel = readFileSync(new URL("../../components/for-you-test-filter-panel.tsx", import.meta.url), "utf8");
