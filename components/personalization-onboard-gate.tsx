@@ -1,7 +1,7 @@
 "use client";
 
 import { PersonalizationInterestsModal } from "@/components/personalization-interests-modal";
-import type { ForYouTestProfile } from "@/lib/engine/for-you-test";
+import type { ForYouTestCatalog, ForYouTestProfile } from "@/lib/engine/for-you-test";
 import {
   isPersonalizationOnboarded,
   readForYouTestStoredQuery,
@@ -12,9 +12,11 @@ import { useEffect, useState } from "react";
 
 export function PersonalizationOnboardGate({
   urlProfile,
+  catalog,
   pathname = "/",
 }: {
   urlProfile: ForYouTestProfile;
+  catalog: ForYouTestCatalog;
   pathname?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -39,6 +41,7 @@ export function PersonalizationOnboardGate({
       open={open}
       onOpenChange={setOpen}
       pathname={pathname}
+      catalog={catalog}
       appliedProfile={{ make: urlProfile.make, interests: urlProfile.interests }}
     />
   );
