@@ -117,7 +117,9 @@ export const HOMEPAGE_COMPOSITION = {
 export const SITE_FOOTER = {
   legal: "DRV247 is a trading name of DriveClub Limited.",
   privacyLabel: "Privacy Policy",
+  policyLabel: "Policy",
   contactLabel: "Contact Us",
   privacyHref: "https://drv247.app/tos",
+  policyHref: "/policy",
   contactHref: "mailto:support@drv247.com",
 } as const;

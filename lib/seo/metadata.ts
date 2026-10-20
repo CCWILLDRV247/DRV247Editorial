@@ -38,6 +38,29 @@ function baseTwitter(title: string, description: string, imageUrl?: string | nul
   };
 }
 
+export const POLICY_META = {
+  title: "Editorial policy",
+  description:
+    "What DRV247 Editorial indexes, why we only show teasers, how we treat source robots.txt, and how a publisher can opt out.",
+  path: "/policy",
+} as const;
+
+export function buildPolicyMetadata(): Metadata {
+  const { title, description, path } = POLICY_META;
+  const canonical = editorialCanonicalPath(path);
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    robots: { index: true, follow: true },
+    openGraph: {
+      ...baseOpenGraph(title, description, canonical),
+      type: "website",
+    },
+    twitter: baseTwitter(title, description),
+  };
+}
+
 export function buildHomeMetadata(
   searchParams: Record<string, string | string[] | undefined>,
 ): Metadata {

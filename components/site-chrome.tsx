@@ -102,6 +102,10 @@ export function SiteFooter() {
             {SITE_FOOTER.privacyLabel}
           </a>
           {" | "}
+          <a href={SITE_FOOTER.policyHref} className={HOMEPAGE_COMPOSITION.footerLink}>
+            {SITE_FOOTER.policyLabel}
+          </a>
+          {" | "}
           <a href={SITE_FOOTER.contactHref} className={HOMEPAGE_COMPOSITION.footerLink}>
             {SITE_FOOTER.contactLabel}
           </a>
