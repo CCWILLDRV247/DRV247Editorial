@@ -2,6 +2,7 @@
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -15,16 +16,17 @@ import {
   type ForYouTestProfile,
 } from "@/lib/engine/for-you-test";
 import { markPersonalizationOnboardedStorage } from "@/lib/engine/personalization-onboard";
+import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 const selectClass =
-  "h-9 min-w-0 w-full rounded-[5px] border border-[#1b1d1f] bg-white px-2 font-display text-sm font-bold uppercase text-[#1b1d1f]";
+  "h-[47px] min-w-0 w-full appearance-none rounded-[5px] border border-[#1b1d1f] bg-white px-[18px] pr-10 font-sans text-[18px] leading-[22px] tracking-[-0.02em] text-[#1b1d1f]";
 
 function interestChipClass(on: boolean) {
   return on
-    ? "inline-flex min-h-8 items-center rounded-[4px] bg-[#1b1d1f] px-3 py-1.5 font-display text-xs font-bold uppercase text-white"
-    : "inline-flex min-h-8 items-center rounded-[4px] border border-[#1b1d1f]/30 bg-white px-3 py-1.5 font-display text-xs font-bold uppercase text-[#1b1d1f]";
+    ? "flex h-[52px] w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-[#1b1d1f] px-1 text-center font-display text-[18px] font-extrabold uppercase leading-6 text-white"
+    : "flex h-[52px] w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white px-1 text-center font-display text-[18px] font-extrabold uppercase leading-6 text-[#1b1d1f]";
 }
 
 export function PersonalizationInterestsModal({
@@ -92,26 +94,44 @@ export function PersonalizationInterestsModal({
       }}
     >
       <DialogContent
-        showCloseButton
+        showCloseButton={false}
         aria-describedby="personalization-interests-description"
-        className="flex max-h-[min(90vh,720px)] w-[calc(100%-2rem)] max-w-lg flex-col gap-0 overflow-hidden rounded-xl border border-[#1b1d1f]/25 bg-white p-0 text-[#1b1d1f] shadow-sm sm:max-w-lg"
+        className="flex max-h-[min(92vh,1073px)] w-[calc(100%-20px)] max-w-[468px] flex-col gap-0 overflow-hidden rounded-[15px] border-[1.5px] border-[#c4c4c4] bg-white p-0 text-[#1b1d1f] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.16)] ring-0 sm:max-w-[468px]"
       >
-        <DialogHeader className="gap-2 px-4 pt-5 pb-3 sm:px-6">
-          <DialogTitle className="font-display text-xl font-extrabold uppercase tracking-[0.04em] text-[#1b1d1f]">
-            Make DRV247 yours
-          </DialogTitle>
-          <DialogDescription
-            id="personalization-interests-description"
-            className="font-display text-sm font-medium normal-case leading-snug text-[#1b1d1f]/75"
-          >
-            Choose your vehicle and a few interests — we&apos;ll rank For You toward the stories you
-            actually care about. You can change these anytime from the filter panel.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-6">
-          <div className="flex flex-col gap-3">
+        <DialogClose className="absolute top-[16.5px] right-[20px] z-10 flex border-0 bg-transparent p-0">
+          <img
+            src="/personalization-close.svg"
+            alt=""
+            width={14.7333}
+            height={14.7333}
+            aria-hidden
+          />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-[17px] pt-[44px] pb-5">
+          <DialogHeader className="gap-5 text-left">
+            <DialogTitle className="font-display text-[clamp(3.75rem,17.1vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]">
+              <span className="block">Create a</span>
+              <span className="block">personalised</span>
+              <span className="block">magazine</span>
+            </DialogTitle>
+            <p className="font-display text-[clamp(1.65rem,7.48vw,2.1875rem)] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f]">
+              <span className="block">We have over 80 sources</span>
+              <span className="block">from around the world</span>
+            </p>
+            <DialogDescription
+              id="personalization-interests-description"
+              className="font-sans text-[18px] font-normal leading-[22px] tracking-[-0.02em] text-[#1b1d1f]"
+            >
+              You can personalise all of the content towards a marque and the interests you have.
+            </DialogDescription>
+          </DialogHeader>
+          <p className="font-display text-[clamp(1.25rem,5.34vw,1.5625rem)] font-extrabold uppercase leading-[0.64] text-[#1b1d1f]">
+            Marque
+          </p>
+          <div className="relative">
             <select
-              aria-label="Make"
+              aria-label="Marque"
               className={selectClass}
               value={draftMake}
               onChange={(event) => setDraftMake(event.target.value)}
@@ -123,47 +143,50 @@ export function PersonalizationInterestsModal({
                 </option>
               ))}
             </select>
-            <div>
-              <p className="mb-2 font-display text-xs font-bold uppercase tracking-[0.08em] text-[#1b1d1f]/55">
-                Interests
-              </p>
-              <div
-                className="flex flex-wrap gap-2"
-                role="group"
-                aria-label="Select your interests"
-              >
-                {interests.map((interest) => {
-                  const on = selected.includes(interest);
-                  return (
-                    <button
-                      key={interest}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => toggleInterest(interest)}
-                      className={interestChipClass(on)}
-                    >
-                      {interest}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <ChevronDown
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#1b1d1f]"
+              strokeWidth={2}
+            />
+          </div>
+          <p className="font-display text-[clamp(1.25rem,5.34vw,1.5625rem)] font-extrabold uppercase leading-[0.64] text-[#1b1d1f]">
+            Interests
+          </p>
+          <div
+            className="grid grid-cols-3 gap-[10px]"
+            role="group"
+            aria-label="Select your interests"
+          >
+            {interests.map((interest) => {
+              const on = selected.includes(interest);
+              return (
+                <button
+                  key={interest}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => toggleInterest(interest)}
+                  className={interestChipClass(on)}
+                >
+                  {interest}
+                </button>
+              );
+            })}
           </div>
         </div>
-        <DialogFooter className="mx-0 mb-0 flex-col gap-2 rounded-b-xl border-t border-[#1b1d1f]/12 bg-[#fafafa] px-4 py-4 sm:flex-row sm:items-center sm:justify-start sm:px-6">
-          <button
-            type="button"
-            onClick={applyPersonalisation}
-            className="w-full rounded-[5px] border border-[#1b1d1f] bg-[#1b1d1f] px-3 py-2 font-display text-xs font-bold uppercase text-white sm:w-auto sm:self-start"
-          >
-            Personalise
-          </button>
+        <DialogFooter className="mx-0 mb-0 flex-row items-center justify-end gap-6 rounded-b-[15px] border-t border-[#e5e5e5] bg-[#fafafa] px-[17px] py-[18px] sm:flex-row sm:justify-end sm:px-[17px]">
           <button
             type="button"
             onClick={dismiss}
-            className="w-full rounded-[5px] border border-transparent px-3 py-2 font-display text-sm font-bold uppercase text-[#1b1d1f]/70 underline sm:w-auto sm:self-start sm:no-underline"
+            className="font-display text-[10.5px] font-extrabold uppercase leading-4 text-[#626262] underline decoration-solid underline-offset-2"
           >
             Skip for now
+          </button>
+          <button
+            type="button"
+            onClick={applyPersonalisation}
+            className="flex h-[52px] w-[153px] shrink-0 items-center justify-center rounded-[5px] bg-[#1b1d1f] font-display text-[18px] font-extrabold uppercase leading-6 text-white"
+          >
+            Personalise
           </button>
         </DialogFooter>
       </DialogContent>
