@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Alumni_Sans } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { STORY_MEDIA_BOOT_SCRIPT } from "@/lib/engine/story-media-boot";
 import "./globals.css";
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </Script>
         {children}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
