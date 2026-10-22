@@ -168,6 +168,66 @@ describe("sitemap", () => {
       ),
       true,
     );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.magnetomagazine.com/store/",
+        "https://www.magnetomagazine.com/articles/",
+      ),
+      false,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.magnetomagazine.com/articles/one-of-a-kind-aston-martin-lagonda-shooting-brake-is-up-for-grabs/",
+        "https://www.magnetomagazine.com/articles/",
+      ),
+      true,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.hagerty.co.uk/legal/privacy-policy/",
+        "https://www.hagerty.co.uk/entertainment/",
+      ),
+      false,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.hagerty.co.uk/legal/terms-of-use/",
+        "https://www.hagerty.co.uk/entertainment/",
+      ),
+      false,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.hagerty.co.uk/insurance/classic-car-insurance/",
+        "https://www.hagerty.co.uk/entertainment/",
+      ),
+      false,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.hagerty.co.uk/entertainment/",
+        "https://www.hagerty.co.uk/entertainment/",
+      ),
+      false,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://www.hagerty.co.uk/articles/lost-in-africa/",
+        "https://www.hagerty.co.uk/entertainment/",
+      ),
+      true,
+    );
+    assert.equal(
+      looksLikeArticleUrl("https://stanceauto.co.uk/featured", "https://stanceauto.co.uk/featured"),
+      false,
+    );
+    assert.equal(
+      looksLikeArticleUrl(
+        "https://stanceauto.co.uk/bmw-e46-m3-widebody-build-s54",
+        "https://stanceauto.co.uk/featured",
+      ),
+      true,
+    );
   });
 });
 
@@ -406,6 +466,7 @@ describe("enabled sources", () => {
       WAVE3_SOURCE_IDS,
       WAVE4_SOURCE_IDS,
       WAVE5_SOURCE_IDS,
+      DESK_PRIORITY_SOURCE_IDS,
       UNDERGROUND_SOURCE_IDS,
       ENABLED_SOURCE_IDS,
       DISABLED_SOURCE_IDS,
@@ -417,8 +478,11 @@ describe("enabled sources", () => {
     assert.equal(WAVE3_SOURCE_IDS.length, 10);
     assert.equal(WAVE4_SOURCE_IDS.length, 10);
     assert.equal(WAVE5_SOURCE_IDS.length, 9);
+    assert.equal(DESK_PRIORITY_SOURCE_IDS.length, 2);
     assert.equal(UNDERGROUND_SOURCE_IDS.length, 30);
-    assert.equal(ENABLED_SOURCE_IDS.length, 76);
+    assert.equal(ENABLED_SOURCE_IDS.length, 78);
+    assert.equal(ENABLED_SOURCE_IDS[10], "auto_133");
+    assert.equal(ENABLED_SOURCE_IDS[11], "auto_134");
     assert.ok((WAVE2_SOURCE_IDS as readonly string[]).includes("auto_051"));
     assert.ok((WAVE3_SOURCE_IDS as readonly string[]).includes("auto_022"));
     assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_022"), false);
@@ -458,8 +522,19 @@ describe("enabled sources", () => {
     assert.equal(ENABLED_SOURCE_SET.has("auto_055"), true);
     assert.equal(ENABLED_SOURCE_SET.has("auto_095"), true);
     const csv = loadCsvSources();
-    assert.equal(csv.length, 81);
+    assert.equal(csv.length, 83);
     const byId = new Map(csv.map((row) => [row.id, row]));
+    assert.equal(byId.get("auto_003")?.publication, "Magneto");
+    assert.equal(byId.get("auto_003")?.url, "https://www.magnetomagazine.com/articles/");
+    assert.equal(byId.get("auto_003")?.rss_url, "https://www.magnetomagazine.com/feed/");
+    assert.equal(byId.get("auto_003")?.rss_available, "yes");
+    assert.equal(byId.get("auto_003")?.source_type, "rss");
+    assert.equal(byId.get("auto_003")?.rss_verified_status, "confirmed");
+    assert.equal(byId.get("auto_003")?.rss_confidence, "verified");
+    assert.equal(byId.get("auto_005")?.publication, "Classic Driver");
+    assert.equal(byId.get("auto_005")?.url, "https://www.classicdriver.com/en");
+    assert.equal(byId.get("auto_005")?.rss_url, "");
+    assert.equal(byId.get("auto_005")?.source_type, "scrape");
     assert.equal(byId.get("auto_022")?.publication, "Fast Car");
     assert.equal(byId.get("auto_054")?.publication, "Petrolicious");
     assert.equal(byId.get("auto_054")?.enabled.toLowerCase(), "true");
@@ -475,6 +550,27 @@ describe("enabled sources", () => {
     assert.equal(byId.get("auto_132")?.enabled.toLowerCase(), "true");
     assert.equal(ENABLED_SOURCE_SET.has("auto_132"), true);
     assert.ok((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_132"));
+    assert.equal(byId.get("auto_133")?.publication, "Stance Auto");
+    assert.equal(byId.get("auto_133")?.url, "https://stanceauto.co.uk/featured");
+    assert.equal(byId.get("auto_133")?.rss_url, "https://stanceauto.co.uk/rss/category/featured");
+    assert.equal(byId.get("auto_133")?.enabled.toLowerCase(), "true");
+    assert.equal(ENABLED_SOURCE_SET.has("auto_133"), true);
+    assert.ok((DESK_PRIORITY_SOURCE_IDS as readonly string[]).includes("auto_133"));
+    assert.equal((UNDERGROUND_SOURCE_IDS as readonly string[]).includes("auto_133"), false);
+    assert.equal(byId.get("auto_084")?.publication, "Hagerty Media");
+    assert.equal(byId.get("auto_084")?.url, "https://www.hagerty.com/media");
+    assert.equal(byId.get("auto_134")?.publication, "Hagerty UK");
+    assert.equal(byId.get("auto_134")?.url, "https://www.hagerty.co.uk/entertainment/");
+    assert.equal(byId.get("auto_134")?.rss_url, "");
+    assert.equal(byId.get("auto_134")?.source_type, "scrape");
+    assert.equal(byId.get("auto_134")?.enabled.toLowerCase(), "true");
+    assert.equal(ENABLED_SOURCE_SET.has("auto_134"), true);
+    assert.ok((DESK_PRIORITY_SOURCE_IDS as readonly string[]).includes("auto_134"));
+    assert.equal(byId.has("auto_135"), false);
+    assert.equal(
+      [...byId.values()].some((row) => /drifted|s3 magazine/i.test(row.publication)),
+      false,
+    );
     assert.equal(byId.get("auto_103")?.publication, "Classic Cars");
     assert.equal(byId.get("auto_111")?.publication, "Engine Swap Depot");
     assert.equal(byId.has("auto_052"), false);
@@ -526,6 +622,23 @@ describe("merch exclusion", () => {
     assert.equal(isMerchUrl("https://www.euro-stance.com/collections/kids-wear"), true);
     assert.equal(isMerchUrl("https://www.euro-stance.com/collections/t-shirts-eurostance"), true);
     assert.equal(isMerchUrl("https://bonnetmagazine.com/collections/fine-art-prints-all"), true);
+    assert.equal(isMerchUrl("https://www.magnetomagazine.com/store/"), true);
+    assert.equal(isMerchUrl("https://www.magnetomagazine.com/store/issue-36"), true);
+    assert.equal(
+      isMerchUrl("https://www.magnetomagazine.com/articles/one-of-a-kind-aston-martin-lagonda-shooting-brake-is-up-for-grabs/"),
+      false,
+    );
+    assert.ok((MERCH_PATH_SEGMENTS as readonly string[]).includes("store"));
+    assert.equal(MERCH_SOURCE_POLICY.auto_133.action, "editorial-rss");
+    if (MERCH_SOURCE_POLICY.auto_133.action === "editorial-rss") {
+      assert.equal(
+        MERCH_SOURCE_POLICY.auto_133.rssUrl,
+        "https://stanceauto.co.uk/rss/category/featured",
+      );
+    }
+    assert.equal(isMerchUrl("https://stanceauto.co.uk/shop/modified-car-magazine-jdm-edition"), true);
+    assert.equal(isMerchUrl("https://stanceauto.co.uk/product/honda-civic-jdm-legends-book"), true);
+    assert.equal(isMerchUrl("https://stanceauto.co.uk/bmw-e46-m3-widebody-build-s54"), false);
     assert.equal(isMerchUrl("https://www.the-intercooler.com/features/porsche-993"), false);
     assert.equal(
       isMerchArticle({
@@ -891,6 +1004,91 @@ describe("editorial eligibility gate", () => {
         excerpt: "The invitational returns to Castlemaine.",
         sourceId: "auto_066",
         sourceUrl: "https://www.streetmachine.com.au",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.hagerty.co.uk/legal/privacy-policy/",
+        canonicalUrl: "https://www.hagerty.co.uk/legal/privacy-policy/",
+        title: "Privacy policy",
+        excerpt: "How Hagerty UK uses your data.",
+        sourceId: "auto_134",
+        sourceUrl: "https://www.hagerty.co.uk/entertainment/",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "corporate" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.hagerty.co.uk/legal/terms-of-use/",
+        canonicalUrl: "https://www.hagerty.co.uk/legal/terms-of-use/",
+        title: "Terms of use",
+        excerpt: "Website terms and conditions.",
+        sourceId: "auto_134",
+        sourceUrl: "https://www.hagerty.co.uk/entertainment/",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "corporate" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.hagerty.co.uk/insurance/classic-car-insurance/",
+        canonicalUrl: "https://www.hagerty.co.uk/insurance/classic-car-insurance/",
+        title: "Classic car insurance",
+        excerpt: "Get a quote for classic car insurance.",
+        sourceId: "auto_134",
+        sourceUrl: "https://www.hagerty.co.uk/entertainment/",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "corporate" },
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.hagerty.co.uk/legal/renualt-avantime-at-25/",
+        canonicalUrl: "https://www.hagerty.co.uk/legal/renualt-avantime-at-25/",
+        title: "The Car That Refused to Make Sense: Renault Avantime at 25",
+        excerpt: "Twenty-five years after it first stunned the automotive world.",
+        sourceId: "auto_134",
+        sourceUrl: "https://www.hagerty.co.uk/entertainment/",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "corporate" },
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://www.hagerty.co.uk/articles/lost-in-africa/",
+        canonicalUrl: "https://www.hagerty.co.uk/articles/lost-in-africa/",
+        title: "Lost in East Africa: “I’d love to track down my father’s Bluebird”",
+        excerpt: "The Bluebird that got away.",
+        sourceId: "auto_134",
+        sourceUrl: "https://www.hagerty.co.uk/entertainment/",
+      }).editorialEligible,
+      true,
+    );
+
+    assert.deepEqual(
+      evaluateEditorialEligibility({
+        url: "https://www.magnetomagazine.com/store/",
+        canonicalUrl: "https://www.magnetomagazine.com/store/",
+        title: "Store",
+        excerpt: "Print issues of Magneto.",
+        sourceId: "auto_003",
+        sourceUrl: "https://www.magnetomagazine.com/articles/",
+      }),
+      { editorialEligible: false, editorialExclusionReason: "commerce" },
+    );
+
+    assert.equal(
+      evaluateEditorialEligibility({
+        url: "https://www.magnetomagazine.com/articles/one-of-a-kind-aston-martin-lagonda-shooting-brake-is-up-for-grabs/",
+        canonicalUrl:
+          "https://www.magnetomagazine.com/articles/one-of-a-kind-aston-martin-lagonda-shooting-brake-is-up-for-grabs/",
+        title: "One-of-a-kind Aston Martin Lagonda Shooting Brake is up for grabs",
+        excerpt: "A one-off Lagonda converted by Roos Engineering.",
+        sourceId: "auto_003",
+        sourceUrl: "https://www.magnetomagazine.com/articles/",
       }).editorialEligible,
       true,
     );

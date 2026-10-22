@@ -5,6 +5,7 @@ import {
   COMPETITION_PATH_SEGMENTS,
   COMPETITION_PROMO_PREFIXES,
   CORPORATE_EXACT_PATHS,
+  CORPORATE_PATH_SEGMENTS,
   MARKETPLACE_LEAF_SEGMENTS,
   SPONSORED_PATH_SEGMENTS,
 } from "../../config/editorial-eligibility";
@@ -51,6 +52,7 @@ const COMMERCE_SEGMENTS = new Set<string>(COMMERCE_PATH_SEGMENTS);
 const COMPETITION_SEGMENTS = new Set<string>(COMPETITION_PATH_SEGMENTS);
 const ABOUT_PATHS = new Set<string>(ABOUT_EXACT_PATHS);
 const CORPORATE_PATHS = new Set<string>(CORPORATE_EXACT_PATHS);
+const CORPORATE_SEGMENTS = new Set<string>(CORPORATE_PATH_SEGMENTS);
 const SPONSORED_SEGMENTS = new Set<string>(SPONSORED_PATH_SEGMENTS);
 const MARKETPLACE_LEAVES = new Set<string>(MARKETPLACE_LEAF_SEGMENTS);
 
@@ -109,6 +111,11 @@ function matchesCompetitionPromoPath(url: string) {
 
 function matchesSponsoredPath(url: string) {
   return pathSegments(url).some((segment) => SPONSORED_SEGMENTS.has(segment));
+}
+
+function matchesCorporatePath(url: string) {
+  if (matchesExactPath(url, CORPORATE_PATHS)) return true;
+  return pathSegments(url).some((segment) => CORPORATE_SEGMENTS.has(segment));
 }
 
 function isMarketplaceLeaf(url: string) {
@@ -173,7 +180,7 @@ function nonEditorialReason(url: string, sourceUrl?: string): EditorialExclusion
   if (matchesSponsoredPath(url)) return "corporate";
   if (isSubscribePath(url) || isNonEditorialHost(url)) return "subscription";
   if (matchesExactPath(url, ABOUT_PATHS)) return "about_page";
-  if (matchesExactPath(url, CORPORATE_PATHS)) return "corporate";
+  if (matchesCorporatePath(url)) return "corporate";
   if (sourceUrl && isOffSiteUrl(url, sourceUrl)) return "corporate";
   if (
     isUnusableArticleUrl(url) ||
@@ -202,7 +209,7 @@ export function evaluateEditorialEligibility(
 
   for (const url of urls(input)) {
     if (matchesExactPath(url, ABOUT_PATHS)) return ineligible("about_page");
-    if (matchesExactPath(url, CORPORATE_PATHS)) return ineligible("corporate");
+    if (matchesCorporatePath(url)) return ineligible("corporate");
     if (matchesSponsoredPath(url)) return ineligible("corporate");
     if (isShopHost(url) || isMarketplaceLeaf(url)) return ineligible("commerce");
     if (matchesCommercePath(url)) return ineligible("commerce");

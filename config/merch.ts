@@ -13,6 +13,11 @@ export const MERCH_SOURCE_POLICY: Record<string, MerchSourcePolicy> = {
     rssUrl: "https://type7.com/blogs/stories.atom",
     reason: "Type 7 is a Shopify storefront; ingest the stories blog only, never products or collections",
   },
+  auto_133: {
+    action: "editorial-rss",
+    rssUrl: "https://stanceauto.co.uk/rss/category/featured",
+    reason: "Stance Auto latest-posts mixes shop SKUs; ingest featured-builds RSS only",
+  },
 };
 
 export const SHOP_DISABLED_SOURCE_IDS = Object.entries(MERCH_SOURCE_POLICY)
@@ -24,6 +29,8 @@ export const MERCH_PATH_SEGMENTS = [
   "shop",
   "shops",
   "shopping",
+  "store",
+  "stores",
   "product",
   "products",
   "collection",

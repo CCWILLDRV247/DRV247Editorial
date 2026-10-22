@@ -32,6 +32,8 @@ export const UNUSABLE_PATH_SEGMENTS = ["undefined", "null"] as const;
  * `/calendar` and `/clubs-listings` are Classic & Sports Car directories.
  * `/vans` is a marketplace inventory root (Carwow). `/vans/leasing` is caught as a marketplace leaf.
  * `/blogs/stories` is Type 7’s Shopify blog index. `/blogs/stories/slug` stays.
+ * `/entertainment` is Hagerty UK’s entertainment index. `/entertainment/videos` stays as a listing skip via eligibility if needed.
+ * `/featured` is Stance Auto’s featured-builds index. `/featured/slug` stays.
  */
 export const NON_ARTICLE_EXACT_PATHS = [
   "/",
@@ -52,6 +54,8 @@ export const NON_ARTICLE_EXACT_PATHS = [
   "/calendar",
   "/clubs-listings",
   "/vans",
+  "/entertainment",
+  "/featured",
 ] as const;
 
 /**

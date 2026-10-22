@@ -29,12 +29,33 @@ export const CORPORATE_EXACT_PATHS = [
   "/contact-us",
   "/terms",
   "/terms-of-service",
+  "/terms-of-use",
+  "/terms-and-conditions",
   "/privacy",
   "/privacy-policy",
+  "/privacy-notice",
   "/legal",
   "/cookies",
   "/cookie-policy",
+  "/cookies-statement",
   "/media-kit",
+] as const;
+
+/**
+ * Nested legal / insurance / T&C paths. Exact `/legal` stays above;
+ * `/legal/privacy-policy` and `/insurance/classic-car-insurance` need a segment.
+ * Not a title denylist — “classic car insurance” under `/articles/…` stays.
+ */
+export const CORPORATE_PATH_SEGMENTS = [
+  "legal",
+  "insurance",
+  "terms-of-use",
+  "terms-of-service",
+  "terms-and-conditions",
+  "privacy-policy",
+  "privacy-notice",
+  "cookie-policy",
+  "cookies-statement",
 ] as const;
 
 /**
