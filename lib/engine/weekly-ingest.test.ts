@@ -161,10 +161,10 @@ describe("weekly cron slots", () => {
     assert.equal(intelligence?.schedule, "15 6 * * 1");
   });
 
-  it("gives five sequential 220s windows enough headroom for 76 sources at the measured Monday rate", () => {
+  it("gives five sequential 220s windows enough headroom for 78 sources at the measured Monday rate", () => {
     const measuredMsPerSource = 285_000 / 32;
     const capacity = WEEKLY_CRON_SLOTS.length * WEEKLY_SOURCE_BUDGET_MS;
     assert.ok(capacity > ENABLED_SOURCE_IDS.length * measuredMsPerSource);
-    assert.equal(ENABLED_SOURCE_IDS.length, 76);
+    assert.equal(ENABLED_SOURCE_IDS.length, 78);
   });
 });

@@ -70,6 +70,12 @@ export const WAVE5_SOURCE_IDS = [
   "auto_050", // 911 & Porsche World
 ] as const;
 
+/** Desk-priority titles added after the original wave-1 spec. Teasers only; no shops or games. */
+export const DESK_PRIORITY_SOURCE_IDS = [
+  "auto_133", // Stance Auto — featured-builds RSS only
+  "auto_134", // Hagerty UK entertainment
+] as const;
+
 /** Underground Priority titles, Type 7 stories, and HiConsumption Motors. Research further / Manual only stay out. Type 7 was Reference only until the Shopify stories Atom feed was found. HiConsumption is the Motors category teaser feed only. Fast Car is already live. Dark list stays off. */
 export const UNDERGROUND_SOURCE_IDS = [
   "auto_054", // Petrolicious
@@ -116,6 +122,7 @@ export const DISABLED_SOURCE_SET = new Set<string>(DISABLED_SOURCE_IDS);
 
 export const ENABLED_SOURCE_IDS = [
   ...WAVE1_SOURCE_IDS,
+  ...DESK_PRIORITY_SOURCE_IDS,
   ...WAVE2_SOURCE_IDS.filter((id) => !DISABLED_SOURCE_SET.has(id)),
   ...WAVE3_SOURCE_IDS,
   ...WAVE4_SOURCE_IDS,
