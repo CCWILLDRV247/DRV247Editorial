@@ -22,9 +22,15 @@ import { countArticlesByPrimary } from "./article-primary";
 import {
   forYouTestIsActive,
   forYouTestSearchString,
+  parseForYouTestProfile,
   type ForYouTestProfile,
 } from "./for-you-test";
 import { getEditorial, listEditorial, listDeskHomepage, type EditorialDto } from "./queries";
+import {
+  selectKeepExploring,
+  type KeepExploringPick,
+  type KeepExploringReason,
+} from "./keep-exploring";
 import { classifyPrimary, isContentPrimary } from "./taxonomy";
 import { curateForYouHome } from "./for-you-home";
 import { contextFromTestProfile } from "./personalize";
@@ -286,6 +292,46 @@ export async function getMagazineStory(id: number): Promise<StoryDto | null> {
     ["magazine-story"],
     { revalidate: 60, tags: ["editorial"] },
   )(id);
+}
+
+export type KeepExploringMagazineStory = StoryDto & { exploreReason: KeepExploringReason };
+
+async function keepExploringStoriesUncached(
+  currentId: number,
+  testProfile?: ForYouTestProfile,
+): Promise<KeepExploringMagazineStory[]> {
+  const current = await getEditorial(currentId, { related: false });
+  if (!current) return [];
+  const pool = await listEditorial({
+    section: "for-you",
+    limit: 80,
+    testProfile: testProfile && forYouTestIsActive(testProfile) ? testProfile : undefined,
+  });
+  const picks: KeepExploringPick[] = selectKeepExploring(current, pool, testProfile);
+  if (picks.length === 0) return [];
+  const byId = new Map(pool.map((article) => [article.id, article]));
+  return picks.flatMap((pick) => {
+    const article = byId.get(pick.id);
+    if (!article) return [];
+    return [{ ...toMagazineStory(article), exploreReason: pick.reason }];
+  });
+}
+
+export async function getKeepExploringStories(
+  currentId: number,
+  testProfile?: ForYouTestProfile,
+): Promise<KeepExploringMagazineStory[]> {
+  const activeProfile = testProfile && forYouTestIsActive(testProfile) ? testProfile : undefined;
+  const profileKey = magazineCacheKey(activeProfile);
+  return unstable_cache(
+    async (articleId: number, key: string) => {
+      const profile =
+        key === "default" ? undefined : parseForYouTestProfile(new URLSearchParams(key));
+      return keepExploringStoriesUncached(articleId, profile);
+    },
+    ["keep-exploring-stories"],
+    { revalidate: 60, tags: ["editorial"] },
+  )(currentId, profileKey);
 }
 
 /** Hydrate Saved clips in the order the reader stored them. Missing teasers drop out. */

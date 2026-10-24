@@ -3,21 +3,19 @@ import { OutboundStoryLink } from "@/components/engagement/outbound-story-link";
 import { StoryActions } from "@/components/engagement/story-actions";
 import { StoryOpenSignal } from "@/components/engagement/story-open-signal";
 import { communityLabelForArticle } from "@/lib/engagement/aggregates";
-import { MagazineLink } from "@/components/magazine-link";
 import { StoryCopyTransition } from "@/components/story-copy-transition";
 import { StoryImage } from "@/components/story-image";
 import { StoryHeroMedia } from "@/components/story-media-transition";
-import { withTestQuery } from "@/lib/engine/for-you-test";
-import { getMagazineStory } from "@/lib/engine/magazine";
+import { getKeepExploringStories, getMagazineStory } from "@/lib/engine/magazine";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
+import { KeepExploringSection } from "@/components/magazine/keep-exploring-section";
 import {
-  STORY_BACK_CHROME,
-  STORY_BACK_CHROME_BORDER,
   STORY_TEASER,
   storyPublisherAttribution,
   storyTeaserExcerpt,
 } from "@/lib/engine/story-teaser";
+import { parseForYouTestProfile } from "@/lib/engine/for-you-test";
 import { formatStoryDate } from "@/lib/format";
 
 export async function StoryArticle({
@@ -29,6 +27,12 @@ export async function StoryArticle({
 }) {
   const story = await getMagazineStory(id);
   if (!story) notFound();
+  const testProfile = testQuery
+    ? parseForYouTestProfile(
+        new URLSearchParams(testQuery.startsWith("?") ? testQuery.slice(1) : testQuery),
+      )
+    : undefined;
+  const keepExploring = await getKeepExploringStories(id, testProfile);
   const communityLabel = await communityLabelForArticle(story.id);
   const excerpt = storyTeaserExcerpt({
     title: story.title,
@@ -39,8 +43,6 @@ export async function StoryArticle({
   const meta = [story.source.name, published, story.desk?.labelName, story.category.name]
     .filter(Boolean)
     .join(" · ");
-  const categoryHref = withTestQuery(`/category/${story.category.slug}`, testQuery);
-
   return (
     <article className={`${MAGAZINE_LAYOUT.reading} pb-20`}>
       <StoryHeroMedia>
@@ -74,12 +76,13 @@ export async function StoryArticle({
           <p className={STORY_TEASER.attribution}>
             {storyPublisherAttribution(story.source.name)}
           </p>
-          <MagazineLink
-            href={categoryHref}
-            className={`mt-6 flex h-11 w-full items-center justify-center ${STORY_BACK_CHROME} ${STORY_BACK_CHROME_BORDER}`}
-          >
-            Back to {story.category.name}
-          </MagazineLink>
+          <KeepExploringSection
+            currentArticleId={story.id}
+            categorySlug={story.category.slug}
+            categoryName={story.category.name}
+            stories={keepExploring}
+            testQuery={testQuery}
+          />
         </div>
       </StoryCopyTransition>
     </article>
