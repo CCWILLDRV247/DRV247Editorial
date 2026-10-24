@@ -55,6 +55,14 @@ export function experienceFollowUpPrompt(rating: ExperienceFeedbackRating): stri
     : EXPERIENCE_FEEDBACK_IMPROVE_PROMPT;
 }
 
+/** Stack the agreed prompts the same way the personalisation modal stacks its Alumni headline. */
+export function experienceFeedbackHeadingLines(prompt: string): string[] {
+  if (prompt === EXPERIENCE_FEEDBACK_PROMPT) return ["How’s your", "DRV247", "experience?"];
+  if (prompt === EXPERIENCE_FEEDBACK_ENJOY_PROMPT) return ["What are you", "enjoying most?"];
+  if (prompt === EXPERIENCE_FEEDBACK_IMPROVE_PROMPT) return ["What could", "we improve?"];
+  return [prompt];
+}
+
 export function experienceFeedbackCopy(): string[] {
   return [
     EXPERIENCE_FEEDBACK_PROMPT,

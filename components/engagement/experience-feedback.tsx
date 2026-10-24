@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { XIcon } from "lucide-react";
 import {
   ENGAGEMENT_EVENTS,
   experienceFeedbackEventData,
@@ -21,6 +20,7 @@ import {
   EXPERIENCE_FEEDBACK_SCROLL_RATIO,
   MEANINGFUL_ENGAGE_EVENT,
   alreadyRespondedToExperienceFeedback,
+  experienceFeedbackHeadingLines,
   experienceFeedbackSurface,
   experienceFollowUpPrompt,
   readExperienceFeedbackStored,
@@ -28,8 +28,26 @@ import {
   writeExperienceFeedbackStored,
 } from "@/lib/engagement/feedback";
 
-const chipClass =
-  "flex h-11 items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white px-2 font-display text-base font-extrabold uppercase text-[#1b1d1f]";
+/**
+ * Same surface language as PersonalizationInterestsModal / Figma 1:254.
+ * Do not invent a second radius, border, or heading scale.
+ */
+const PANEL_CARD_CLASS =
+  "pointer-events-auto relative w-[calc(100%-20px)] max-w-[468px] overflow-hidden rounded-[15px] border-[1.5px] border-[#c4c4c4] bg-white p-0 text-[#1b1d1f] shadow-[0px_2px_4px_0px_rgba(0,0,0,0.16)] sm:max-w-[468px]";
+
+const PANEL_BODY_CLASS = "flex min-h-0 flex-col gap-5 px-[17px] pt-[44px] pb-5";
+
+const PANEL_HEADING_CLASS =
+  "font-display text-[clamp(3.75rem,17.1vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f]";
+
+const PANEL_CLOSE_CLASS =
+  "absolute top-[16.5px] right-[20px] z-10 flex border-0 bg-transparent p-0";
+
+function panelChipClass(on: boolean) {
+  return on
+    ? "flex h-[52px] w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-[#1b1d1f] px-1 text-center font-display text-[18px] font-extrabold uppercase leading-6 text-white"
+    : "flex h-[52px] w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white px-1 text-center font-display text-[18px] font-extrabold uppercase leading-6 text-[#1b1d1f]";
+}
 
 export function ExperienceFeedback() {
   const pathname = usePathname();
@@ -119,54 +137,66 @@ export function ExperienceFeedback() {
   if (!visible) return null;
 
   const prompt = rating ? experienceFollowUpPrompt(rating) : EXPERIENCE_FEEDBACK_PROMPT;
+  const headingLines = experienceFeedbackHeadingLines(prompt);
 
   return (
     <aside
       role="region"
       aria-label="DRV247 experience"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center p-4 md:inset-x-auto md:right-6 md:bottom-6 md:justify-end md:p-0 pb-[max(1rem,env(safe-area-inset-bottom))]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center pb-[max(10px,env(safe-area-inset-bottom))] md:justify-end md:pr-[10px] md:pb-[10px]"
     >
-      <div className="pointer-events-auto w-full max-w-sm border border-[#1b1d1f]/15 bg-white p-4 shadow-[0_12px_40px_rgba(27,29,31,0.12)]">
-        <div className="flex items-start justify-between gap-3">
-          <p className="font-display text-lg font-bold uppercase leading-none tracking-[-0.02em] text-[#1b1d1f]">
-            {prompt}
-          </p>
-          <button
-            type="button"
-            onClick={dismiss}
-            className="flex size-9 shrink-0 items-center justify-center text-[#1b1d1f]"
-            aria-label="Dismiss experience feedback"
-          >
-            <XIcon className="size-5" strokeWidth={2.25} />
-          </button>
+      <div className={PANEL_CARD_CLASS}>
+        <button
+          type="button"
+          onClick={dismiss}
+          className={PANEL_CLOSE_CLASS}
+          aria-label="Dismiss experience feedback"
+        >
+          <img
+            src="/personalization-close.svg"
+            alt=""
+            width={14.7333}
+            height={14.7333}
+            aria-hidden
+          />
+          <span className="sr-only">Close</span>
+        </button>
+        <div className={PANEL_BODY_CLASS}>
+          <h2 className={PANEL_HEADING_CLASS}>
+            {headingLines.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+          </h2>
+          {rating ? (
+            <div className="grid grid-cols-2 gap-[10px]" role="group" aria-label={prompt}>
+              {EXPERIENCE_FEEDBACK_REASONS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`${panelChipClass(false)}${value === "sources" ? " col-span-2" : ""}`}
+                  onClick={() => submit(value)}
+                >
+                  {EXPERIENCE_FEEDBACK_REASON_LABELS[value]}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-[10px]" role="group" aria-label={prompt}>
+              {EXPERIENCE_FEEDBACK_RATINGS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={panelChipClass(false)}
+                  onClick={() => setRating(value)}
+                >
+                  {EXPERIENCE_FEEDBACK_RATING_LABELS[value]}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        {rating ? (
-          <div className="mt-3 grid grid-cols-1 gap-2">
-            {EXPERIENCE_FEEDBACK_REASONS.map((value) => (
-              <button
-                key={value}
-                type="button"
-                className={chipClass}
-                onClick={() => submit(value)}
-              >
-                {EXPERIENCE_FEEDBACK_REASON_LABELS[value]}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {EXPERIENCE_FEEDBACK_RATINGS.map((value) => (
-              <button
-                key={value}
-                type="button"
-                className={chipClass}
-                onClick={() => setRating(value)}
-              >
-                {EXPERIENCE_FEEDBACK_RATING_LABELS[value]}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </aside>
   );
