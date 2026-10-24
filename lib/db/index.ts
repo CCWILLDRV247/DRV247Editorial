@@ -453,14 +453,64 @@ const ENGAGEMENT_STATEMENTS = [
       article_id INTEGER,
       visitor_key TEXT NOT NULL,
       cohort TEXT,
-      created_at INTEGER NOT NULL
+      created_at INTEGER NOT NULL,
+      surface TEXT,
+      detail TEXT,
+      day_utc TEXT
     )`,
+  `ALTER TABLE engagement_events ADD COLUMN surface TEXT`,
+  `ALTER TABLE engagement_events ADD COLUMN detail TEXT`,
+  `ALTER TABLE engagement_events ADD COLUMN day_utc TEXT`,
   `CREATE INDEX IF NOT EXISTS engagement_events_article_created_idx
       ON engagement_events (article_id, created_at)`,
   `CREATE INDEX IF NOT EXISTS engagement_events_event_created_idx
       ON engagement_events (event, created_at)`,
   `CREATE INDEX IF NOT EXISTS engagement_events_visitor_created_idx
       ON engagement_events (visitor_key, created_at)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS engagement_impression_dedup_idx
+      ON engagement_events (visitor_key, article_id, day_utc, surface)
+      WHERE event = 'impression'`,
+  `CREATE TABLE IF NOT EXISTS engagement_daily_article (
+      day TEXT NOT NULL,
+      article_id INTEGER NOT NULL,
+      impression_uniques INTEGER NOT NULL DEFAULT 0,
+      open_uniques INTEGER NOT NULL DEFAULT 0,
+      outbound_uniques INTEGER NOT NULL DEFAULT 0,
+      save_uniques INTEGER NOT NULL DEFAULT 0,
+      share_uniques INTEGER NOT NULL DEFAULT 0,
+      interested_uniques INTEGER NOT NULL DEFAULT 0,
+      less_like_uniques INTEGER NOT NULL DEFAULT 0,
+      returning_uniques INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (day, article_id)
+    )`,
+  `CREATE TABLE IF NOT EXISTS engagement_daily_dim (
+      day TEXT NOT NULL,
+      dim_kind TEXT NOT NULL,
+      dim_value TEXT NOT NULL,
+      impression_uniques INTEGER NOT NULL DEFAULT 0,
+      open_uniques INTEGER NOT NULL DEFAULT 0,
+      outbound_uniques INTEGER NOT NULL DEFAULT 0,
+      save_uniques INTEGER NOT NULL DEFAULT 0,
+      share_uniques INTEGER NOT NULL DEFAULT 0,
+      interested_uniques INTEGER NOT NULL DEFAULT 0,
+      less_like_uniques INTEGER NOT NULL DEFAULT 0,
+      returning_uniques INTEGER NOT NULL DEFAULT 0,
+      event_count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (day, dim_kind, dim_value)
+    )`,
+  `CREATE TABLE IF NOT EXISTS engagement_daily_touch (
+      day TEXT NOT NULL,
+      article_id INTEGER NOT NULL,
+      visitor_key TEXT NOT NULL,
+      event TEXT NOT NULL,
+      PRIMARY KEY (day, article_id, visitor_key, event)
+    )`,
+  `CREATE INDEX IF NOT EXISTS engagement_daily_touch_day_event_idx
+      ON engagement_daily_touch (day, event)`,
+  `CREATE TABLE IF NOT EXISTS engagement_visitor_first (
+      visitor_key TEXT PRIMARY KEY,
+      first_day TEXT NOT NULL
+    )`,
 ];
 
 async function ensureEngagement(client: Client) {

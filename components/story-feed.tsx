@@ -10,6 +10,7 @@ import {
   CategoryCarousel,
   type CategoryLane,
 } from "@/components/category-carousel";
+import { ImpressionBeacon } from "@/components/engagement/impression-beacon";
 import { PrintModuleRail } from "@/components/print-module";
 import type { PrintModule } from "@/lib/engine/print";
 import { OpenerRecentSync } from "@/components/opener-recent-sync";
@@ -94,6 +95,10 @@ export function StoryFeed({
   if (stories.length === 0) {
     return (
       <div className={`flex flex-col ${MAGAZINE_LAYOUT.page}`}>
+        <ImpressionBeacon
+          surface="category"
+          articleIds={carousels.flatMap((item) => item.stories.map((story) => story.id))}
+        />
         {filter}
         <div className="flex flex-col gap-8 py-10">
         <SectionIntro
@@ -188,6 +193,13 @@ export function StoryFeed({
 
   return (
     <div className="flex flex-col gap-8 pb-16">
+      <ImpressionBeacon
+        surface="category"
+        articleIds={[
+          ...stories.map((story) => story.id),
+          ...carousels.flatMap((item) => item.stories.map((story) => story.id)),
+        ]}
+      />
       <div className={`flex min-w-0 flex-col gap-8 ${MAGAZINE_LAYOUT.page}`}>
       <OpenerRecentSync openerIds={openerIds} />
       <div

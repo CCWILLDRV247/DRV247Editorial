@@ -1,23 +1,19 @@
 import { NextResponse } from "next/server";
-import { insertEngagementEvent, visitorIsRateLimited } from "@/lib/engagement/aggregates";
+import { insertEngagementEvent, insertImpressionBatch, visitorIsRateLimited } from "@/lib/engagement/aggregates";
+import { IMPRESSION_EVENT } from "@/lib/engagement/impressions";
 import {
   createVisitorKey,
-  isVisitorKey,
   parseEngagementWritePayload,
+  visitorCookieOptions,
+  visitorKeyFromCookieHeader,
   VISITOR_COOKIE,
 } from "@/lib/engagement/ingest";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function visitorCookieOptions() {
-  return {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-    secure: Boolean(process.env.VERCEL),
-  };
+function resolveVisitorKey(request: Request): string {
+  return visitorKeyFromCookieHeader(request.headers.get("cookie")) ?? createVisitorKey();
 }
 
 export async function POST(request: Request) {
@@ -27,21 +23,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 });
   }
 
-  const incoming = request.headers.get("cookie") ?? "";
-  const cookieMatch = incoming.match(new RegExp(`(?:^|;\\s*)${VISITOR_COOKIE}=([^;]+)`));
-  let visitorKey = cookieMatch?.[1] ? decodeURIComponent(cookieMatch[1]) : "";
-  if (!isVisitorKey(visitorKey)) visitorKey = createVisitorKey();
+  const visitorKey = resolveVisitorKey(request);
 
   try {
-    if (await visitorIsRateLimited(visitorKey)) {
-      return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+    if (parsed.event === IMPRESSION_EVENT) {
+      await insertImpressionBatch({
+        articleIds: parsed.articleIds ?? (parsed.articleId ? [parsed.articleId] : []),
+        visitorKey,
+        surface: parsed.surface ?? "home",
+        cohort: parsed.cohort,
+      });
+    } else {
+      if (await visitorIsRateLimited(visitorKey)) {
+        return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+      }
+      await insertEngagementEvent({
+        event: parsed.event,
+        articleId: parsed.articleId,
+        visitorKey,
+        cohort: parsed.cohort,
+        detail: parsed.detail,
+        surface: parsed.surface,
+      });
     }
-    await insertEngagementEvent({
-      event: parsed.event,
-      articleId: parsed.articleId,
-      visitorKey,
-      cohort: parsed.cohort,
-    });
   } catch {
     return NextResponse.json({ ok: false, error: "unavailable" }, { status: 503 });
   }

@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
+import { insertImpressionBatch } from "@/lib/engagement/aggregates";
+import { uniquePositiveIds } from "@/lib/engagement/impressions";
 import { parseIdListParam } from "@/lib/engagement/personalise";
+import {
+  createVisitorKey,
+  visitorCookieOptions,
+  visitorKeyFromCookieHeader,
+  VISITOR_COOKIE,
+} from "@/lib/engagement/ingest";
 import { forYouTestIsActive, parseForYouTestProfile } from "@/lib/engine/for-you-test";
 import { listEditorial } from "@/lib/engine/queries";
 import { contextFromTestProfile } from "@/lib/engine/personalize";
@@ -21,6 +29,7 @@ export async function GET(request: Request) {
   // strict=1 applies articleMatchesForYouTest (AND hide). Category pages and default API responses rank-only.
   const strict = searchParams.get("strict") === "1";
   const profileContext = testing ? contextFromTestProfile(testProfile) : null;
+  const visitorKey = visitorKeyFromCookieHeader(request.headers.get("cookie")) ?? createVisitorKey();
   const articles = await listEditorial({
     userId: testing ? undefined : (searchParams.get("user") ?? undefined),
     section: searchParams.get("section") ?? "for-you",
@@ -41,7 +50,7 @@ export async function GET(request: Request) {
       recentIds: parseIdListParam(searchParams.get("recent")),
     },
   });
-  return NextResponse.json(
+  const response = NextResponse.json(
     {
       engine: ENGINE_WAVE,
       branch: ENGINE_BRANCH,
@@ -114,4 +123,15 @@ export async function GET(request: Request) {
     },
     { headers: { "Cache-Control": "no-store" } },
   );
+  response.cookies.set(VISITOR_COOKIE, visitorKey, visitorCookieOptions());
+  try {
+    await insertImpressionBatch({
+      articleIds: uniquePositiveIds(articles.map((article) => article.id)),
+      visitorKey,
+      surface: "editorial_api",
+    });
+  } catch {
+    // Impression writes must not fail the magazine API.
+  }
+  return response;
 }

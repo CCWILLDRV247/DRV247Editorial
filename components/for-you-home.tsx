@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { CarouselStoryCard, CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
 import { CommunityDiscoverySection } from "@/components/engagement/community-discovery";
+import { ImpressionBeacon } from "@/components/engagement/impression-beacon";
 import { PersonalMarksRail } from "@/components/engagement/personal-marks-rail";
 import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
@@ -126,6 +127,10 @@ export function ForYouHomeHero({
   const { hero, leadCards, openerIds } = selectHomeLead(forYourCar, yourInterests, picks);
   return (
     <>
+      <ImpressionBeacon
+        surface="home"
+        articleIds={[hero?.id, ...leadCards.map((story) => story.id)]}
+      />
       <OpenerRecentSync openerIds={openerIds} />
       <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
         <section className={`flex min-w-0 flex-col ${HOMEPAGE_COMPOSITION.heroGap}`}>
@@ -191,6 +196,15 @@ export function ForYouHomeRest({
 
   return (
     <>
+      <ImpressionBeacon
+        surface="home"
+        articleIds={[
+          ...yourInterests.stories.map((story) => story.id),
+          ...picks.map((story) => story.id),
+          ...carousels.flatMap((lane) => lane.stories.map((story) => story.id)),
+          ...community.stories.map((story) => story.id),
+        ]}
+      />
       <InterludeRecentSync interludeIds={interludes.map((item) => item.interlude.id)} />
       <OpenerRecentSync openerIds={openerIds} />
       <div className={`flex min-w-0 flex-col ${MAGAZINE_LAYOUT.page} ${HOMEPAGE_COMPOSITION.pageGap}`}>
