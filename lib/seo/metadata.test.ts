@@ -6,6 +6,7 @@ import {
   buildCategoryMetadata,
   buildHomeMetadata,
   buildPolicyMetadata,
+  buildSavedMetadata,
   buildStoryMetadata,
   editorialCanonicalPath,
 } from "./metadata";
@@ -67,6 +68,13 @@ describe("SEO metadata helpers", () => {
     );
     assert.equal((meta.openGraph as { type?: string } | undefined)?.type, "article");
     assert.equal(meta.alternates?.canonical, "https://editorial.drv247.com/story/9");
+  });
+
+  it("saved shelf is noindex and off the sitemap contract", () => {
+    const meta = buildSavedMetadata();
+    assert.equal(meta.title, "Saved");
+    assert.deepEqual(meta.robots, { index: false, follow: true });
+    assert.equal(meta.alternates?.canonical, undefined);
   });
 
   it("policy metadata is indexable with an editorial canonical", () => {

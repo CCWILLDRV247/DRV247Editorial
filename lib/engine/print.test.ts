@@ -108,6 +108,7 @@ describe("print stays off magazine chrome", () => {
 
   it("treats quiet /print detail URLs as magazine paths", () => {
     assert.equal(isMagazinePath("/print/the-road-rat"), true);
+    assert.equal(isMagazinePath("/saved"), true);
     assert.equal(isMagazinePath("/intelligence/print"), false);
   });
 

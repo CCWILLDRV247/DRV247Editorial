@@ -1,4 +1,7 @@
 import { notFound } from "next/navigation";
+import { ExperienceFeedback } from "@/components/engagement/experience-feedback";
+import { OutboundStoryLink } from "@/components/engagement/outbound-story-link";
+import { StoryActions } from "@/components/engagement/story-actions";
 import { MagazineLink } from "@/components/magazine-link";
 import { StoryCopyTransition } from "@/components/story-copy-transition";
 import { StoryImage } from "@/components/story-image";
@@ -71,14 +74,15 @@ export async function StoryArticle({
               {extract}
             </p>
           ) : null}
-          <a
-            href={story.canonicalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-10 flex h-11 w-full items-center justify-center rounded-[5px] bg-[#1b1d1f] font-display text-lg font-extrabold uppercase text-white"
-          >
+          <StoryActions
+            articleId={story.id}
+            title={story.title}
+            text={intro ?? extract ?? undefined}
+          />
+          <OutboundStoryLink href={story.canonicalUrl} articleId={story.id}>
             {isVideoStory(story) ? `Watch on ${story.source.name}` : `Read on ${story.source.name}`}
-          </a>
+          </OutboundStoryLink>
+          <ExperienceFeedback articleId={story.id} />
           <p className="mt-4 text-[14px] leading-5 text-[#1b1d1f]/70">
             DRV247 is an aggregator. We store a headline, a short feed excerpt, a short extract from
             the original, and the outbound link — never the full third-party article or the video

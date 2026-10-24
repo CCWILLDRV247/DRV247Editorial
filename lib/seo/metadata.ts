@@ -112,6 +112,21 @@ export type StoryMetadataInput = {
   publicationName: string;
 };
 
+export function buildSavedMetadata(): Metadata {
+  const title = "Saved";
+  const description = "Teasers you clipped on this phone. Nothing is stored on an account.";
+  return {
+    title,
+    description,
+    robots: { index: false, follow: true },
+    openGraph: {
+      ...baseOpenGraph(title, description, editorialCanonicalPath("/")),
+      type: "website",
+    },
+    twitter: baseTwitter(title, description),
+  };
+}
+
 export function buildStoryMetadata(
   story: StoryMetadataInput,
   searchParams: Record<string, string | string[] | undefined>,
