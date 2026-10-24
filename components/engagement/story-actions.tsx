@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckIcon, Share2 } from "lucide-react";
+import { Bookmark, CheckIcon, Heart, MoreHorizontal, Share2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,8 +21,8 @@ import {
 } from "@/lib/engagement/relevance";
 import { STORY_TEASER, STORY_TEASER_RELEVANCE_HINT } from "@/lib/engine/story-teaser";
 
-function toolClass(on: boolean) {
-  return on ? `${STORY_TEASER.toolText} bg-[#1b1d1f] text-white` : STORY_TEASER.toolText;
+function pillClass(on: boolean) {
+  return on ? STORY_TEASER.toolPillOn : STORY_TEASER.toolPill;
 }
 
 export function StoryActions({
@@ -91,49 +91,62 @@ export function StoryActions({
     setStatus("Mark cleared.");
   }
 
+  const interested = polarity === "interested";
+
   return (
     <div className="mt-8">
       <p className="sr-only">{STORY_TEASER_RELEVANCE_HINT}</p>
       <div role="toolbar" aria-label="Story actions" className={STORY_TEASER.toolbar}>
-        <button
-          type="button"
-          onClick={() => onMark("interested")}
-          aria-pressed={polarity === "interested"}
-          className={toolClass(polarity === "interested")}
-        >
-          Interested
-        </button>
-        <button
-          type="button"
-          onClick={onSave}
-          aria-pressed={saved}
-          className={toolClass(saved)}
-        >
-          {saved ? "Saved" : "Save"}
-        </button>
-        <button
-          type="button"
-          onClick={() => void onShare()}
-          aria-label="Share"
-          className={STORY_TEASER.toolIcon}
-        >
-          <Share2 className="size-5" aria-hidden />
-        </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger className={STORY_TEASER.toolText} aria-label="More actions">
-            More
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-44 w-auto">
-            <DropdownMenuItem
-              onClick={() => onMark("less")}
-              aria-checked={polarity === "less"}
-              className="min-h-11 cursor-pointer"
-            >
-              {polarity === "less" ? <CheckIcon className="size-4" aria-hidden /> : null}
-              Less like this
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className={STORY_TEASER.pills}>
+          <button
+            type="button"
+            onClick={() => onMark("interested")}
+            aria-pressed={interested}
+            className={pillClass(interested)}
+          >
+            <Heart
+              className="size-4 shrink-0"
+              strokeWidth={2.25}
+              fill={interested ? "currentColor" : "none"}
+              aria-hidden
+            />
+            Interested
+          </button>
+          <button type="button" onClick={onSave} aria-pressed={saved} className={pillClass(saved)}>
+            <Bookmark
+              className="size-4 shrink-0"
+              strokeWidth={2.25}
+              fill={saved ? "currentColor" : "none"}
+              aria-hidden
+            />
+            {saved ? "Saved" : "Save"}
+          </button>
+        </div>
+        <div className={STORY_TEASER.icons}>
+          <button
+            type="button"
+            onClick={() => void onShare()}
+            aria-label="Share"
+            className={STORY_TEASER.toolIcon}
+          >
+            <Share2 className="size-5" strokeWidth={2.25} aria-hidden />
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger className={STORY_TEASER.toolIcon} aria-label="More">
+              <MoreHorizontal className="size-5" strokeWidth={2.25} aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-44 w-auto">
+              <DropdownMenuItem
+                onClick={() => onMark("less")}
+                aria-checked={polarity === "less"}
+                className="min-h-11 cursor-pointer"
+              >
+                {polarity === "less" ? <CheckIcon className="size-4" aria-hidden /> : null}
+                Less like this
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <p className="mt-2 min-h-5 text-[14px] leading-5 text-[#1b1d1f]/70" role="status" aria-live="polite">
         {status}

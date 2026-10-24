@@ -91,14 +91,12 @@ describe("story teaser hierarchy", () => {
     assert.doesNotMatch(article, /storyIntro|storyExtract/);
   });
 
-  it("keeps a wrapping Alumni headline at 32–40px and a sentence-case body excerpt", () => {
+  it("keeps the pre-P0 uppercase Alumni display headline and a sentence-case body excerpt", () => {
     assert.match(STORY_TEASER.headline, /font-display/);
-    assert.match(STORY_TEASER.headline, /clamp\(2rem,8\.5vw,2\.5rem\)/);
-    assert.match(STORY_TEASER.headline, /leading-\[1\.1\]/);
-    assert.doesNotMatch(STORY_TEASER.headline, /uppercase/);
-    assert.doesNotMatch(STORY_TEASER.headline, /leading-\[0\.62\]/);
-    assert.doesNotMatch(STORY_TEASER.headline, /9vw/);
-    assert.doesNotMatch(STORY_TEASER.headline, /[^.\d]5rem/);
+    assert.match(STORY_TEASER.headline, /uppercase/);
+    assert.match(STORY_TEASER.headline, /font-black/);
+    assert.match(STORY_TEASER.headline, /clamp\(2\.75rem,9vw,5rem\)/);
+    assert.match(STORY_TEASER.headline, /break-words/);
     assert.match(STORY_TEASER.excerpt, /text-\[17px\]/);
     assert.match(STORY_TEASER.excerpt, /leading-\[1\.5\]/);
     assert.doesNotMatch(STORY_TEASER.excerpt, /font-display/);
@@ -107,26 +105,36 @@ describe("story teaser hierarchy", () => {
     assert.doesNotMatch(STORY_TEASER.meta, /uppercase/);
     assert.match(article, /STORY_TEASER\.headline/);
     assert.match(article, /STORY_TEASER\.excerpt/);
+    assert.doesNotMatch(article, /READ FULL STORY/);
   });
 });
 
 describe("story teaser compact toolbar", () => {
-  it("renders Interested, Save, a Share icon, and More with Less like this inside", () => {
+  it("renders Interested and Save as icon+label pills, Share and More as icon-only", () => {
+    assert.match(actions, /<Heart/);
+    assert.match(actions, /<Bookmark/);
     assert.match(actions, />\s*Interested\s*</);
     assert.match(actions, /saved \? "Saved" : "Save"/);
     assert.match(actions, /aria-label="Share"/);
     assert.match(actions, /Share2/);
-    assert.match(actions, />\s*More\s*</);
+    assert.match(actions, /aria-label="More"/);
+    assert.match(actions, /MoreHorizontal/);
     assert.match(actions, /Less like this/);
     assert.match(actions, /DropdownMenu/);
+    assert.match(STORY_TEASER.toolPill, /rounded-full/);
+    assert.match(STORY_TEASER.toolIcon, /bg-transparent/);
+    assert.doesNotMatch(STORY_TEASER.toolIcon, /rounded-full/);
+    assert.doesNotMatch(STORY_TEASER.toolIcon, /border /);
+    assert.doesNotMatch(actions, />\s*More\s*</);
     assert.doesNotMatch(actions, /grid-cols-2/);
+    assert.doesNotMatch(actions, /READ FULL STORY/);
   });
 
   it("keeps 44×44 targets, pressed state, and the relevance hint for assistive tech only", () => {
-    assert.match(STORY_TEASER.toolText, /h-11/);
-    assert.match(STORY_TEASER.toolText, /min-w-11/);
+    assert.match(STORY_TEASER.toolPill, /h-11/);
     assert.match(STORY_TEASER.toolIcon, /size-11/);
-    assert.match(actions, /aria-pressed=\{polarity === "interested"\}/);
+    assert.match(STORY_TEASER.toolIcon, /min-w-11/);
+    assert.match(actions, /aria-pressed=\{interested\}/);
     assert.match(actions, /aria-pressed=\{saved\}/);
     assert.match(actions, /role="status"/);
     assert.match(actions, /aria-live="polite"/);
