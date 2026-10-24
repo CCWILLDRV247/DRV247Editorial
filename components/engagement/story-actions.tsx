@@ -106,7 +106,7 @@ export function StoryActions({
           >
             <Heart
               className="size-4 shrink-0"
-              strokeWidth={2.25}
+              strokeWidth={1.75}
               fill={interested ? "currentColor" : "none"}
               aria-hidden
             />
@@ -115,7 +115,7 @@ export function StoryActions({
           <button type="button" onClick={onSave} aria-pressed={saved} className={pillClass(saved)}>
             <Bookmark
               className="size-4 shrink-0"
-              strokeWidth={2.25}
+              strokeWidth={1.75}
               fill={saved ? "currentColor" : "none"}
               aria-hidden
             />
@@ -129,11 +129,11 @@ export function StoryActions({
             aria-label="Share"
             className={STORY_TEASER.toolIcon}
           >
-            <Share2 className="size-5" strokeWidth={2.25} aria-hidden />
+            <Share2 className="size-5" strokeWidth={1.75} aria-hidden />
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger className={STORY_TEASER.toolIcon} aria-label="More">
-              <MoreHorizontal className="size-5" strokeWidth={2.25} aria-hidden />
+              <MoreHorizontal className="size-5" strokeWidth={1.75} aria-hidden />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-44 w-auto">
               <DropdownMenuItem

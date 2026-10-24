@@ -97,6 +97,8 @@ describe("story teaser hierarchy", () => {
     assert.match(STORY_TEASER.headline, /font-black/);
     assert.match(STORY_TEASER.headline, /clamp\(2\.75rem,9vw,5rem\)/);
     assert.match(STORY_TEASER.headline, /break-words/);
+    assert.match(STORY_TEASER.headline, /leading-\[0\.62\]/);
+    assert.doesNotMatch(STORY_TEASER.headline, /line-clamp|truncate/);
     assert.match(STORY_TEASER.excerpt, /text-\[17px\]/);
     assert.match(STORY_TEASER.excerpt, /leading-\[1\.5\]/);
     assert.doesNotMatch(STORY_TEASER.excerpt, /font-display/);
@@ -122,6 +124,10 @@ describe("story teaser compact toolbar", () => {
     assert.match(actions, /Less like this/);
     assert.match(actions, /DropdownMenu/);
     assert.match(STORY_TEASER.toolPill, /rounded-full/);
+    assert.match(STORY_TEASER.toolPill, /bg-white/);
+    assert.match(STORY_TEASER.toolPill, /border-\[#1b1d1f\]/);
+    assert.doesNotMatch(STORY_TEASER.toolPill, /bg-\[#f4f4f4\]/);
+    assert.match(STORY_TEASER.toolPillOn, /bg-white/);
     assert.match(STORY_TEASER.toolIcon, /bg-transparent/);
     assert.doesNotMatch(STORY_TEASER.toolIcon, /rounded-full/);
     assert.doesNotMatch(STORY_TEASER.toolIcon, /border /);
@@ -161,5 +167,7 @@ describe("story teaser compact toolbar", () => {
     assert.match(outbound, /ENGAGEMENT_EVENTS\.outbound/);
     assert.match(outbound, /w-full/);
     assert.match(outbound, /uppercase/);
+    assert.match(outbound, /rounded-\[5px\]/);
+    assert.doesNotMatch(outbound, /READ FULL STORY/);
   });
 });
