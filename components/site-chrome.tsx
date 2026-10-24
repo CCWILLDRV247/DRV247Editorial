@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { ChevronLeft } from "lucide-react";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
+import { ExperienceFeedback } from "@/components/engagement/experience-feedback";
 import { SavedHeaderLink } from "@/components/engagement/saved-header-link";
 import { Drv247Wordmark } from "@/components/drv247-wordmark";
 import { MagazineBack, MagazineLink } from "@/components/magazine-link";
@@ -90,7 +91,9 @@ export function SiteHeader({
 
 export function SiteFooter() {
   return (
-    <footer className={HOMEPAGE_COMPOSITION.footerBand}>
+    <>
+      <ExperienceFeedback />
+      <footer className={HOMEPAGE_COMPOSITION.footerBand}>
       <div className={`${MAGAZINE_LAYOUT.page} ${MAGAZINE_LAYOUT.gutter}`}>
         <p className={HOMEPAGE_COMPOSITION.footerCopy}>{SITE_FOOTER.legal}</p>
         <p className={`mt-2 ${HOMEPAGE_COMPOSITION.footerCopy}`}>
@@ -113,6 +116,7 @@ export function SiteFooter() {
         </p>
       </div>
     </footer>
+    </>
   );
 }
 

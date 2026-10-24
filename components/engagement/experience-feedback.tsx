@@ -1,34 +1,40 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { XIcon } from "lucide-react";
 import {
   ENGAGEMENT_EVENTS,
+  experienceFeedbackEventData,
   type ExperienceFeedbackRating,
+  type ExperienceFeedbackReason,
   trackEngagement,
 } from "@/lib/engagement/events";
 import {
   EXPERIENCE_FEEDBACK_MIN_DWELL_MS,
+  EXPERIENCE_FEEDBACK_PROMPT,
+  EXPERIENCE_FEEDBACK_RATING_LABELS,
+  EXPERIENCE_FEEDBACK_REASON_LABELS,
+  EXPERIENCE_FEEDBACK_REASONS,
+  EXPERIENCE_FEEDBACK_RATINGS,
   EXPERIENCE_FEEDBACK_SCROLL_ARM_MS,
   EXPERIENCE_FEEDBACK_SCROLL_RATIO,
   MEANINGFUL_ENGAGE_EVENT,
   alreadyRespondedToExperienceFeedback,
+  experienceFeedbackSurface,
+  experienceFollowUpPrompt,
   readExperienceFeedbackStored,
   shouldShowExperienceFeedback,
   writeExperienceFeedbackStored,
 } from "@/lib/engagement/feedback";
 
-const ratings: { value: ExperienceFeedbackRating; label: string }[] = [
-  { value: "useful", label: "Useful" },
-  { value: "not_for_me", label: "Not for me" },
-  { value: "browsing", label: "Just browsing" },
-];
-
 const chipClass =
-  "flex h-11 flex-1 items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white px-2 font-display text-base font-extrabold uppercase text-[#1b1d1f]";
+  "flex h-11 items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white px-2 font-display text-base font-extrabold uppercase text-[#1b1d1f]";
 
-export function ExperienceFeedback({ articleId }: { articleId: number }) {
+export function ExperienceFeedback() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
+  const [rating, setRating] = useState<ExperienceFeedbackRating | null>(null);
   const started = useRef(Date.now());
   const firstPaint = useRef(true);
   const explicitEngage = useRef(false);
@@ -85,53 +91,83 @@ export function ExperienceFeedback({ articleId }: { articleId: number }) {
     };
   }, []);
 
-  function close(status: "submitted" | "dismissed", rating?: ExperienceFeedbackRating) {
-    writeExperienceFeedbackStored({ status, at: Date.now(), ...(rating ? { rating } : {}) });
+  function dismiss() {
+    writeExperienceFeedbackStored({
+      status: "dismissed",
+      at: Date.now(),
+      ...(rating ? { rating } : {}),
+    });
     setVisible(false);
-    if (status === "submitted" && rating) {
-      void trackEngagement({
-        name: ENGAGEMENT_EVENTS.feedback,
-        data: { articleId, rating },
-      });
-    }
+    setRating(null);
+  }
+
+  function submit(reason: ExperienceFeedbackReason) {
+    if (!rating) return;
+    writeExperienceFeedbackStored({ status: "submitted", rating, reason, at: Date.now() });
+    void trackEngagement({
+      name: ENGAGEMENT_EVENTS.feedback,
+      data: experienceFeedbackEventData({
+        rating,
+        reason,
+        surface: experienceFeedbackSurface(pathname),
+      }),
+    });
+    setVisible(false);
+    setRating(null);
   }
 
   if (!visible) return null;
 
+  const prompt = rating ? experienceFollowUpPrompt(rating) : EXPERIENCE_FEEDBACK_PROMPT;
+
   return (
-    <>
-      <div className="h-32" aria-hidden />
-      <aside
-        role="region"
-        aria-label="Teaser feedback"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-[#1b1d1f]/10 bg-white px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4"
-      >
-        <div className="mx-auto flex max-w-3xl items-start justify-between gap-3">
+    <aside
+      role="region"
+      aria-label="DRV247 experience"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center p-4 md:inset-x-auto md:right-6 md:bottom-6 md:justify-end md:p-0 pb-[max(1rem,env(safe-area-inset-bottom))]"
+    >
+      <div className="pointer-events-auto w-full max-w-sm border border-[#1b1d1f]/15 bg-white p-4 shadow-[0_12px_40px_rgba(27,29,31,0.12)]">
+        <div className="flex items-start justify-between gap-3">
           <p className="font-display text-lg font-bold uppercase leading-none tracking-[-0.02em] text-[#1b1d1f]">
-            How’s this teaser?
+            {prompt}
           </p>
           <button
             type="button"
-            onClick={() => close("dismissed")}
+            onClick={dismiss}
             className="flex size-9 shrink-0 items-center justify-center text-[#1b1d1f]"
-            aria-label="Dismiss feedback"
+            aria-label="Dismiss experience feedback"
           >
             <XIcon className="size-5" strokeWidth={2.25} />
           </button>
         </div>
-        <div className="mx-auto mt-3 grid max-w-3xl grid-cols-1 gap-2 sm:grid-cols-3">
-          {ratings.map((rating) => (
-            <button
-              key={rating.value}
-              type="button"
-              className={chipClass}
-              onClick={() => close("submitted", rating.value)}
-            >
-              {rating.label}
-            </button>
-          ))}
-        </div>
-      </aside>
-    </>
+        {rating ? (
+          <div className="mt-3 grid grid-cols-1 gap-2">
+            {EXPERIENCE_FEEDBACK_REASONS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={chipClass}
+                onClick={() => submit(value)}
+              >
+                {EXPERIENCE_FEEDBACK_REASON_LABELS[value]}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {EXPERIENCE_FEEDBACK_RATINGS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={chipClass}
+                onClick={() => setRating(value)}
+              >
+                {EXPERIENCE_FEEDBACK_RATING_LABELS[value]}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </aside>
   );
 }

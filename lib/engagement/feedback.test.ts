@@ -1,9 +1,17 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { experienceFeedbackEventData } from "./events";
 import {
   EXPERIENCE_FEEDBACK_DISMISS_MS,
+  EXPERIENCE_FEEDBACK_ENJOY_PROMPT,
+  EXPERIENCE_FEEDBACK_IMPROVE_PROMPT,
   EXPERIENCE_FEEDBACK_MIN_DWELL_MS,
+  EXPERIENCE_FEEDBACK_PROMPT,
+  EXPERIENCE_FEEDBACK_REASON_LABELS,
   alreadyRespondedToExperienceFeedback,
+  experienceFeedbackCopy,
+  experienceFeedbackSurface,
+  experienceFollowUpPrompt,
   parseExperienceFeedbackStored,
   shouldShowExperienceFeedback,
 } from "./feedback";
@@ -15,6 +23,8 @@ const closed = {
   explicitEngage: false,
   alreadyResponded: false,
 };
+
+const storyish = /article|teaser|story/i;
 
 describe("experience feedback gating", () => {
   it("stays hidden on first paint", () => {
@@ -53,7 +63,7 @@ describe("experience feedback gating", () => {
     const now = 1_700_000_000_000;
     assert.equal(alreadyRespondedToExperienceFeedback(null, now), false);
     assert.equal(
-      alreadyRespondedToExperienceFeedback({ status: "submitted", rating: "useful", at: now - 1 }, now),
+      alreadyRespondedToExperienceFeedback({ status: "submitted", rating: "good", at: now - 1 }, now),
       true,
     );
     assert.equal(
@@ -72,11 +82,50 @@ describe("experience feedback gating", () => {
   it("parses stored feedback and ignores junk", () => {
     assert.equal(parseExperienceFeedbackStored(null), null);
     assert.equal(parseExperienceFeedbackStored("{"), null);
-    assert.deepEqual(parseExperienceFeedbackStored('{"status":"submitted","rating":"browsing","at":12}'), {
-      status: "submitted",
-      rating: "browsing",
-      at: 12,
+    assert.deepEqual(
+      parseExperienceFeedbackStored('{"status":"submitted","rating":"love_it","reason":"discovery","at":12}'),
+      {
+        status: "submitted",
+        rating: "love_it",
+        reason: "discovery",
+        at: 12,
+      },
+    );
+    assert.equal(parseExperienceFeedbackStored('{"status":"submitted","rating":"useful","at":12}'), null);
+    assert.equal(parseExperienceFeedbackStored('{"status":"submitted","rating":"good","reason":"writing","at":12}'), null);
+  });
+});
+
+describe("experience feedback copy", () => {
+  it("asks about the magazine experience, never a single piece", () => {
+    assert.equal(EXPERIENCE_FEEDBACK_PROMPT, "How’s your DRV247 experience?");
+    assert.equal(experienceFollowUpPrompt("good"), EXPERIENCE_FEEDBACK_ENJOY_PROMPT);
+    assert.equal(experienceFollowUpPrompt("love_it"), EXPERIENCE_FEEDBACK_ENJOY_PROMPT);
+    assert.equal(experienceFollowUpPrompt("okay"), EXPERIENCE_FEEDBACK_IMPROVE_PROMPT);
+    assert.equal(experienceFollowUpPrompt("not_great"), EXPERIENCE_FEEDBACK_IMPROVE_PROMPT);
+    for (const line of experienceFeedbackCopy()) {
+      assert.doesNotMatch(line, storyish);
+    }
+    assert.deepEqual(Object.values(EXPERIENCE_FEEDBACK_REASON_LABELS), [
+      "Discovery",
+      "Personalisation",
+      "Mix of sources",
+      "Pace",
+      "Layout",
+    ]);
+  });
+
+  it("records rating and reason without an article id", () => {
+    const data = experienceFeedbackEventData({
+      rating: "good",
+      reason: "pace",
+      surface: "home",
     });
-    assert.equal(parseExperienceFeedbackStored('{"status":"submitted","rating":"love-it","at":12}'), null);
+    assert.deepEqual(data, { rating: "good", reason: "pace", surface: "home" });
+    assert.equal("articleId" in data, false);
+    assert.equal(experienceFeedbackSurface("/"), "home");
+    assert.equal(experienceFeedbackSurface("/category/cars"), "category");
+    assert.equal(experienceFeedbackSurface("/story/42"), "story");
+    assert.equal(experienceFeedbackSurface("/saved"), "saved");
   });
 });

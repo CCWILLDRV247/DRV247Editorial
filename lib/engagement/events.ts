@@ -11,16 +11,29 @@ export type EngagementEventName = (typeof ENGAGEMENT_EVENTS)[keyof typeof ENGAGE
 
 export type StoryShareMethod = "web_share" | "copy";
 
-export type ExperienceFeedbackRating = "useful" | "not_for_me" | "browsing";
+export type ExperienceFeedbackRating = "not_great" | "okay" | "good" | "love_it";
+
+export type ExperienceFeedbackReason =
+  | "discovery"
+  | "personalisation"
+  | "sources"
+  | "pace"
+  | "layout";
+
+/** Coarse magazine surface only — never an article id. */
+export type ExperienceFeedbackSurface = "home" | "category" | "story" | "saved" | "other";
+
+export type ExperienceFeedbackEventData = {
+  rating: ExperienceFeedbackRating;
+  reason: ExperienceFeedbackReason;
+  surface?: ExperienceFeedbackSurface;
+};
 
 export type EngagementEventPayload =
   | { name: typeof ENGAGEMENT_EVENTS.share; data: { articleId: number; method: StoryShareMethod } }
   | { name: typeof ENGAGEMENT_EVENTS.save; data: { articleId: number } }
   | { name: typeof ENGAGEMENT_EVENTS.unsave; data: { articleId: number } }
-  | {
-      name: typeof ENGAGEMENT_EVENTS.feedback;
-      data: { articleId: number; rating: ExperienceFeedbackRating };
-    }
+  | { name: typeof ENGAGEMENT_EVENTS.feedback; data: ExperienceFeedbackEventData }
   | { name: typeof ENGAGEMENT_EVENTS.outbound; data: { articleId: number } };
 
 export function engagementEventNames(): EngagementEventName[] {
@@ -29,6 +42,16 @@ export function engagementEventNames(): EngagementEventName[] {
 
 export function isEngagementEventName(value: string): value is EngagementEventName {
   return (engagementEventNames() as string[]).includes(value);
+}
+
+export function experienceFeedbackEventData(
+  input: ExperienceFeedbackEventData,
+): ExperienceFeedbackEventData {
+  return {
+    rating: input.rating,
+    reason: input.reason,
+    ...(input.surface ? { surface: input.surface } : {}),
+  };
 }
 
 export async function trackEngagement(event: EngagementEventPayload): Promise<void> {

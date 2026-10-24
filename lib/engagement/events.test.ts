@@ -26,4 +26,11 @@ describe("engagement event names", () => {
     assert.equal(isEngagementEventName("ga4_event"), false);
     assert.equal(isEngagementEventName(""), false);
   });
+
+  it("keeps experience_feedback off an article id", async () => {
+    const { experienceFeedbackEventData } = await import("./events");
+    const data = experienceFeedbackEventData({ rating: "okay", reason: "layout" });
+    assert.deepEqual(Object.keys(data).sort(), ["rating", "reason"]);
+    assert.equal("articleId" in data, false);
+  });
 });

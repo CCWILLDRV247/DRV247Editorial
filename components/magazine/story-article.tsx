@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { ExperienceFeedback } from "@/components/engagement/experience-feedback";
 import { OutboundStoryLink } from "@/components/engagement/outbound-story-link";
 import { StoryActions } from "@/components/engagement/story-actions";
 import { MagazineLink } from "@/components/magazine-link";
@@ -82,7 +81,6 @@ export async function StoryArticle({
           <OutboundStoryLink href={story.canonicalUrl} articleId={story.id}>
             {isVideoStory(story) ? `Watch on ${story.source.name}` : `Read on ${story.source.name}`}
           </OutboundStoryLink>
-          <ExperienceFeedback articleId={story.id} />
           <p className="mt-4 text-[14px] leading-5 text-[#1b1d1f]/70">
             DRV247 is an aggregator. We store a headline, a short feed excerpt, a short extract from
             the original, and the outbound link — never the full third-party article or the video
