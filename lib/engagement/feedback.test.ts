@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { experienceFeedbackEventData } from "./events";
 import {
@@ -10,6 +11,7 @@ import {
   EXPERIENCE_FEEDBACK_REASON_LABELS,
   alreadyRespondedToExperienceFeedback,
   experienceFeedbackCopy,
+  experienceFeedbackHeadingLines,
   experienceFeedbackSurface,
   experienceFollowUpPrompt,
   parseExperienceFeedbackStored,
@@ -106,6 +108,9 @@ describe("experience feedback copy", () => {
     for (const line of experienceFeedbackCopy()) {
       assert.doesNotMatch(line, storyish);
     }
+    assert.equal(experienceFeedbackHeadingLines(EXPERIENCE_FEEDBACK_PROMPT).join(" "), EXPERIENCE_FEEDBACK_PROMPT);
+    assert.equal(experienceFeedbackHeadingLines(EXPERIENCE_FEEDBACK_ENJOY_PROMPT).join(" "), EXPERIENCE_FEEDBACK_ENJOY_PROMPT);
+    assert.equal(experienceFeedbackHeadingLines(EXPERIENCE_FEEDBACK_IMPROVE_PROMPT).join(" "), EXPERIENCE_FEEDBACK_IMPROVE_PROMPT);
     assert.deepEqual(Object.values(EXPERIENCE_FEEDBACK_REASON_LABELS), [
       "Discovery",
       "Personalisation",
@@ -127,5 +132,30 @@ describe("experience feedback copy", () => {
     assert.equal(experienceFeedbackSurface("/category/cars"), "category");
     assert.equal(experienceFeedbackSurface("/story/42"), "story");
     assert.equal(experienceFeedbackSurface("/saved"), "saved");
+  });
+});
+
+describe("experience feedback panel matches personalisation modal", () => {
+  it("reuses the Figma 1:254 card, heading, chip, and close tokens", () => {
+    const modal = readFileSync(new URL("../../components/personalization-interests-modal.tsx", import.meta.url), "utf8");
+    const panel = readFileSync(new URL("../../components/engagement/experience-feedback.tsx", import.meta.url), "utf8");
+    const tokens = [
+      "rounded-[15px]",
+      "border-[1.5px] border-[#c4c4c4]",
+      "shadow-[0px_2px_4px_0px_rgba(0,0,0,0.16)]",
+      "font-display text-[clamp(3.75rem,17.1vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em]",
+      "px-[17px] pt-[44px] pb-5",
+      "gap-5",
+      "h-[52px]",
+      "rounded-[5px] border border-[#1b1d1f]",
+      "font-display text-[18px] font-extrabold uppercase leading-6",
+      "top-[16.5px] right-[20px]",
+      "/personalization-close.svg",
+      "w-[calc(100%-20px)] max-w-[468px]",
+    ];
+    for (const token of tokens) {
+      assert.match(modal, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+      assert.match(panel, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    }
   });
 });
