@@ -54,7 +54,7 @@ export function StoryCard({ story }: { story: StoryDto }) {
           <div className="flex flex-col items-start gap-2">
             <FeatureTag>{tag}</FeatureTag>
           </div>
-          <RelevanceLine text={story.relevanceExplanation} tone="dark" />
+          <RelevanceLine text={story.communityLabel ?? story.relevanceExplanation} tone="dark" />
           <h2 className="font-display text-[clamp(2.5rem,8vw,5rem)] font-black uppercase leading-[0.70] tracking-[-0.02em] lg:text-[clamp(2rem,2.8vw,3rem)]">
             {story.title}
           </h2>

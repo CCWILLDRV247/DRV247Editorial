@@ -13,6 +13,7 @@ export type StoryDto = {
   publishedAt: string;
   hidden: boolean;
   relevanceExplanation?: string | null;
+  communityLabel?: string | null;
   category: { id: number; slug: string; name: string };
   source: { id: number; name: string; type: string };
   desk?: {

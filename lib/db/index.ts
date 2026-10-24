@@ -249,6 +249,7 @@ async function ensureSchema(client: Client) {
   await ensureDeskPicks(client);
   await ensureYoutubeSourceColumns(client);
   await ensureRankedLists(client);
+  await ensureEngagement(client);
 }
 
 const INDEX_STATEMENTS = [
@@ -445,6 +446,33 @@ async function magazineReadPathReady(client: Client) {
   }
 }
 
+const ENGAGEMENT_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS engagement_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event TEXT NOT NULL,
+      article_id INTEGER,
+      visitor_key TEXT NOT NULL,
+      cohort TEXT,
+      created_at INTEGER NOT NULL
+    )`,
+  `CREATE INDEX IF NOT EXISTS engagement_events_article_created_idx
+      ON engagement_events (article_id, created_at)`,
+  `CREATE INDEX IF NOT EXISTS engagement_events_event_created_idx
+      ON engagement_events (event, created_at)`,
+  `CREATE INDEX IF NOT EXISTS engagement_events_visitor_created_idx
+      ON engagement_events (visitor_key, created_at)`,
+];
+
+async function ensureEngagement(client: Client) {
+  for (const sql of ENGAGEMENT_STATEMENTS) {
+    try {
+      await client.execute(sql);
+    } catch {
+      // Table/index already exists on live Turso / local sqlite.
+    }
+  }
+}
+
 async function createDb() {
   const client = globalForDb.drvLibsql ?? createClient(connection());
   globalForDb.drvLibsql = client;
@@ -453,6 +481,7 @@ async function createDb() {
     await ensureSchema(client);
     await ensureIntelligenceSchema(client);
   }
+  await ensureEngagement(client);
   const db = drizzle(client, { schema: appSchema });
   if (!ready) {
     await seedIfEmpty(db as never);

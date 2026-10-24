@@ -1,5 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { CarouselStoryCard, CategoryCarousel, type CategoryLane } from "@/components/category-carousel";
+import { CommunityDiscoverySection } from "@/components/engagement/community-discovery";
+import { PersonalMarksRail } from "@/components/engagement/personal-marks-rail";
 import { DeskModule } from "@/components/desk-module";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
 import { InterludeRecentSync } from "@/components/interlude-recent-sync";
@@ -17,6 +19,7 @@ import type { PrintModule } from "@/lib/engine/print";
 import { PrintModuleRail } from "@/components/print-module";
 import type { SelectedHomepageInterlude } from "@/lib/engine/interlude-selection";
 import { selectHomeLead } from "@/lib/engine/home-lead";
+import type { CommunityDiscovery } from "@/lib/engagement/community";
 import type { StoryDto } from "@/lib/stories";
 
 type ForYouLaneDisplay = Omit<ForYouLane, "stories"> & { stories: StoryDto[] };
@@ -158,6 +161,8 @@ export function ForYouHomeRest({
   carousels,
   interludes,
   print,
+  community,
+  excludeIds,
   testQuery,
 }: {
   forYourCar: ForYouLaneDisplay;
@@ -166,6 +171,8 @@ export function ForYouHomeRest({
   carousels: CategoryLane[];
   interludes: SelectedHomepageInterlude[];
   print?: PrintModule | null;
+  community: CommunityDiscovery;
+  excludeIds?: readonly number[];
   testQuery?: string;
 }) {
   const carouselOpeners = carousels.flatMap((lane) => (lane.stories[0] ? [lane.stories[0].id] : []));
@@ -222,6 +229,9 @@ export function ForYouHomeRest({
         </div>
 
         {beforeViewAll ? <HomepageInterlude interlude={beforeViewAll} slot="before-view-all" /> : null}
+
+        <PersonalMarksRail excludeIds={excludeIds} testQuery={testQuery} />
+        <CommunityDiscoverySection community={community} />
       </div>
     </>
   );
@@ -235,6 +245,7 @@ export function ForYouHome({
   carousels,
   interludes,
   print,
+  community,
   testQuery,
   filter,
 }: {
@@ -242,6 +253,7 @@ export function ForYouHome({
   forYourCar: ForYouLaneDisplay;
   yourInterests: ForYouLaneDisplay;
   discover: ForYouLaneDisplay;
+  community: CommunityDiscovery;
   picks: StoryDto[];
   carousels: CategoryLane[];
   interludes: SelectedHomepageInterlude[];
@@ -265,6 +277,7 @@ export function ForYouHome({
         carousels={carousels}
         interludes={interludes}
         print={print}
+        community={community}
         testQuery={testQuery}
       />
     </div>

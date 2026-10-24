@@ -83,6 +83,12 @@ async function HomeRest({
       carousels={home.carousels}
       interludes={home.interludes}
       print={home.print}
+      community={home.community}
+      excludeIds={[
+        ...home.forYourCar.stories.map((story) => story.id),
+        ...home.yourInterests.stories.map((story) => story.id),
+        ...home.picks.map((story) => story.id),
+      ]}
       testQuery={testQuery}
     />
   );

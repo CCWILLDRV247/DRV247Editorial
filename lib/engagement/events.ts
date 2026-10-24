@@ -5,6 +5,9 @@ export const ENGAGEMENT_EVENTS = {
   unsave: "story_unsave",
   feedback: "experience_feedback",
   outbound: "outbound_original_click",
+  interested: "story_interested",
+  lessLike: "story_less_like_this",
+  open: "story_open",
 } as const;
 
 export type EngagementEventName = (typeof ENGAGEMENT_EVENTS)[keyof typeof ENGAGEMENT_EVENTS];
@@ -34,7 +37,10 @@ export type EngagementEventPayload =
   | { name: typeof ENGAGEMENT_EVENTS.save; data: { articleId: number } }
   | { name: typeof ENGAGEMENT_EVENTS.unsave; data: { articleId: number } }
   | { name: typeof ENGAGEMENT_EVENTS.feedback; data: ExperienceFeedbackEventData }
-  | { name: typeof ENGAGEMENT_EVENTS.outbound; data: { articleId: number } };
+  | { name: typeof ENGAGEMENT_EVENTS.outbound; data: { articleId: number } }
+  | { name: typeof ENGAGEMENT_EVENTS.interested; data: { articleId: number } }
+  | { name: typeof ENGAGEMENT_EVENTS.lessLike; data: { articleId: number } }
+  | { name: typeof ENGAGEMENT_EVENTS.open; data: { articleId: number } };
 
 export function engagementEventNames(): EngagementEventName[] {
   return Object.values(ENGAGEMENT_EVENTS);

@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { OutboundStoryLink } from "@/components/engagement/outbound-story-link";
 import { StoryActions } from "@/components/engagement/story-actions";
+import { StoryOpenSignal } from "@/components/engagement/story-open-signal";
+import { StoryRelevance } from "@/components/engagement/story-relevance";
+import { communityLabelForArticle } from "@/lib/engagement/aggregates";
 import { MagazineLink } from "@/components/magazine-link";
 import { StoryCopyTransition } from "@/components/story-copy-transition";
 import { StoryImage } from "@/components/story-image";
@@ -20,6 +23,7 @@ export async function StoryArticle({
 }) {
   const story = await getMagazineStory(id);
   if (!story) notFound();
+  const communityLabel = await communityLabelForArticle(story.id);
   const intro = storyIntro(story.title, story.summary);
   const extract = storyExtract(story.aiSummary, story.title, intro);
   const categoryHref = withTestQuery(`/category/${story.category.slug}`, testQuery);
@@ -40,6 +44,12 @@ export async function StoryArticle({
       </StoryHeroMedia>
       <StoryCopyTransition>
         <div className="px-7 pt-10 md:px-8 lg:px-0 lg:max-w-3xl">
+          <StoryOpenSignal articleId={story.id} />
+          {communityLabel ? (
+            <p className="mb-4 font-display text-sm font-bold uppercase tracking-[0.06em] text-[#1b1d1f]/55">
+              {communityLabel}
+            </p>
+          ) : null}
           <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f] lg:text-[clamp(2.75rem,5vw,4rem)]">
             {story.title}
           </h1>
@@ -78,6 +88,7 @@ export async function StoryArticle({
             title={story.title}
             text={intro ?? extract ?? undefined}
           />
+          <StoryRelevance articleId={story.id} />
           <OutboundStoryLink href={story.canonicalUrl} articleId={story.id}>
             {isVideoStory(story) ? `Watch on ${story.source.name}` : `Read on ${story.source.name}`}
           </OutboundStoryLink>

@@ -76,6 +76,12 @@ import {
 } from "./desk";
 import { evaluateEditorialEligibility } from "./editorial-eligibility";
 import type { EditorialExclusionReason } from "./editorial-eligibility";
+import {
+  applyReaderSignals,
+  normalizeReaderSignals,
+  readerSignalsAreActive,
+  type ReaderSignals,
+} from "@/lib/engagement/personalise";
 
 export type EditorialDto = {
   id: number;
@@ -467,6 +473,7 @@ type ListEditorialOptions = {
   testProfile?: ForYouTestProfile;
   hardFilter?: boolean;
   limit?: number;
+  readerSignals?: Partial<ReaderSignals> | null;
 };
 
 function editorialListCacheKey(options?: ListEditorialOptions): string | null {
@@ -620,15 +627,39 @@ export async function persistDefaultRankedLists() {
   }
 }
 
+async function withReaderSignals(
+  list: EditorialDto[],
+  options?: ListEditorialOptions,
+): Promise<EditorialDto[]> {
+  const signals = normalizeReaderSignals(options?.readerSignals);
+  if (!readerSignalsAreActive(signals)) return list;
+  const known = new Set(list.map((article) => article.id));
+  const extraIds = [...signals.interestedIds, ...signals.lessLikeIds, ...signals.savedIds].filter(
+    (id) => !known.has(id),
+  );
+  const extras: EditorialDto[] = [];
+  for (const id of extraIds.slice(0, 12)) {
+    const article = await getEditorial(id, { related: false });
+    if (article) extras.push(article);
+  }
+  const { articles } = applyReaderSignals([...extras, ...list], signals);
+  const seen = new Set<number>();
+  return articles.filter((article) => {
+    if (seen.has(article.id)) return false;
+    seen.add(article.id);
+    return true;
+  });
+}
+
 export async function listEditorial(options?: ListEditorialOptions): Promise<EditorialDto[]> {
   const cacheKey = editorialListCacheKey(options);
-  if (cacheKey) {
-    return unstable_cache(listEditorialDurable, ["editorial-ranked-list"], {
-      revalidate: 60,
-      tags: ["editorial"],
-    })(cacheKey);
-  }
-  return listEditorialUncached(options);
+  const list = cacheKey
+    ? await unstable_cache(listEditorialDurable, ["editorial-ranked-list"], {
+        revalidate: 60,
+        tags: ["editorial"],
+      })(cacheKey)
+    : await listEditorialUncached(options);
+  return withReaderSignals(list, options);
 }
 
 async function listEditorialUncached(options?: ListEditorialOptions): Promise<EditorialDto[]> {
