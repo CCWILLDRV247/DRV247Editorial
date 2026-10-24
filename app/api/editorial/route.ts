@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { parseIdListParam } from "@/lib/engagement/personalise";
 import { forYouTestIsActive, parseForYouTestProfile } from "@/lib/engine/for-you-test";
 import { listEditorial } from "@/lib/engine/queries";
 import { contextFromTestProfile } from "@/lib/engine/personalize";
@@ -33,6 +34,12 @@ export async function GET(request: Request) {
     interest: testing ? undefined : (searchParams.get("interest") ?? undefined),
     q: searchParams.get("q") ?? undefined,
     limit: Number(searchParams.get("limit") ?? 40),
+    readerSignals: {
+      interestedIds: parseIdListParam(searchParams.get("interested")),
+      lessLikeIds: parseIdListParam(searchParams.get("less")),
+      savedIds: parseIdListParam(searchParams.get("saved")),
+      recentIds: parseIdListParam(searchParams.get("recent")),
+    },
   });
   return NextResponse.json(
     {

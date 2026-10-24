@@ -10,6 +10,9 @@ describe("engagement event names", () => {
       unsave: "story_unsave",
       feedback: "experience_feedback",
       outbound: "outbound_original_click",
+      interested: "story_interested",
+      lessLike: "story_less_like_this",
+      open: "story_open",
     });
     assert.deepEqual(engagementEventNames(), [
       "story_share",
@@ -17,6 +20,9 @@ describe("engagement event names", () => {
       "story_unsave",
       "experience_feedback",
       "outbound_original_click",
+      "story_interested",
+      "story_less_like_this",
+      "story_open",
     ]);
   });
 

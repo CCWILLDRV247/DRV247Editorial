@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ENGAGEMENT_EVENTS, trackEngagement } from "@/lib/engagement/events";
+import { ENGAGEMENT_EVENTS } from "@/lib/engagement/events";
+import { recordMagazineEngagement } from "@/lib/engagement/record";
 import { signalMeaningfulEngage } from "@/lib/engagement/feedback";
 import { isArticleSaved, readSavedArticleIds, toggleSavedArticleInStorage } from "@/lib/engagement/saved";
 import { shareEditorialStory } from "@/lib/engagement/share";
@@ -32,7 +33,7 @@ export function StoryActions({
       return;
     }
     signalMeaningfulEngage();
-    void trackEngagement({
+    void recordMagazineEngagement({
       name: ENGAGEMENT_EVENTS.share,
       data: { articleId, method: result.method },
     });
@@ -43,7 +44,7 @@ export function StoryActions({
     const result = toggleSavedArticleInStorage(articleId);
     setSaved(result.saved);
     signalMeaningfulEngage();
-    void trackEngagement({
+    void recordMagazineEngagement({
       name: result.saved ? ENGAGEMENT_EVENTS.save : ENGAGEMENT_EVENTS.unsave,
       data: { articleId },
     });

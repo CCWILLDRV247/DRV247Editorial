@@ -328,6 +328,15 @@ export const rankedListEntries = sqliteTable("ranked_list_entries", {
   computedAt: integer("computed_at").notNull(),
 });
 
+export const engagementEvents = sqliteTable("engagement_events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  event: text("event").notNull(),
+  articleId: integer("article_id"),
+  visitorKey: text("visitor_key").notNull(),
+  cohort: text("cohort"),
+  createdAt: integer("created_at").notNull(),
+});
+
 export type MediaSource = typeof mediaSources.$inferSelect;
 export type Article = typeof articles.$inferSelect;
 export type IngestionRun = typeof ingestionRuns.$inferSelect;
@@ -335,4 +344,5 @@ export type DemoUser = typeof demoUsers.$inferSelect;
 export type DemoVehicle = typeof demoVehicles.$inferSelect;
 export type DeskPick = typeof deskPicks.$inferSelect;
 export type RankedListEntry = typeof rankedListEntries.$inferSelect;
+export type EngagementEvent = typeof engagementEvents.$inferSelect;
 

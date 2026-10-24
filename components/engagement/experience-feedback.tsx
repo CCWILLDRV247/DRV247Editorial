@@ -7,8 +7,8 @@ import {
   experienceFeedbackEventData,
   type ExperienceFeedbackRating,
   type ExperienceFeedbackReason,
-  trackEngagement,
 } from "@/lib/engagement/events";
+import { recordMagazineEngagement } from "@/lib/engagement/record";
 import {
   EXPERIENCE_FEEDBACK_MIN_DWELL_MS,
   EXPERIENCE_FEEDBACK_PROMPT,
@@ -122,7 +122,7 @@ export function ExperienceFeedback() {
   function submit(reason: ExperienceFeedbackReason) {
     if (!rating) return;
     writeExperienceFeedbackStored({ status: "submitted", rating, reason, at: Date.now() });
-    void trackEngagement({
+    void recordMagazineEngagement({
       name: ENGAGEMENT_EVENTS.feedback,
       data: experienceFeedbackEventData({
         rating,

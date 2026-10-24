@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ENGAGEMENT_EVENTS, trackEngagement } from "@/lib/engagement/events";
+import { ENGAGEMENT_EVENTS } from "@/lib/engagement/events";
+import { recordMagazineEngagement } from "@/lib/engagement/record";
 import { signalMeaningfulEngage } from "@/lib/engagement/feedback";
 
 export function OutboundStoryLink({
@@ -15,7 +16,7 @@ export function OutboundStoryLink({
 }) {
   function onClick() {
     signalMeaningfulEngage();
-    void trackEngagement({ name: ENGAGEMENT_EVENTS.outbound, data: { articleId } });
+    void recordMagazineEngagement({ name: ENGAGEMENT_EVENTS.outbound, data: { articleId } });
   }
 
   return (

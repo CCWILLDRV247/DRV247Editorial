@@ -1,6 +1,10 @@
 import type { CategoryLane } from "@/components/category-carousel";
 import type { ForYouCopy, ForYouLane } from "./for-you-home";
 import type { StoryDto } from "@/lib/stories";
+import {
+  resolveCommunityDiscovery,
+  type CommunityDiscovery,
+} from "@/lib/engagement/community";
 import type { SelectedHomepageInterlude } from "./interlude-selection";
 import type { PrintModule } from "./print";
 import { cache } from "react";
@@ -198,6 +202,7 @@ export type MagazineHomeHero = {
 
 export type MagazineHome = MagazineHomeHero & {
   discover: HomeLaneDisplay;
+  community: CommunityDiscovery;
   carousels: CategoryLane[];
   interludes: SelectedHomepageInterlude[];
   print: PrintModule | null;
@@ -411,7 +416,10 @@ async function composeMagazineHomePlan(
   };
 }
 
-function finishMagazineHome(plan: MagazineHomePlan, recentIds: readonly string[] = []): MagazineHome {
+async function finishMagazineHome(
+  plan: MagazineHomePlan,
+  recentIds: readonly string[] = [],
+): Promise<MagazineHome> {
   const carousels: CategoryLane[] = plan.pinnedRails.flatMap((rail) => {
     const nav = MAGAZINE_NAV.find((item) => item.slug === rail.slug);
     if (!nav) return [];
@@ -443,11 +451,13 @@ function finishMagazineHome(plan: MagazineHomePlan, recentIds: readonly string[]
     profile: plan.testProfile,
     recentIds,
   });
+  const community = await resolveCommunityDiscovery(plan.discover, listMagazineStoriesByIds);
   return {
     copy: plan.copy,
     forYourCar: plan.forYourCar,
     yourInterests: plan.yourInterests,
     discover: plan.discover,
+    community,
     picks: plan.picks,
     carousels,
     interludes,
@@ -497,7 +507,7 @@ export async function getMagazineHome(
   const cached = memoGet(magazineMemo.drvMagazineHome, key, MAGAZINE_TTL_MS);
   if (cached) return cached;
   const plan = await loadMagazineHomePlan(testProfile, openerRecent);
-  const value = finishMagazineHome(plan, recentIds);
+  const value = await finishMagazineHome(plan, recentIds);
   (magazineMemo.drvMagazineHome ??= new Map()).set(key, { at: Date.now(), value });
   return value;
 }
