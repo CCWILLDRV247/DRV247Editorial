@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { OutboundStoryLink } from "@/components/engagement/outbound-story-link";
 import { StoryActions } from "@/components/engagement/story-actions";
 import { StoryOpenSignal } from "@/components/engagement/story-open-signal";
-import { StoryRelevance } from "@/components/engagement/story-relevance";
 import { communityLabelForArticle } from "@/lib/engagement/aggregates";
 import { MagazineLink } from "@/components/magazine-link";
 import { StoryCopyTransition } from "@/components/story-copy-transition";
@@ -12,6 +11,7 @@ import { withTestQuery } from "@/lib/engine/for-you-test";
 import { getMagazineStory } from "@/lib/engine/magazine";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
+import { STORY_TEASER, storyTeaserExcerpt } from "@/lib/engine/story-teaser";
 import { formatStoryDate } from "@/lib/format";
 
 export async function StoryArticle({
@@ -24,8 +24,15 @@ export async function StoryArticle({
   const story = await getMagazineStory(id);
   if (!story) notFound();
   const communityLabel = await communityLabelForArticle(story.id);
-  const intro = storyIntro(story.title, story.summary);
-  const extract = storyExtract(story.aiSummary, story.title, intro);
+  const excerpt = storyTeaserExcerpt({
+    title: story.title,
+    summary: story.summary,
+    aiSummary: story.aiSummary,
+  });
+  const published = formatStoryDate(story.publishedAt);
+  const meta = [story.source.name, published, story.desk?.labelName, story.category.name]
+    .filter(Boolean)
+    .join(" · ");
   const categoryHref = withTestQuery(`/category/${story.category.slug}`, testQuery);
 
   return (
@@ -43,52 +50,18 @@ export async function StoryArticle({
         </div>
       </StoryHeroMedia>
       <StoryCopyTransition>
-        <div className="px-7 pt-10 md:px-8 lg:px-0 lg:max-w-3xl">
+        <div className={STORY_TEASER.copy}>
           <StoryOpenSignal articleId={story.id} />
-          {communityLabel ? (
-            <p className="mb-4 font-display text-sm font-bold uppercase tracking-[0.06em] text-[#1b1d1f]/55">
-              {communityLabel}
-            </p>
-          ) : null}
-          <h1 className="font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f] lg:text-[clamp(2.75rem,5vw,4rem)]">
-            {story.title}
-          </h1>
-          <p className="mt-6">
-            <span className="inline-flex w-fit items-center rounded-[4px] bg-[#1b1d1f] px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-white">
-              {story.source.name}
-            </span>
-          </p>
-          {story.desk ? (
-            <p className="mt-3">
-              <span className="inline-flex w-fit items-center rounded-[4px] border border-[#1b1d1f] px-4 py-1.5 font-display text-lg font-bold uppercase leading-none text-[#1b1d1f]">
-                {story.desk.labelName}
-              </span>
-            </p>
-          ) : null}
-          <p className="mt-2 font-display text-lg font-bold uppercase text-[#1b1d1f]/70">
-            {formatStoryDate(story.publishedAt)} · {story.category.name}
-          </p>
-          {story.desk?.note ? (
-            <p className="mt-6 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
-              {story.desk.note}
-            </p>
-          ) : null}
-          {intro ? (
-            <p className="mt-6 font-display text-[35px] font-extrabold uppercase leading-[0.64] tracking-[-0.02em]">
-              {intro}
-            </p>
-          ) : null}
-          {extract ? (
-            <p className="mt-8 text-[18px] leading-[22px] tracking-[-0.36px] text-[#1b1d1f]">
-              {extract}
-            </p>
-          ) : null}
+          {communityLabel ? <p className={STORY_TEASER.community}>{communityLabel}</p> : null}
+          <p className={STORY_TEASER.meta}>{meta}</p>
+          <h1 className={STORY_TEASER.headline}>{story.title}</h1>
+          {excerpt ? <p className={STORY_TEASER.excerpt}>{excerpt}</p> : null}
+          {story.desk?.note ? <p className={STORY_TEASER.deskNote}>{story.desk.note}</p> : null}
           <StoryActions
             articleId={story.id}
             title={story.title}
-            text={intro ?? extract ?? undefined}
+            text={excerpt ?? undefined}
           />
-          <StoryRelevance articleId={story.id} />
           <OutboundStoryLink href={story.canonicalUrl} articleId={story.id}>
             {isVideoStory(story) ? `Watch on ${story.source.name}` : `Read on ${story.source.name}`}
           </OutboundStoryLink>
@@ -107,20 +80,4 @@ export async function StoryArticle({
       </StoryCopyTransition>
     </article>
   );
-}
-
-function storyIntro(title: string, summary: string | null | undefined) {
-  const intro = summary?.trim() ?? "";
-  if (!intro) return null;
-  if (intro.toLowerCase() === title.trim().toLowerCase()) return null;
-  return intro;
-}
-
-function storyExtract(summary: string | null | undefined, title: string, intro: string | null) {
-  const text = summary?.trim() ?? "";
-  if (!text) return null;
-  const lower = text.toLowerCase();
-  if (lower === title.trim().toLowerCase()) return null;
-  if (intro && lower === intro.toLowerCase()) return null;
-  return text;
 }
