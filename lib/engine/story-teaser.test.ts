@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import {
   STORY_TEASER,
+  STORY_PUBLISHER_ATTRIBUTION_FALLBACK,
   STORY_TEASER_RELEVANCE_HINT,
+  storyPublisherAttribution,
   storyTeaserExcerpt,
   teaserTextRepeats,
 } from "./story-teaser";
@@ -75,6 +77,18 @@ describe("story teaser excerpt", () => {
   });
 });
 
+describe("story publisher attribution", () => {
+  it("names the publisher when present and never invents one", () => {
+    assert.equal(
+      storyPublisherAttribution("  Top Gear  "),
+      "Story courtesy of Top Gear. Read the full article on their website.",
+    );
+    assert.equal(storyPublisherAttribution(""), STORY_PUBLISHER_ATTRIBUTION_FALLBACK);
+    assert.equal(storyPublisherAttribution(null), STORY_PUBLISHER_ATTRIBUTION_FALLBACK);
+    assert.equal(storyPublisherAttribution(undefined), STORY_PUBLISHER_ATTRIBUTION_FALLBACK);
+  });
+});
+
 describe("story teaser hierarchy", () => {
   it("orders hero, publisher and date, headline, excerpt, engagement, then the publisher CTA", () => {
     const hero = article.indexOf("StoryHeroMedia");
@@ -83,7 +97,16 @@ describe("story teaser hierarchy", () => {
     const excerpt = article.indexOf("STORY_TEASER.excerpt");
     const toolbar = article.indexOf("<StoryActions");
     const cta = article.indexOf("<OutboundStoryLink");
-    assert.ok(hero > 0 && meta > hero && headline > meta && excerpt > headline && toolbar > excerpt && cta > toolbar);
+    const attribution = article.indexOf("STORY_TEASER.attribution");
+    assert.ok(
+      hero > 0 &&
+        meta > hero &&
+        headline > meta &&
+        excerpt > headline &&
+        toolbar > excerpt &&
+        cta > toolbar &&
+        attribution > cta,
+    );
     assert.match(article, /story\.source\.name/);
     assert.match(article, /formatStoryDate/);
     assert.match(article, /storyTeaserExcerpt/);
@@ -108,6 +131,10 @@ describe("story teaser hierarchy", () => {
     assert.match(article, /STORY_TEASER\.headline/);
     assert.match(article, /STORY_TEASER\.excerpt/);
     assert.doesNotMatch(article, /READ FULL STORY/);
+    assert.match(STORY_TEASER.attribution, /text-\[13px\]/);
+    assert.match(STORY_TEASER.attribution, /text-\[#1b1d1f\]\/55/);
+    assert.doesNotMatch(article, /DRV247 is an aggregator/);
+    assert.match(article, /storyPublisherAttribution\(story\.source\.name\)/);
   });
 });
 

@@ -15,6 +15,7 @@ import {
   STORY_BACK_CHROME,
   STORY_BACK_CHROME_BORDER,
   STORY_TEASER,
+  storyPublisherAttribution,
   storyTeaserExcerpt,
 } from "@/lib/engine/story-teaser";
 import { formatStoryDate } from "@/lib/format";
@@ -70,10 +71,8 @@ export async function StoryArticle({
           <OutboundStoryLink href={story.canonicalUrl} articleId={story.id}>
             {isVideoStory(story) ? `Watch on ${story.source.name}` : `Read on ${story.source.name}`}
           </OutboundStoryLink>
-          <p className="mt-4 text-[14px] leading-5 text-[#1b1d1f]/70">
-            DRV247 is an aggregator. We store a headline, a short feed excerpt, a short extract from
-            the original, and the outbound link — never the full third-party article or the video
-            file.
+          <p className={STORY_TEASER.attribution}>
+            {storyPublisherAttribution(story.source.name)}
           </p>
           <MagazineLink
             href={categoryHref}

@@ -2,6 +2,9 @@
 
 export const STORY_TEASER_RELEVANCE_HINT = "Relevance — not a quality rating";
 
+export const STORY_PUBLISHER_ATTRIBUTION_FALLBACK =
+  "Read the full story at the original source.";
+
 /** Visual chrome shared with “Back to {category}” on `/story/[id]`. */
 export const STORY_BACK_CHROME =
   "rounded-[5px] bg-white font-display text-lg font-extrabold uppercase text-[#1b1d1f]";
@@ -19,6 +22,7 @@ export const STORY_TEASER = {
     "mt-3 break-words font-display text-[clamp(2.75rem,9vw,5rem)] font-black uppercase leading-[0.62] tracking-[-0.02em] text-[#1b1d1f] lg:text-[clamp(2.75rem,5vw,4rem)]",
   excerpt: "mt-4 text-[17px] leading-[1.5] text-[#1b1d1f]",
   deskNote: "mt-4 text-[16px] leading-[1.5] text-[#1b1d1f]/80",
+  attribution: "mt-4 text-[13px] leading-5 text-[#1b1d1f]/55",
   toolbar: "flex w-full min-w-0 items-center justify-between gap-2",
   pills: "flex shrink-0 items-center gap-2",
   icons: "flex shrink-0 items-center",
@@ -50,6 +54,17 @@ export function teaserTextRepeats(left: string, right: string): boolean {
  * One short excerpt for the teaser. Prefer the feed summary, else the stored
  * extract. Skip either string when it repeats the title. Never invent copy.
  */
+/** Subtle publisher line below the outbound CTA on `/story/[id]`. Never invents a name. */
+export function storyPublisherAttribution(
+  publisherName: string | null | undefined,
+): string {
+  const name = normalizeTeaserText(publisherName);
+  if (name) {
+    return `Story courtesy of ${name}. Read the full article on their website.`;
+  }
+  return STORY_PUBLISHER_ATTRIBUTION_FALLBACK;
+}
+
 export function storyTeaserExcerpt(input: {
   title: string;
   summary?: string | null;
