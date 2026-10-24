@@ -11,7 +11,12 @@ import { withTestQuery } from "@/lib/engine/for-you-test";
 import { getMagazineStory } from "@/lib/engine/magazine";
 import { isVideoStory } from "@/lib/engine/video-story";
 import { MAGAZINE_LAYOUT } from "@/lib/engine/editorial-composition";
-import { STORY_TEASER, storyTeaserExcerpt } from "@/lib/engine/story-teaser";
+import {
+  STORY_BACK_CHROME,
+  STORY_BACK_CHROME_BORDER,
+  STORY_TEASER,
+  storyTeaserExcerpt,
+} from "@/lib/engine/story-teaser";
 import { formatStoryDate } from "@/lib/format";
 
 export async function StoryArticle({
@@ -72,7 +77,7 @@ export async function StoryArticle({
           </p>
           <MagazineLink
             href={categoryHref}
-            className="mt-6 flex h-11 w-full items-center justify-center rounded-[5px] border border-[#1b1d1f] bg-white font-display text-lg font-extrabold uppercase text-[#1b1d1f]"
+            className={`mt-6 flex h-11 w-full items-center justify-center ${STORY_BACK_CHROME} ${STORY_BACK_CHROME_BORDER}`}
           >
             Back to {story.category.name}
           </MagazineLink>

@@ -123,11 +123,15 @@ describe("story teaser compact toolbar", () => {
     assert.match(actions, /MoreHorizontal/);
     assert.match(actions, /Less like this/);
     assert.match(actions, /DropdownMenu/);
-    assert.match(STORY_TEASER.toolPill, /rounded-full/);
+    assert.match(STORY_TEASER.toolPill, /rounded-\[5px\]/);
+    assert.match(STORY_TEASER.toolPill, /font-display/);
+    assert.match(STORY_TEASER.toolPill, /uppercase/);
     assert.match(STORY_TEASER.toolPill, /bg-white/);
     assert.match(STORY_TEASER.toolPill, /border-\[#1b1d1f\]/);
     assert.doesNotMatch(STORY_TEASER.toolPill, /bg-\[#f4f4f4\]/);
+    assert.doesNotMatch(STORY_TEASER.toolPill, /rounded-full/);
     assert.match(STORY_TEASER.toolPillOn, /bg-white/);
+    assert.match(STORY_TEASER.toolPillOn, /border-2/);
     assert.match(STORY_TEASER.toolIcon, /bg-transparent/);
     assert.doesNotMatch(STORY_TEASER.toolIcon, /rounded-full/);
     assert.doesNotMatch(STORY_TEASER.toolIcon, /border /);
