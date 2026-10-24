@@ -2,6 +2,15 @@
 
 export const STORY_TEASER_RELEVANCE_HINT = "Relevance — not a quality rating";
 
+/** Visual chrome shared with “Back to {category}” on `/story/[id]`. */
+export const STORY_BACK_CHROME =
+  "rounded-[5px] bg-white font-display text-lg font-extrabold uppercase text-[#1b1d1f]";
+export const STORY_BACK_CHROME_BORDER = "border border-[#1b1d1f]";
+export const STORY_BACK_CHROME_BORDER_SELECTED = "border-2 border-[#1b1d1f]";
+
+const STORY_TOOL_PILL_LAYOUT =
+  "inline-flex h-11 min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap px-3 touch-manipulation focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1b1d1f]";
+
 export const STORY_TEASER = {
   copy: "px-5 pt-6 sm:px-7 md:px-8 md:pt-8 lg:px-0 lg:max-w-3xl",
   community: "mb-3 text-[12px] font-medium uppercase tracking-[0.06em] text-[#1b1d1f]/45",
@@ -13,10 +22,8 @@ export const STORY_TEASER = {
   toolbar: "flex w-full min-w-0 items-center justify-between gap-2",
   pills: "flex shrink-0 items-center gap-2",
   icons: "flex shrink-0 items-center",
-  toolPill:
-    "inline-flex h-11 min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-[#1b1d1f] bg-white px-3 text-[13px] font-medium leading-none text-[#1b1d1f] touch-manipulation focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1b1d1f]",
-  toolPillOn:
-    "inline-flex h-11 min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-[#1b1d1f] bg-white px-3 text-[13px] font-medium leading-none text-[#1b1d1f] touch-manipulation focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1b1d1f]",
+  toolPill: `${STORY_TOOL_PILL_LAYOUT} ${STORY_BACK_CHROME} ${STORY_BACK_CHROME_BORDER}`,
+  toolPillOn: `${STORY_TOOL_PILL_LAYOUT} ${STORY_BACK_CHROME} ${STORY_BACK_CHROME_BORDER_SELECTED}`,
   toolIcon:
     "inline-flex size-11 min-h-11 min-w-11 shrink-0 items-center justify-center bg-transparent text-[#1b1d1f] touch-manipulation focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1b1d1f]",
 } as const;
