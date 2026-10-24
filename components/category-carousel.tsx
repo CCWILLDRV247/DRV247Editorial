@@ -20,13 +20,16 @@ export type CategoryLane = {
 export function CarouselStoryCard({
   story,
   solo = false,
+  onClick,
 }: {
   story: StoryDto;
   solo?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <StoryOpenLink
       storyId={story.id}
+      onClick={onClick}
       className={solo ? MAGAZINE_LAYOUT.storyRailCardSolo : MAGAZINE_LAYOUT.storyRailCard}
     >
       <StoryMediaTarget
