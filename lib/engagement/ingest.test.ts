@@ -15,6 +15,10 @@ describe("engagement ingest", () => {
     });
     assert.equal("error" in parseEngagementWritePayload({ event: "pageview", articleId: 4 }), true);
     assert.equal("error" in parseEngagementWritePayload({ event: "save" }), true);
+    assert.equal(
+      "error" in parseEngagementWritePayload({ event: "impression", articleId: 4, surface: "home" }),
+      false,
+    );
   });
 
   it("keeps experience_feedback off an article id", () => {

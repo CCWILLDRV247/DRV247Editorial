@@ -1,4 +1,9 @@
-import { ENGAGEMENT_EVENTS } from "./events";
+import { ENGAGEMENT_EVENTS, type ExperienceFeedbackEventData } from "./events";
+import {
+  IMPRESSION_EVENT,
+  parseImpressionWritePayload,
+  type ImpressionSurface,
+} from "./impressions";
 
 export const ENGAGEMENT_WRITE_EVENTS = [
   "interested",
@@ -9,6 +14,7 @@ export const ENGAGEMENT_WRITE_EVENTS = [
   "outbound",
   "story_open",
   "experience_feedback",
+  IMPRESSION_EVENT,
 ] as const;
 
 export type EngagementWriteEvent = (typeof ENGAGEMENT_WRITE_EVENTS)[number];
@@ -16,6 +22,16 @@ export type EngagementWriteEvent = (typeof ENGAGEMENT_WRITE_EVENTS)[number];
 export const VISITOR_COOKIE = "drv247-visitor";
 export const ENGAGEMENT_RATE_LIMIT = 40;
 export const ENGAGEMENT_RATE_WINDOW_MS = 10 * 60 * 1000;
+
+export function visitorCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    secure: Boolean(process.env.VERCEL),
+  };
+}
 
 const ANALYTICS_TO_WRITE: Record<string, EngagementWriteEvent> = {
   [ENGAGEMENT_EVENTS.interested]: "interested",
@@ -31,7 +47,10 @@ const ANALYTICS_TO_WRITE: Record<string, EngagementWriteEvent> = {
 export type EngagementWritePayload = {
   event: EngagementWriteEvent;
   articleId: number | null;
+  articleIds?: number[];
   cohort?: string;
+  surface?: ImpressionSurface;
+  detail?: string;
 };
 
 export function isEngagementWriteEvent(value: string): value is EngagementWriteEvent {
@@ -50,11 +69,46 @@ export function sanitizeCohort(value: unknown): string | undefined {
   return token;
 }
 
+export function feedbackDetail(data: Pick<ExperienceFeedbackEventData, "rating" | "reason">): string {
+  return `${data.rating}:${data.reason}`;
+}
+
+export function parseFeedbackDetail(detail: string | null | undefined): {
+  rating: string;
+  reason: string;
+} | null {
+  if (!detail) return null;
+  const [rating, reason] = detail.split(":");
+  if (!rating || !reason) return null;
+  return { rating, reason };
+}
+
 export function parseEngagementWritePayload(input: unknown): EngagementWritePayload | { error: string } {
   if (!input || typeof input !== "object") return { error: "Expected a JSON object." };
-  const body = input as { event?: unknown; articleId?: unknown; cohort?: unknown };
+  const body = input as {
+    event?: unknown;
+    articleId?: unknown;
+    articleIds?: unknown;
+    cohort?: unknown;
+    surface?: unknown;
+    detail?: unknown;
+    rating?: unknown;
+    reason?: unknown;
+  };
   const event = typeof body.event === "string" ? body.event : "";
   if (!isEngagementWriteEvent(event)) return { error: "Unknown event." };
+
+  if (event === IMPRESSION_EVENT) {
+    const parsed = parseImpressionWritePayload(body);
+    if ("error" in parsed) return parsed;
+    return {
+      event: parsed.event,
+      articleId: parsed.articleId,
+      articleIds: parsed.articleIds,
+      surface: parsed.surface,
+      ...(sanitizeCohort(body.cohort) ? { cohort: sanitizeCohort(body.cohort) } : {}),
+    };
+  }
 
   let articleId: number | null = null;
   if (body.articleId != null && body.articleId !== "") {
@@ -69,11 +123,31 @@ export function parseEngagementWritePayload(input: unknown): EngagementWritePayl
     articleId = null;
   }
 
+  const rating = typeof body.rating === "string" ? body.rating : undefined;
+  const reason = typeof body.reason === "string" ? body.reason : undefined;
+  const detail =
+    typeof body.detail === "string" && body.detail.trim()
+      ? body.detail.trim().slice(0, 80)
+      : rating && reason
+        ? feedbackDetail({
+            rating: rating as ExperienceFeedbackEventData["rating"],
+            reason: reason as ExperienceFeedbackEventData["reason"],
+          })
+        : undefined;
+
   return {
     event,
     articleId,
     ...(sanitizeCohort(body.cohort) ? { cohort: sanitizeCohort(body.cohort) } : {}),
+    ...(detail ? { detail } : {}),
   };
+}
+
+export function visitorKeyFromCookieHeader(cookieHeader: string | null | undefined): string | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${VISITOR_COOKIE}=([^;]+)`));
+  const value = match?.[1] ? decodeURIComponent(match[1]) : "";
+  return isVisitorKey(value) ? value : null;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

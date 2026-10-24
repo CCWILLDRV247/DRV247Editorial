@@ -335,6 +335,49 @@ export const engagementEvents = sqliteTable("engagement_events", {
   visitorKey: text("visitor_key").notNull(),
   cohort: text("cohort"),
   createdAt: integer("created_at").notNull(),
+  surface: text("surface"),
+  detail: text("detail"),
+  dayUtc: text("day_utc"),
+});
+
+export const engagementDailyArticle = sqliteTable("engagement_daily_article", {
+  day: text("day").notNull(),
+  articleId: integer("article_id").notNull(),
+  impressionUniques: integer("impression_uniques").notNull().default(0),
+  openUniques: integer("open_uniques").notNull().default(0),
+  outboundUniques: integer("outbound_uniques").notNull().default(0),
+  saveUniques: integer("save_uniques").notNull().default(0),
+  shareUniques: integer("share_uniques").notNull().default(0),
+  interestedUniques: integer("interested_uniques").notNull().default(0),
+  lessLikeUniques: integer("less_like_uniques").notNull().default(0),
+  returningUniques: integer("returning_uniques").notNull().default(0),
+});
+
+export const engagementDailyDim = sqliteTable("engagement_daily_dim", {
+  day: text("day").notNull(),
+  dimKind: text("dim_kind").notNull(),
+  dimValue: text("dim_value").notNull(),
+  impressionUniques: integer("impression_uniques").notNull().default(0),
+  openUniques: integer("open_uniques").notNull().default(0),
+  outboundUniques: integer("outbound_uniques").notNull().default(0),
+  saveUniques: integer("save_uniques").notNull().default(0),
+  shareUniques: integer("share_uniques").notNull().default(0),
+  interestedUniques: integer("interested_uniques").notNull().default(0),
+  lessLikeUniques: integer("less_like_uniques").notNull().default(0),
+  returningUniques: integer("returning_uniques").notNull().default(0),
+  eventCount: integer("event_count").notNull().default(0),
+});
+
+export const engagementDailyTouch = sqliteTable("engagement_daily_touch", {
+  day: text("day").notNull(),
+  articleId: integer("article_id").notNull(),
+  visitorKey: text("visitor_key").notNull(),
+  event: text("event").notNull(),
+});
+
+export const engagementVisitorFirst = sqliteTable("engagement_visitor_first", {
+  visitorKey: text("visitor_key").primaryKey(),
+  firstDay: text("first_day").notNull(),
 });
 
 export type MediaSource = typeof mediaSources.$inferSelect;
@@ -345,4 +388,6 @@ export type DemoVehicle = typeof demoVehicles.$inferSelect;
 export type DeskPick = typeof deskPicks.$inferSelect;
 export type RankedListEntry = typeof rankedListEntries.$inferSelect;
 export type EngagementEvent = typeof engagementEvents.$inferSelect;
+export type EngagementDailyArticle = typeof engagementDailyArticle.$inferSelect;
+export type EngagementDailyDim = typeof engagementDailyDim.$inferSelect;
 

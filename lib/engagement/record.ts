@@ -27,7 +27,11 @@ function articleIdFromEvent(event: EngagementEventPayload): number | null {
   return "articleId" in event.data ? event.data.articleId : null;
 }
 
-async function postEngagementWrite(event: EngagementWriteEvent, articleId: number | null): Promise<void> {
+async function postEngagementWrite(
+  event: EngagementWriteEvent,
+  articleId: number | null,
+  extra?: Record<string, unknown>,
+): Promise<void> {
   try {
     await fetch("/api/engagement", {
       method: "POST",
@@ -36,6 +40,7 @@ async function postEngagementWrite(event: EngagementWriteEvent, articleId: numbe
         event,
         ...(articleId != null ? { articleId } : {}),
         ...(readExplicitCohort() ? { cohort: readExplicitCohort() } : {}),
+        ...extra,
       }),
       keepalive: true,
     });
@@ -58,6 +63,10 @@ export async function recordMagazineEngagement(event: EngagementEventPayload): P
   void trackEngagement(event);
   const writeEvent = writeEventFromAnalyticsName(event.name);
   if (writeEvent) {
-    void postEngagementWrite(writeEvent, articleId);
+    const extra =
+      event.name === "experience_feedback"
+        ? { rating: event.data.rating, reason: event.data.reason }
+        : undefined;
+    void postEngagementWrite(writeEvent, articleId, extra);
   }
 }

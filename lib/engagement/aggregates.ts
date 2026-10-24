@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import { engagementEvents } from "@/lib/db/schema";
 import { contextualCommunityLabel, type LabelEventRow } from "./labels";
 import { ENGAGEMENT_RATE_LIMIT, ENGAGEMENT_RATE_WINDOW_MS } from "./ingest";
+import { utcDayFromMs, type ImpressionSurface } from "./impressions";
 import {
   evaluateTrendingGate,
   trendingWindowStart,
@@ -17,6 +18,9 @@ export type EngagementEventInsert = {
   visitorKey: string;
   cohort?: string;
   createdAt?: number;
+  surface?: string | null;
+  detail?: string | null;
+  dayUtc?: string | null;
 };
 
 async function loadWindowRows(since: number): Promise<(TrendingEventRow & LabelEventRow)[]> {
@@ -40,13 +44,45 @@ async function loadWindowRows(since: number): Promise<(TrendingEventRow & LabelE
 
 export async function insertEngagementEvent(input: EngagementEventInsert): Promise<void> {
   const db = await getDb();
+  const createdAt = input.createdAt ?? Date.now();
   await db.insert(engagementEvents).values({
     event: input.event,
     articleId: input.articleId,
     visitorKey: input.visitorKey,
     cohort: input.cohort ?? null,
-    createdAt: input.createdAt ?? Date.now(),
+    createdAt,
+    surface: input.surface ?? null,
+    detail: input.detail ?? null,
+    dayUtc: input.dayUtc ?? utcDayFromMs(createdAt),
   });
+}
+
+export async function insertImpressionBatch(input: {
+  articleIds: readonly number[];
+  visitorKey: string;
+  surface: ImpressionSurface;
+  cohort?: string;
+  createdAt?: number;
+}): Promise<number> {
+  if (input.articleIds.length === 0) return 0;
+  const db = await getDb();
+  const createdAt = input.createdAt ?? Date.now();
+  const dayUtc = utcDayFromMs(createdAt);
+  const values = input.articleIds.map((articleId) => ({
+    event: "impression",
+    articleId,
+    visitorKey: input.visitorKey,
+    cohort: input.cohort ?? null,
+    createdAt,
+    surface: input.surface,
+    detail: null,
+    dayUtc,
+  }));
+  const inserted = await db
+    .insert(engagementEvents)
+    .values(values)
+    .onConflictDoNothing();
+  return Number((inserted as { rowsAffected?: number }).rowsAffected ?? values.length);
 }
 
 export async function countVisitorWrites(visitorKey: string, since: number): Promise<number> {
