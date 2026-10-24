@@ -6,7 +6,7 @@ export function editorialRobots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/admin/"],
+      disallow: ["/admin", "/admin/", "/saved", "/saved/"],
     },
     sitemap: `${EDITORIAL_SITE_URL}/sitemap.xml`,
   };

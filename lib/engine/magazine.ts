@@ -283,6 +283,19 @@ export async function getMagazineStory(id: number): Promise<StoryDto | null> {
   )(id);
 }
 
+/** Hydrate Saved clips in the order the reader stored them. Missing teasers drop out. */
+export async function listMagazineStoriesByIds(ids: readonly number[]): Promise<StoryDto[]> {
+  const ordered: number[] = [];
+  const seen = new Set<number>();
+  for (const id of ids) {
+    if (!Number.isInteger(id) || id <= 0 || seen.has(id)) continue;
+    seen.add(id);
+    ordered.push(id);
+  }
+  const found = await Promise.all(ordered.map((id) => getMagazineStory(id)));
+  return found.filter((story): story is StoryDto => story !== null);
+}
+
 function uniqueStories(stories: StoryDto[]) {
   const seen = new Set<number>();
   return stories.filter((story) => {

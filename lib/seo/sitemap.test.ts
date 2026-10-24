@@ -42,6 +42,7 @@ describe("editorial SEO sitemap", () => {
     const disallow = rule?.disallow;
     const blocked = Array.isArray(disallow) ? disallow : disallow ? [disallow] : [];
     assert.ok(blocked.some((path) => path.startsWith("/admin")));
+    assert.ok(blocked.some((path) => path.startsWith("/saved")));
     assert.match(String(robots.sitemap), /editorial\.drv247\.com\/sitemap\.xml$/);
   });
 
@@ -55,6 +56,7 @@ describe("editorial SEO sitemap", () => {
       "/category/events",
       "/policy",
     ]);
+    assert.ok(!paths.includes("/saved"));
   });
 
   it("lists /policy as a same-host monthly static route", () => {

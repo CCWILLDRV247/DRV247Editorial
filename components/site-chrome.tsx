@@ -1,6 +1,8 @@
 import { Fragment } from "react";
 import { ChevronLeft } from "lucide-react";
 import { EditorialInterludeBlock } from "@/components/editorial-interlude";
+import { ExperienceFeedback } from "@/components/engagement/experience-feedback";
+import { SavedHeaderLink } from "@/components/engagement/saved-header-link";
 import { Drv247Wordmark } from "@/components/drv247-wordmark";
 import { MagazineBack, MagazineLink } from "@/components/magazine-link";
 import { MobileNavMenu } from "@/components/mobile-nav-menu";
@@ -56,8 +58,8 @@ export function SiteHeader({
         <p className="min-w-0 flex-1 truncate text-center font-display text-2xl font-semibold text-[#1b1d1f]">
           {title}
         </p>
+        <SavedHeaderLink testQuery={testQuery} />
         <MobileNavMenu testQuery={testQuery} className="md:hidden" />
-        <span className="hidden size-9 shrink-0 md:block" aria-hidden />
       </div>
       <nav className={`${MAGAZINE_LAYOUT.header} hidden items-center gap-4 pb-3 md:flex`}>
         <div className="flex min-w-0 flex-1 items-center gap-6 overflow-x-auto">
@@ -89,7 +91,9 @@ export function SiteHeader({
 
 export function SiteFooter() {
   return (
-    <footer className={HOMEPAGE_COMPOSITION.footerBand}>
+    <>
+      <ExperienceFeedback />
+      <footer className={HOMEPAGE_COMPOSITION.footerBand}>
       <div className={`${MAGAZINE_LAYOUT.page} ${MAGAZINE_LAYOUT.gutter}`}>
         <p className={HOMEPAGE_COMPOSITION.footerCopy}>{SITE_FOOTER.legal}</p>
         <p className={`mt-2 ${HOMEPAGE_COMPOSITION.footerCopy}`}>
@@ -112,6 +116,7 @@ export function SiteFooter() {
         </p>
       </div>
     </footer>
+    </>
   );
 }
 

@@ -88,6 +88,18 @@ export function MobileNavMenu({
                 </li>
               );
             })}
+            <li className="border-b border-[#1b1d1f]/8">
+              <MagazineLink
+                href="/saved"
+                query={testQuery}
+                onClick={() => setOpen(false)}
+                className={`${MOBILE_NAV_LINK_CLASS} ${
+                  navHrefActive(pathname, "/saved") ? "text-[#1b1d1f]" : "text-[#1b1d1f]/75"
+                }`}
+              >
+                Saved
+              </MagazineLink>
+            </li>
           </ul>
         </nav>
       </SheetContent>

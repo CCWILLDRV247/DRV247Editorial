@@ -16,7 +16,8 @@ export function isMagazinePath(pathname: string) {
     pathname === "/" ||
     pathname.startsWith("/category/") ||
     pathname.startsWith("/story/") ||
-    pathname.startsWith("/print/")
+    pathname.startsWith("/print/") ||
+    pathname === "/saved"
   );
 }
 
