@@ -4,13 +4,18 @@ import { MagazineQueryProvider } from "@/components/magazine-link";
 import { HomeFeed } from "@/components/magazine/home-feed";
 import { JsonLdScript } from "@/components/seo/json-ld-script";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-import { CATEGORY_COPY } from "@/lib/db/seed";
 import {
   forYouTestSearchString,
   parseForYouTestProfile,
 } from "@/lib/engine/for-you-test";
 import { buildWebPageJsonLd } from "@/lib/seo/json-ld";
-import { buildHomeMetadata, editorialCanonicalPath } from "@/lib/seo/metadata";
+import {
+  EDITORIAL_SITE_DESCRIPTION,
+  EDITORIAL_SITE_TITLE,
+  buildHomeMetadata,
+  editorialCanonicalPath,
+} from "@/lib/seo/metadata";
+import { buildWebSiteJsonLd } from "@/lib/seo/json-ld";
 import RootLoading from "./loading";
 
 export const runtime = "nodejs";
@@ -31,12 +36,15 @@ export default async function HomePage({
   const params = await searchParams;
   const testProfile = parseForYouTestProfile(params);
   const testQuery = forYouTestSearchString(testProfile) || undefined;
-  const homeCopy = CATEGORY_COPY.home;
-  const jsonLd = buildWebPageJsonLd({
-    name: "For You",
-    description: homeCopy?.blurb ?? "",
-    pageUrl: editorialCanonicalPath("/"),
-  });
+  const pageUrl = editorialCanonicalPath("/");
+  const jsonLd = [
+    buildWebSiteJsonLd(),
+    buildWebPageJsonLd({
+      name: EDITORIAL_SITE_TITLE,
+      description: EDITORIAL_SITE_DESCRIPTION,
+      pageUrl,
+    }),
+  ];
 
   return (
     <MagazineQueryProvider testQuery={testQuery}>

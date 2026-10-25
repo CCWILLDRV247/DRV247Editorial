@@ -95,8 +95,10 @@ export function SiteFooter() {
       <ExperienceFeedback />
       <footer className={HOMEPAGE_COMPOSITION.footerBand}>
       <div className={`${MAGAZINE_LAYOUT.page} ${MAGAZINE_LAYOUT.gutter}`}>
-        <p className={HOMEPAGE_COMPOSITION.footerCopy}>{SITE_FOOTER.legal}</p>
-        <p className={`mt-2 ${HOMEPAGE_COMPOSITION.footerCopy}`}>
+        <p className={HOMEPAGE_COMPOSITION.footerCopy} data-nosnippet>
+          {SITE_FOOTER.legal}
+        </p>
+        <p className={`mt-2 ${HOMEPAGE_COMPOSITION.footerCopy}`} data-nosnippet>
           <a
             href={SITE_FOOTER.privacyHref}
             target="_blank"

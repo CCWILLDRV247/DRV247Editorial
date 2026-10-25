@@ -1,11 +1,19 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildNewsArticleJsonLd, buildCollectionPageJsonLd, buildWebPageJsonLd } from "./json-ld";
 import {
+  buildNewsArticleJsonLd,
+  buildCollectionPageJsonLd,
+  buildWebPageJsonLd,
+  buildWebSiteJsonLd,
+} from "./json-ld";
+import {
+  EDITORIAL_SITE_DESCRIPTION,
+  EDITORIAL_SITE_TITLE,
   POLICY_META,
   buildCategoryMetadata,
   buildHomeMetadata,
   buildPolicyMetadata,
+  buildRootLayoutMetadata,
   buildSavedMetadata,
   buildStoryMetadata,
   editorialCanonicalPath,
@@ -39,7 +47,23 @@ describe("SEO metadata helpers", () => {
     const meta = buildHomeMetadata({});
     assert.equal(meta.robots, undefined);
     assert.equal(meta.alternates?.canonical, "https://editorial.drv247.com");
-    assert.match(String(meta.openGraph?.title), /For You/);
+    assert.equal(meta.description, EDITORIAL_SITE_DESCRIPTION);
+    assert.deepEqual(meta.title, { absolute: EDITORIAL_SITE_TITLE });
+    assert.match(String(meta.openGraph?.title), /DRV247 Editorial/);
+    assert.equal(meta.openGraph?.description, EDITORIAL_SITE_DESCRIPTION);
+    assert.equal(meta.twitter?.description, EDITORIAL_SITE_DESCRIPTION);
+  });
+
+  it("root layout metadata carries editorial defaults", () => {
+    const root = buildRootLayoutMetadata();
+    assert.equal(root.description, EDITORIAL_SITE_DESCRIPTION);
+    const title = root.title;
+    assert.equal(typeof title === "object" && title && "default" in title ? title.default : title, EDITORIAL_SITE_TITLE);
+    assert.match(
+      String(typeof title === "object" && title && "template" in title ? title.template : ""),
+      /DRV247 Editorial/,
+    );
+    assert.equal(root.openGraph?.description, EDITORIAL_SITE_DESCRIPTION);
   });
 
   it("category metadata uses desk blurb", () => {
@@ -115,6 +139,13 @@ describe("SEO JSON-LD", () => {
     });
     assert.equal(json["@type"], "CollectionPage");
     assert.equal(json.url, "https://editorial.drv247.com/category/cars");
+  });
+
+  it("WebSite JSON-LD describes the editorial product", () => {
+    const json = buildWebSiteJsonLd();
+    assert.equal(json["@type"], "WebSite");
+    assert.equal(json.description, EDITORIAL_SITE_DESCRIPTION);
+    assert.equal(json.url, "https://editorial.drv247.com");
   });
 
   it("policy WebPage JSON-LD stays on the editorial host", () => {
