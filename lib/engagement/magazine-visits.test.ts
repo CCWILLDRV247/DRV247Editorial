@@ -3,7 +3,10 @@ import { describe, it } from "node:test";
 import {
   EXPERIENCE_FEEDBACK_MIN_VISITS,
   isExperienceFeedbackVisitEligible,
+  magazineVisitCountFromStorage,
+  mergeMagazineSessionId,
   nextMagazineVisitCount,
+  parseMagazineSessionIds,
   parseMagazineVisitCount,
 } from "./magazine-visits";
 import { shouldShowExperienceFeedback } from "./feedback";
@@ -18,7 +21,27 @@ describe("magazine visit counting", () => {
     assert.equal(parseMagazineVisitCount("nope"), 0);
   });
 
-  it("increments once per session", () => {
+  it("parses persisted session id lists", () => {
+    assert.deepEqual(parseMagazineSessionIds(null), []);
+    assert.deepEqual(parseMagazineSessionIds('["a","b"]'), ["a", "b"]);
+    assert.deepEqual(parseMagazineSessionIds("3"), []);
+  });
+
+  it("merges tab session ids without duplicates", () => {
+    assert.deepEqual(mergeMagazineSessionId([], "a"), ["a"]);
+    assert.deepEqual(mergeMagazineSessionId(["a"], "a"), ["a"]);
+    assert.deepEqual(mergeMagazineSessionId(["a"], "b"), ["a", "b"]);
+  });
+
+  it("prefers session list length over legacy integer count", () => {
+    assert.equal(
+      magazineVisitCountFromStorage({ sessionsRaw: '["x","y"]', legacyCountRaw: "9" }),
+      2,
+    );
+    assert.equal(magazineVisitCountFromStorage({ sessionsRaw: null, legacyCountRaw: "3" }), 3);
+  });
+
+  it("increments once per session (legacy helper)", () => {
     assert.equal(nextMagazineVisitCount(0, false), 1);
     assert.equal(nextMagazineVisitCount(1, false), 2);
     assert.equal(nextMagazineVisitCount(2, true), 2);

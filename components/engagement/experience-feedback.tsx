@@ -27,7 +27,12 @@ import {
   shouldShowExperienceFeedback,
   writeExperienceFeedbackStored,
 } from "@/lib/engagement/feedback";
-import { recordMagazineSessionVisit } from "@/lib/engagement/magazine-visits";
+import {
+  getMagazineVisitCount,
+  MAGAZINE_VISIT_COUNT_STORAGE_KEY,
+  MAGAZINE_VISIT_SESSIONS_STORAGE_KEY,
+  recordMagazineSessionVisit,
+} from "@/lib/engagement/magazine-visits";
 
 /**
  * Same surface language as PersonalizationInterestsModal / Figma 1:254.
@@ -59,10 +64,8 @@ export function ExperienceFeedback() {
   const explicitEngage = useRef(false);
   const scrolledPast = useRef(false);
   const scrollArmed = useRef(false);
-  const visitCount = useRef(0);
-
   useEffect(() => {
-    visitCount.current = recordMagazineSessionVisit();
+    recordMagazineSessionVisit();
     firstPaint.current = false;
 
     const evaluate = () => {
@@ -74,7 +77,7 @@ export function ExperienceFeedback() {
           explicitEngage: explicitEngage.current,
           alreadyResponded: alreadyRespondedToExperienceFeedback(readExperienceFeedbackStored()),
           scrollArmed: scrollArmed.current,
-          visitCount: visitCount.current,
+          visitCount: getMagazineVisitCount(),
         }),
       );
     };
@@ -103,13 +106,24 @@ export function ExperienceFeedback() {
       }
     }, 1000);
 
+    const onStorage = (event: StorageEvent) => {
+      if (
+        event.key === MAGAZINE_VISIT_SESSIONS_STORAGE_KEY ||
+        event.key === MAGAZINE_VISIT_COUNT_STORAGE_KEY
+      ) {
+        evaluate();
+      }
+    };
+
     window.addEventListener(MEANINGFUL_ENGAGE_EVENT, onEngage);
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("storage", onStorage);
     return () => {
       window.clearTimeout(armScroll);
       window.clearInterval(timer);
       window.removeEventListener(MEANINGFUL_ENGAGE_EVENT, onEngage);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("storage", onStorage);
     };
   }, []);
 
