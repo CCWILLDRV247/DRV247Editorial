@@ -3,10 +3,33 @@ import { CATEGORY_COPY } from "@/lib/db/seed";
 import { EDITORIAL_SITE_URL } from "./site";
 import { robotsForPersonalizedView } from "./personalization";
 
-const DEFAULT_DESCRIPTION =
-  "Drive 24/7 editorial — For You, Cars, Culture, Driving, and Events. Summaries and the original link. Never the full article.";
+/** Primary SERP / social copy for the editorial product (not legal footer text). */
+export const EDITORIAL_SITE_TITLE = "DRV247 Editorial";
+export const EDITORIAL_SITE_DESCRIPTION =
+  "UK and European car culture in one place — curated automotive editorial across Cars, Culture, Driving, Motorsport, and Events. Teasers and links to the originals; never the full article.";
+
+const DEFAULT_DESCRIPTION = EDITORIAL_SITE_DESCRIPTION;
 
 const DEFAULT_OG_IMAGE = `${EDITORIAL_SITE_URL}/apple-touch-icon.png`;
+
+/** Root layout defaults — inherited when a route omits fields. */
+export function buildRootLayoutMetadata(): Pick<
+  Metadata,
+  "title" | "description" | "openGraph" | "twitter"
+> {
+  return {
+    title: {
+      default: EDITORIAL_SITE_TITLE,
+      template: `%s · ${EDITORIAL_SITE_TITLE}`,
+    },
+    description: EDITORIAL_SITE_DESCRIPTION,
+    openGraph: {
+      ...baseOpenGraph(EDITORIAL_SITE_TITLE, EDITORIAL_SITE_DESCRIPTION, EDITORIAL_SITE_URL),
+      type: "website",
+    },
+    twitter: baseTwitter(EDITORIAL_SITE_TITLE, EDITORIAL_SITE_DESCRIPTION),
+  };
+}
 
 export function editorialCanonicalPath(path: string): string {
   if (!path.startsWith("/")) return `${EDITORIAL_SITE_URL}/${path}`;
@@ -64,9 +87,8 @@ export function buildPolicyMetadata(): Metadata {
 export function buildHomeMetadata(
   searchParams: Record<string, string | string[] | undefined>,
 ): Metadata {
-  const copy = CATEGORY_COPY.home;
-  const title = "For You";
-  const description = copy?.blurb ?? DEFAULT_DESCRIPTION;
+  const title = { absolute: EDITORIAL_SITE_TITLE };
+  const description = EDITORIAL_SITE_DESCRIPTION;
   const canonical = editorialCanonicalPath("/");
   return {
     title,
@@ -74,10 +96,10 @@ export function buildHomeMetadata(
     alternates: { canonical },
     robots: robotsForPersonalizedView(searchParams),
     openGraph: {
-      ...baseOpenGraph(title, description, canonical),
+      ...baseOpenGraph(EDITORIAL_SITE_TITLE, description, canonical),
       type: "website",
     },
-    twitter: baseTwitter(title, description),
+    twitter: baseTwitter(EDITORIAL_SITE_TITLE, description),
   };
 }
 

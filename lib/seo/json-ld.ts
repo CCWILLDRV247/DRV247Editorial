@@ -1,3 +1,4 @@
+import { EDITORIAL_SITE_DESCRIPTION } from "./metadata";
 import { EDITORIAL_SITE_URL } from "./site";
 
 export const DRV247_PUBLISHER = {
@@ -40,6 +41,17 @@ export function buildNewsArticleJsonLd(input: NewsArticleJsonLdInput): Record<st
     json.image = [input.imageUrl];
   }
   return json;
+}
+
+export function buildWebSiteJsonLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "DRV247 Editorial",
+    url: EDITORIAL_SITE_URL,
+    description: EDITORIAL_SITE_DESCRIPTION,
+    publisher: DRV247_PUBLISHER,
+  };
 }
 
 export function buildWebPageJsonLd(input: {

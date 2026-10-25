@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { STORY_MEDIA_BOOT_SCRIPT } from "@/lib/engine/story-media-boot";
+import { buildRootLayoutMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
 const alumni = Alumni_Sans({
@@ -16,12 +17,7 @@ const alumni = Alumni_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://editorial.drv247.com"),
-  title: {
-    default: "DRV247 Editorial",
-    template: "%s · DRV247",
-  },
-  description:
-    "Drive 24/7 editorial — For You, Cars, Culture, Driving, and Events. Summaries and the original link. Never the full article.",
+  ...buildRootLayoutMetadata(),
   icons: {
     icon: [
       { url: "/drv247-favicon.svg", type: "image/svg+xml" },
