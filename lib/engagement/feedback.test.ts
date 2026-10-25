@@ -24,6 +24,7 @@ const closed = {
   scrolledPast: false,
   explicitEngage: false,
   alreadyResponded: false,
+  visitCount: 3,
 };
 
 const storyish = /article|teaser|story/i;

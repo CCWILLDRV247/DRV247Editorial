@@ -3,6 +3,10 @@ import type {
   ExperienceFeedbackReason,
   ExperienceFeedbackSurface,
 } from "./events";
+import {
+  EXPERIENCE_FEEDBACK_MIN_VISITS,
+  isExperienceFeedbackVisitEligible,
+} from "./magazine-visits";
 
 export const EXPERIENCE_FEEDBACK_STORAGE_KEY = "drv247-experience-feedback";
 export const EXPERIENCE_FEEDBACK_MIN_DWELL_MS = 20_000;
@@ -120,11 +124,15 @@ export function shouldShowExperienceFeedback(input: {
   scrolledPast: boolean;
   explicitEngage: boolean;
   alreadyResponded: boolean;
+  visitCount: number;
   scrollArmed?: boolean;
   minDwellMs?: number;
+  minVisits?: number;
 }): boolean {
   if (input.firstPaint) return false;
   if (input.alreadyResponded) return false;
+  const minVisits = input.minVisits ?? EXPERIENCE_FEEDBACK_MIN_VISITS;
+  if (!isExperienceFeedbackVisitEligible(input.visitCount, minVisits)) return false;
   const minDwell = input.minDwellMs ?? EXPERIENCE_FEEDBACK_MIN_DWELL_MS;
   const scrolled = input.scrolledPast && input.scrollArmed !== false;
   return input.explicitEngage || scrolled || input.dwellMs >= minDwell;

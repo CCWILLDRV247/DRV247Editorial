@@ -27,6 +27,7 @@ import {
   shouldShowExperienceFeedback,
   writeExperienceFeedbackStored,
 } from "@/lib/engagement/feedback";
+import { recordMagazineSessionVisit } from "@/lib/engagement/magazine-visits";
 
 /**
  * Same surface language as PersonalizationInterestsModal / Figma 1:254.
@@ -58,8 +59,10 @@ export function ExperienceFeedback() {
   const explicitEngage = useRef(false);
   const scrolledPast = useRef(false);
   const scrollArmed = useRef(false);
+  const visitCount = useRef(0);
 
   useEffect(() => {
+    visitCount.current = recordMagazineSessionVisit();
     firstPaint.current = false;
 
     const evaluate = () => {
@@ -71,6 +74,7 @@ export function ExperienceFeedback() {
           explicitEngage: explicitEngage.current,
           alreadyResponded: alreadyRespondedToExperienceFeedback(readExperienceFeedbackStored()),
           scrollArmed: scrollArmed.current,
+          visitCount: visitCount.current,
         }),
       );
     };
