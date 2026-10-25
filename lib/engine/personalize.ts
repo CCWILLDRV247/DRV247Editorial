@@ -1,5 +1,5 @@
 import { canonicalInterest } from "./interest-taxonomy";
-import type { ForYouTestProfile } from "./for-you-test";
+import { profileMakes, type ForYouTestProfile } from "./for-you-test";
 import type { GarageVehicle } from "./rank";
 
 export { canonicalInterest } from "./interest-taxonomy";
@@ -106,17 +106,18 @@ export function cultureBridgeTags(
 }
 
 export function contextFromTestProfile(profile: ForYouTestProfile): PersonalisationContext {
+  const marques = profileMakes(profile);
   const vehicles: GarageVehicle[] =
-    profile.make || profile.model
+    profile.model || profile.generation || profile.variant
       ? [
           {
-            make: profile.make ?? "",
+            make: profile.make ?? marques[0] ?? "",
             model: profile.model ?? "",
             generation: profile.generation,
             variant: profile.variant,
           },
         ]
-      : [];
+      : marques.map((make) => ({ make, model: "" }));
   return {
     vehicles,
     interests: profile.interests.map(canonicalInterest),

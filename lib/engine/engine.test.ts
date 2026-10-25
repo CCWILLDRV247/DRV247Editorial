@@ -1493,6 +1493,7 @@ describe("for you test profile", () => {
     });
     assert.deepEqual(profile, {
       make: "Porsche",
+      makes: ["Porsche"],
       model: "911",
       generation: "964",
       variant: "Carrera RS",

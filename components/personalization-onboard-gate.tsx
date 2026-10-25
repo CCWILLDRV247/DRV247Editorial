@@ -42,7 +42,11 @@ export function PersonalizationOnboardGate({
       onOpenChange={setOpen}
       pathname={pathname}
       catalog={catalog}
-      appliedProfile={{ make: urlProfile.make, interests: urlProfile.interests }}
+      appliedProfile={{
+        make: urlProfile.make,
+        makes: urlProfile.makes,
+        interests: urlProfile.interests,
+      }}
     />
   );
 }
