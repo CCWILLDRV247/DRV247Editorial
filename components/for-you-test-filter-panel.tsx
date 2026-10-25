@@ -4,6 +4,7 @@ import {
   FOR_YOU_TEST_STORAGE_KEY,
   forYouTestFilterSearchString,
   forYouTestFilterSummary,
+  profileMakes,
   type ForYouTestCatalog,
   type ForYouTestProfile,
 } from "@/lib/engine/for-you-test";
@@ -44,17 +45,20 @@ export function ForYouTestFilterPanel({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [draftMake, setDraftMake] = useState(applied.make ?? "");
+  const [draftMakes, setDraftMakes] = useState<string[]>(() => profileMakes(applied));
+  const [pickerMake, setPickerMake] = useState("");
   const [draftInterests, setDraftInterests] = useState(applied.interests);
 
   useEffect(() => {
-    setDraftMake(applied.make ?? "");
+    setDraftMakes(profileMakes(applied));
     setDraftInterests(applied.interests);
-  }, [applied.make, applied.interests.join("\0")]);
+  }, [applied.make, applied.makes?.join("\0"), applied.interests.join("\0")]);
 
   const makes = catalog.makes.map((make) => make.name);
-  if (applied.make && !makes.includes(applied.make)) makes.unshift(applied.make);
-  if (draftMake && !makes.includes(draftMake)) makes.unshift(draftMake);
+  for (const make of [...profileMakes(applied), ...draftMakes, pickerMake]) {
+    if (make && !makes.includes(make)) makes.unshift(make);
+  }
+  const pickerOptions = makes.filter((make) => !draftMakes.includes(make));
 
   const interests = [...catalog.interests];
   for (const interest of [...applied.interests, ...draftInterests]) {
@@ -68,7 +72,8 @@ export function ForYouTestFilterPanel({
 
   const applyFilters = () => {
     const profile: ForYouTestProfile = {
-      make: draftMake || undefined,
+      make: draftMakes[0],
+      ...(draftMakes.length ? { makes: draftMakes } : {}),
       interests: draftInterests,
     };
     const query = forYouTestFilterSearchString(profile);
@@ -79,7 +84,8 @@ export function ForYouTestFilterPanel({
 
   const clearFilters = () => {
     persistQuery("");
-    setDraftMake("");
+    setDraftMakes([]);
+    setPickerMake("");
     setDraftInterests([]);
     setOpen(false);
     router.push(pathname);
@@ -113,14 +119,34 @@ export function ForYouTestFilterPanel({
             </p>
           ) : null}
           <div className={`flex flex-col gap-3${showAppliedSummary ? "" : " pt-[18px]"}`}>
+            {draftMakes.length ? (
+              <div className="flex flex-wrap gap-2">
+                {draftMakes.map((make) => (
+                  <button
+                    key={make}
+                    type="button"
+                    onClick={() => setDraftMakes((current) => current.filter((item) => item !== make))}
+                    className="inline-flex h-8 items-center rounded-[4px] bg-[#1b1d1f] px-3 font-display text-xs font-bold uppercase text-white"
+                  >
+                    {make} ×
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <select
               aria-label="Make"
               className={selectClass}
-              value={draftMake}
-              onChange={(event) => setDraftMake(event.target.value)}
+              value={pickerMake}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value && !draftMakes.includes(value)) {
+                  setDraftMakes((current) => [...current, value]);
+                }
+                setPickerMake("");
+              }}
             >
               <option value="">Any make</option>
-              {makes.map((make) => (
+              {pickerOptions.map((make) => (
                 <option key={make} value={make}>
                   {make}
                 </option>

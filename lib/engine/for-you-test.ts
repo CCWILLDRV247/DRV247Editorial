@@ -12,13 +12,35 @@ export type ForYouDemoId = "A" | "B" | "C" | "D";
 
 export type ForYouTestProfile = {
   preset?: ForYouDemoId;
+  /** First marque — kept for single-make call sites and demo presets. */
   make?: string;
+  /** All selected marques (personalisation modal / filter panel). */
+  makes?: string[];
   model?: string;
   generation?: string;
   variant?: string;
   interests: string[];
   location?: string;
 };
+
+/** Normalised marque list: `makes` when set, else legacy single `make`. */
+export function profileMakes(profile: ForYouTestProfile): string[] {
+  if (profile.makes?.length) return [...profile.makes];
+  if (profile.make) return [profile.make];
+  return [];
+}
+
+function uniqueMakes(tokens: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const token of tokens) {
+    const key = norm(token);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(token);
+  }
+  return out;
+}
 
 /** Switchable test garages. Not production scoring. Same corpus, different rank. */
 export const FOR_YOU_DEMO_PROFILES: Record<
@@ -128,10 +150,12 @@ export function parseForYouTestProfile(
         .filter(Boolean),
     ),
   ];
-  if (demo && !get("make") && !get("model") && !getAll("interest").length) {
+  if (demo && !get("make") && !getAll("make").length && !get("model") && !getAll("interest").length) {
+    const demoMakes = demo.make ? [demo.make] : [];
     return {
       preset: demo.preset,
       make: demo.make,
+      ...(demoMakes.length ? { makes: demoMakes } : {}),
       model: demo.model,
       generation: demo.generation,
       variant: demo.variant,
@@ -139,9 +163,16 @@ export function parseForYouTestProfile(
       location: demo.location,
     };
   }
+  const parsedMakes = uniqueMakes(
+    getAll("make")
+      .map((item) => sanitizeFilterToken(item))
+      .filter(Boolean),
+  );
+  const makes = parsedMakes.length ? parsedMakes : demo?.make ? [demo.make] : [];
   return {
     ...(preset ? { preset } : {}),
-    make: sanitizeFilterToken(get("make")) || demo?.make,
+    make: makes[0] || sanitizeFilterToken(get("make")) || demo?.make,
+    ...(makes.length ? { makes } : {}),
     model: sanitizeFilterToken(get("model")) || demo?.model,
     generation: sanitizeFilterToken(get("generation")) || demo?.generation,
     variant: sanitizeFilterToken(get("variant")) || demo?.variant,
@@ -152,7 +183,7 @@ export function parseForYouTestProfile(
 
 export function forYouTestIsActive(profile: ForYouTestProfile) {
   return Boolean(
-    profile.make ||
+    profileMakes(profile).length ||
       profile.model ||
       profile.generation ||
       profile.variant ||
@@ -179,7 +210,23 @@ export function articleMatchesForYouTest(
   const variants = (extras.variants ?? []).map(norm);
   const interests = extras.interests.map((item) => norm(canonicalInterest(item)));
   const locations = extras.locations.map(norm);
-  if (profile.make && !makes.includes(norm(profile.make))) return false;
+  const selectedMakes = profileMakes(profile);
+  if (
+    selectedMakes.length &&
+    !profile.model &&
+    !profile.generation &&
+    !profile.variant &&
+    !selectedMakes.some((item) => makes.includes(norm(item)))
+  ) {
+    return false;
+  }
+  if (
+    profile.model &&
+    profile.make &&
+    !makes.includes(norm(profile.make))
+  ) {
+    return false;
+  }
   if (profile.model && !models.includes(norm(profile.model))) return false;
   if (profile.generation && !generations.includes(norm(profile.generation))) return false;
   if (profile.variant && !variants.includes(norm(profile.variant))) return false;
@@ -211,7 +258,7 @@ export function forYouTestSummary(profile: ForYouTestProfile) {
 export function forYouTestSearchString(profile: ForYouTestProfile) {
   const params = new URLSearchParams();
   if (profile.preset) params.set("profile", profile.preset);
-  if (profile.make) params.set("make", profile.make);
+  for (const make of profileMakes(profile)) params.append("make", make);
   if (profile.model) params.set("model", profile.model);
   if (profile.generation) params.set("generation", profile.generation);
   if (profile.variant) params.set("variant", profile.variant);
@@ -223,13 +270,14 @@ export function forYouTestSearchString(profile: ForYouTestProfile) {
 /** Filter panel + localStorage: make and interests only (strips legacy dimensions). */
 export function forYouTestFilterSearchString(profile: ForYouTestProfile) {
   const params = new URLSearchParams();
-  if (profile.make) params.set("make", profile.make);
+  for (const make of profileMakes(profile)) params.append("make", make);
   for (const interest of profile.interests) params.append("interest", interest);
   return params.toString();
 }
 
 export function forYouTestFilterSummary(profile: ForYouTestProfile) {
-  const parts = [profile.make, profile.interests.join(" · ")].filter(Boolean);
+  const marques = profileMakes(profile).join(" · ");
+  const parts = [marques, profile.interests.join(" · ")].filter(Boolean);
   return parts.join(" · ");
 }
 
@@ -384,7 +432,7 @@ export function withProfileInCatalog(
   return buildForYouTestCatalog({
     entities: [
       ...live.entities,
-      ...(profile.make ? [{ kind: "make", name: profile.make, make: profile.make }] : []),
+      ...profileMakes(profile).map((make) => ({ kind: "make", name: make, make })),
       ...(profile.model
         ? [{ kind: "model", name: profile.model, make: profile.make ?? null, model: profile.model }]
         : []),

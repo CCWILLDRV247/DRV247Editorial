@@ -8,7 +8,7 @@ import {
 } from "./personalize";
 import type { EditorialDto } from "./queries";
 import type { ForYouTestProfile } from "./for-you-test";
-import { forYouTestIsActive } from "./for-you-test";
+import { forYouTestIsActive, profileMakes } from "./for-you-test";
 import type { VehicleTier } from "./rank";
 import {
   HOMEPAGE_FOR_YOU_DISCOVER_MAX,
@@ -62,7 +62,11 @@ export type ForYouHomePlan = {
 
 export function forYouVehicleName(profile?: ForYouTestProfile) {
   if (!profile) return "";
-  return [profile.make, profile.model].map((part) => part?.trim()).filter(Boolean).join(" ");
+  const marques = profileMakes(profile);
+  if (marques.length > 1 && !profile.model?.trim()) {
+    return marques.join(" · ");
+  }
+  return [profile.make ?? marques[0], profile.model].map((part) => part?.trim()).filter(Boolean).join(" ");
 }
 
 export function forYouVehicleSpec(profile?: ForYouTestProfile) {
