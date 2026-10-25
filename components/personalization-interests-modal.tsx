@@ -116,14 +116,14 @@ export function PersonalizationInterestsModal({
               <span className="block">magazine</span>
             </DialogTitle>
             <p className="font-display text-[clamp(1.65rem,7.48vw,2.1875rem)] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f]">
-              <span className="block">We have 80+ sources</span>
+              <span className="block">We have 80+ publications</span>
               <span className="block">from around the world</span>
             </p>
             <DialogDescription
               id="personalization-interests-description"
               className="font-sans text-[18px] font-normal leading-[22px] tracking-[-0.02em] text-[#1b1d1f]"
             >
-              You can personalise all of the content towards a marque and the interests you have.
+              Choose one or more marques and a few interests — we&apos;ll shape your content around them.
             </DialogDescription>
           </DialogHeader>
           <p className="font-display text-[clamp(1.25rem,5.34vw,1.5625rem)] font-extrabold uppercase leading-[0.64] text-[#1b1d1f]">
@@ -179,14 +179,14 @@ export function PersonalizationInterestsModal({
             onClick={dismiss}
             className="font-display text-[16px] font-extrabold uppercase leading-[22px] text-[#626262] underline decoration-solid underline-offset-2 md:text-[10.5px] md:leading-4"
           >
-            Skip for now
+            Not now
           </button>
           <button
             type="button"
             onClick={applyPersonalisation}
-            className="flex h-[52px] w-[153px] shrink-0 items-center justify-center rounded-[5px] bg-[#1b1d1f] font-display text-[18px] font-extrabold uppercase leading-6 text-white"
+            className="flex h-[52px] min-w-[153px] shrink-0 items-center justify-center rounded-[5px] bg-[#1b1d1f] px-4 font-display text-[18px] font-extrabold uppercase leading-6 text-white"
           >
-            Personalise
+            Build my magazine
           </button>
         </DialogFooter>
       </DialogContent>
