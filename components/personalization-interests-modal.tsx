@@ -116,7 +116,7 @@ export function PersonalizationInterestsModal({
               <span className="block">magazine</span>
             </DialogTitle>
             <p className="font-display text-[clamp(1.65rem,7.48vw,2.1875rem)] font-extrabold uppercase leading-[0.64] tracking-[-0.02em] text-[#1b1d1f]">
-              <span className="block">We have over 80 sources</span>
+              <span className="block">We have 80+ sources</span>
               <span className="block">from around the world</span>
             </p>
             <DialogDescription
@@ -136,7 +136,7 @@ export function PersonalizationInterestsModal({
               value={draftMake}
               onChange={(event) => setDraftMake(event.target.value)}
             >
-              <option value="">Any make</option>
+              <option value="">Select your Marque(s)</option>
               {makes.map((make) => (
                 <option key={make} value={make}>
                   {make}
@@ -177,7 +177,7 @@ export function PersonalizationInterestsModal({
           <button
             type="button"
             onClick={dismiss}
-            className="font-display text-[10.5px] font-extrabold uppercase leading-4 text-[#626262] underline decoration-solid underline-offset-2"
+            className="font-display text-[16px] font-extrabold uppercase leading-[22px] text-[#626262] underline decoration-solid underline-offset-2 md:text-[10.5px] md:leading-4"
           >
             Skip for now
           </button>
