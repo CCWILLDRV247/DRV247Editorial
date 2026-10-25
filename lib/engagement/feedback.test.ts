@@ -171,7 +171,7 @@ describe("personalisation interests modal copy and skip link", () => {
     assert.match(modal, /Not now/);
     assert.match(
       modal,
-      /text-\[16px\][^"]*leading-\[22px\][^"]*md:text-\[24px\][^"]*md:leading-\[32px\]/,
+      /text-\[16px\][^"]*leading-\[22px\][^"]*md:text-\[18px\][^"]*md:leading-6/,
     );
   });
 });
