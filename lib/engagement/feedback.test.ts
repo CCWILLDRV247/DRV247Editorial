@@ -159,3 +159,18 @@ describe("experience feedback panel matches personalisation modal", () => {
     }
   });
 });
+
+describe("personalisation interests modal copy and skip link", () => {
+  it("uses updated body copy and 16px mobile skip typography", () => {
+    const modal = readFileSync(new URL("../../components/personalization-interests-modal.tsx", import.meta.url), "utf8");
+    assert.match(
+      modal,
+      /Choose one or more marques and a few interests, we&apos;ll shape content around them\./,
+    );
+    assert.match(modal, /Not now/);
+    assert.match(
+      modal,
+      /text-\[16px\][^"]*leading-\[22px\][^"]*md:text-\[10\.5px\][^"]*md:leading-4/,
+    );
+  });
+});

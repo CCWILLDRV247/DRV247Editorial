@@ -123,7 +123,7 @@ export function PersonalizationInterestsModal({
               id="personalization-interests-description"
               className="font-sans text-[18px] font-normal leading-[22px] tracking-[-0.02em] text-[#1b1d1f]"
             >
-              Choose one or more marques and a few interests — we&apos;ll shape your content around them.
+              Choose one or more marques and a few interests, we&apos;ll shape content around them.
             </DialogDescription>
           </DialogHeader>
           <p className="font-display text-[clamp(1.25rem,5.34vw,1.5625rem)] font-extrabold uppercase leading-[0.64] text-[#1b1d1f]">
