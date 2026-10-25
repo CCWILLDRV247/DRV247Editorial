@@ -177,7 +177,7 @@ export function PersonalizationInterestsModal({
           <button
             type="button"
             onClick={dismiss}
-            className="font-display text-[16px] font-extrabold uppercase leading-[22px] text-[#626262] underline decoration-solid underline-offset-2 md:text-[10.5px] md:leading-4"
+            className="font-display text-[16px] font-extrabold uppercase leading-[22px] text-[#626262] underline decoration-solid underline-offset-2 md:text-[24px] md:leading-[32px]"
           >
             Not now
           </button>
