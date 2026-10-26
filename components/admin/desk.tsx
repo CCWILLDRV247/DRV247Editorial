@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { DeskButton, DeskNativeButton, DeskTooltip } from "@/components/admin/desk-tooltip";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -145,15 +146,28 @@ export function AdminDesk({ categories, sources, stories }: Props) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => ingest()} disabled={busy !== null}>
+          <DeskButton
+            onClick={() => ingest()}
+            disabled={busy !== null}
+            tooltip="Fetch new stories from all enabled culture-engine sources (underground catalogue, Type 7, HiConsumption Motors) and merge them into the editorial database."
+          >
             {busy === "ingest-all" ? "Ingesting…" : "Ingest culture titles"}
-          </Button>
-          <Button variant="outline" onClick={() => ingest(undefined, "v1")} disabled={busy !== null}>
+          </DeskButton>
+          <DeskButton
+            variant="outline"
+            onClick={() => ingest(undefined, "v1")}
+            disabled={busy !== null}
+            tooltip="Run the legacy v1 RSS ingest for Motorsport, RACER, Jalopnik, and other pre-culture feeds listed in Sources—separate from the culture pipeline."
+          >
             {busy === "ingest-v1" ? "Pulling v1…" : "v1 RSS leftover"}
-          </Button>
-          <Button variant="outline" onClick={logout}>
+          </DeskButton>
+          <DeskButton
+            variant="outline"
+            onClick={logout}
+            tooltip="End your password-gated desk session and return to the login screen."
+          >
             Sign out
-          </Button>
+          </DeskButton>
         </div>
       </div>
       {message ? (
@@ -213,14 +227,15 @@ export function AdminDesk({ categories, sources, stories }: Props) {
                     />
                   </TableCell>
                   <TableCell className="space-x-2 text-right">
-                    <Button
+                    <DeskButton
                       size="sm"
                       variant="outline"
                       disabled={busy !== null || !source.enabled}
                       onClick={() => ingest(source.id)}
+                      tooltip="Fetch the latest items from this source only, using the v1 ingest path for that feed."
                     >
                       Pull
-                    </Button>
+                    </DeskButton>
                     <SourceDialog
                       categories={categories}
                       source={source}
@@ -292,12 +307,17 @@ export function AdminDesk({ categories, sources, stories }: Props) {
                           name="hidden"
                           value={story.hidden ? "false" : "true"}
                         />
-                        <button
+                        <DeskNativeButton
                           type="submit"
+                          tooltip={
+                            story.hidden
+                              ? "Publish this story on the public site again; it was only hidden from readers, not deleted."
+                              : "Hide this story from the public site while keeping it in the database so you can restore it later."
+                          }
                           className="h-7 rounded-md border border-border px-2.5 text-sm hover:bg-muted"
                         >
                           {story.hidden ? "Unhide" : "Hide"}
-                        </button>
+                        </DeskNativeButton>
                       </form>
                     </TableCell>
                   </TableRow>
@@ -354,11 +374,17 @@ function SourceDialog({
     onSaved();
   }
 
+  const triggerTooltip = source
+    ? "Change this source’s name, type, feed identifier, default category, or whether ingest includes it."
+    : "Register a new RSS, YouTube, or NewsAPI source with a default category and enabled state.";
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" variant={source ? "ghost" : "outline"} />}>
-        {source ? "Edit" : "Add source"}
-      </DialogTrigger>
+      <DeskTooltip label={triggerTooltip}>
+        <DialogTrigger render={<Button size="sm" variant={source ? "ghost" : "outline"} />}>
+          {source ? "Edit" : "Add source"}
+        </DialogTrigger>
+      </DeskTooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{source ? "Edit source" : "Add source"}</DialogTitle>
@@ -429,9 +455,13 @@ function SourceDialog({
             Enabled
           </label>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          <Button onClick={save} className="w-full">
+          <DeskButton
+            onClick={save}
+            className="w-full"
+            tooltip="Save this source’s settings to the database so future ingests use the updated name, feed, category, and enabled flag."
+          >
             Save source
-          </Button>
+          </DeskButton>
         </div>
       </DialogContent>
     </Dialog>

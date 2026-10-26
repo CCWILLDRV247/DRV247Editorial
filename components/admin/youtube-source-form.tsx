@@ -1,3 +1,5 @@
+import { DeskNativeButton } from "@/components/admin/desk-tooltip";
+
 export function YoutubeSourceForm({
   notice,
 }: {
@@ -56,12 +58,13 @@ export function YoutubeSourceForm({
             className="h-10 w-full rounded-[5px] border border-[#1b1d1f] bg-white px-3 text-sm text-[#1b1d1f]"
           />
         </label>
-        <button
+        <DeskNativeButton
           type="submit"
+          tooltip="Resolve the YouTube channel ID, store it as a media source, and prepare it for video ingest on the next Run for that row."
           className="inline-flex h-10 items-center justify-center rounded-[5px] bg-[#1b1d1f] px-3 font-display text-sm font-extrabold uppercase text-white"
         >
           Add channel
-        </button>
+        </DeskNativeButton>
       </form>
       {notice ? (
         <p className={`mt-3 text-sm ${notice.ok ? "text-[#1b1d1f]/80" : "text-red-700"}`}>
