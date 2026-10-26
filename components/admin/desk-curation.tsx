@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { DeskButton, DeskNativeButton } from "@/components/admin/desk-tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -157,8 +157,9 @@ export function DeskCuration() {
             <ul className="max-h-48 space-y-1 overflow-y-auto text-sm">
               {hits.map((hit) => (
                 <li key={hit.id}>
-                  <button
+                  <DeskNativeButton
                     type="button"
+                    tooltip="Select this search result as the article to curate in the form above."
                     className={`w-full rounded px-2 py-1 text-left ${
                       selected?.id === hit.id ? "bg-[#1b1d1f] text-white" : "hover:bg-[#f6f6f6]"
                     }`}
@@ -168,7 +169,7 @@ export function DeskCuration() {
                     <span className="ml-2 text-xs opacity-70">
                       #{hit.id} · {hit.publication}
                     </span>
-                  </button>
+                  </DeskNativeButton>
                 </li>
               ))}
             </ul>
@@ -222,17 +223,24 @@ export function DeskCuration() {
           </div>
         </div>
         <div className="flex w-full flex-col gap-2 self-end sm:w-auto">
-          <Button type="submit" variant="outline" disabled={Boolean(busy)} className="w-full sm:w-auto">
+          <DeskButton
+            type="submit"
+            variant="outline"
+            disabled={Boolean(busy)}
+            className="w-full sm:w-auto"
+            tooltip="Search stored teasers by title and refresh the list of existing homepage desk picks below."
+          >
             Search
-          </Button>
-          <Button
+          </DeskButton>
+          <DeskButton
             type="button"
             className="w-full sm:w-auto"
             disabled={!selected || Boolean(busy)}
             onClick={() => selected && void save(selected.id)}
+            tooltip="Save the selected article as a curated homepage pick using the label, optional note, featured flag, active state, and sort order above."
           >
             {busy?.startsWith("save") ? "Saving…" : "Save pick"}
-          </Button>
+          </DeskButton>
         </div>
       </form>
 
@@ -257,30 +265,41 @@ export function DeskCuration() {
                 <p className="mt-2 text-sm text-[#1b1d1f]/80">{pick.note}</p>
               ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
-                <Button
+                <DeskButton
                   size="sm"
                   variant="outline"
                   disabled={Boolean(busy)}
                   onClick={() => void patch(pick, { active: !pick.active })}
+                  tooltip={
+                    pick.active
+                      ? "Mark this pick inactive so it leaves the homepage module immediately, even before its expiry window ends."
+                      : "Turn this pick back on so it can appear on the homepage when within its active window."
+                  }
                 >
                   {pick.active ? "Deactivate" : "Activate"}
-                </Button>
-                <Button
+                </DeskButton>
+                <DeskButton
                   size="sm"
                   variant="outline"
                   disabled={Boolean(busy)}
                   onClick={() => void patch(pick, { featured: !pick.featured })}
+                  tooltip={
+                    pick.featured
+                      ? "Remove featured emphasis; the pick can still appear on the homepage with its desk label."
+                      : "Highlight this pick among other desk selections on the homepage module."
+                  }
                 >
                   {pick.featured ? "Unfeature" : "Feature"}
-                </Button>
-                <Button
+                </DeskButton>
+                <DeskButton
                   size="sm"
                   variant="ghost"
                   disabled={Boolean(busy)}
                   onClick={() => void remove(pick.id)}
+                  tooltip="Delete this desk pick record; the underlying article remains in the catalogue."
                 >
                   Remove
-                </Button>
+                </DeskButton>
               </div>
             </li>
           ))}
@@ -325,30 +344,41 @@ export function DeskCuration() {
                     {pick.live ? "live" : pick.active ? "expired" : "inactive"}
                   </TableCell>
                   <TableCell className="space-x-2 whitespace-nowrap">
-                    <Button
+                    <DeskButton
                       size="sm"
                       variant="outline"
                       disabled={Boolean(busy)}
                       onClick={() => void patch(pick, { active: !pick.active })}
+                      tooltip={
+                        pick.active
+                          ? "Mark this pick inactive so it leaves the homepage module immediately, even before its expiry window ends."
+                          : "Turn this pick back on so it can appear on the homepage when within its active window."
+                      }
                     >
                       {pick.active ? "Deactivate" : "Activate"}
-                    </Button>
-                    <Button
+                    </DeskButton>
+                    <DeskButton
                       size="sm"
                       variant="outline"
                       disabled={Boolean(busy)}
                       onClick={() => void patch(pick, { featured: !pick.featured })}
+                      tooltip={
+                        pick.featured
+                          ? "Remove featured emphasis; the pick can still appear on the homepage with its desk label."
+                          : "Highlight this pick among other desk selections on the homepage module."
+                      }
                     >
                       {pick.featured ? "Unfeature" : "Feature"}
-                    </Button>
-                    <Button
+                    </DeskButton>
+                    <DeskButton
                       size="sm"
                       variant="ghost"
                       disabled={Boolean(busy)}
                       onClick={() => void remove(pick.id)}
+                      tooltip="Delete this desk pick record; the underlying article remains in the catalogue."
                     >
                       Remove
-                    </Button>
+                    </DeskButton>
                   </TableCell>
                 </TableRow>
               ))

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DeskNativeButton } from "@/components/admin/desk-tooltip";
 
 export function LoginForm({ next, error }: { next: string; error: boolean }) {
   const [pending, setPending] = useState(false);
@@ -50,13 +51,14 @@ export function LoginForm({ next, error }: { next: string; error: boolean }) {
         />
       </div>
       {message ? <p className="text-sm text-red-600">{message}</p> : null}
-      <button
+      <DeskNativeButton
         type="submit"
         disabled={pending}
+        tooltip="Submit the desk password to unlock the password-gated editorial admin (culture engine and v1 desk)."
         className="flex h-12 w-full cursor-pointer items-center justify-center rounded-[5px] bg-[#1b1d1f] font-display text-lg font-extrabold uppercase text-white hover:bg-[#1b1d1f]/90 disabled:cursor-progress disabled:opacity-80"
       >
         {pending ? "Opening…" : "Open the desk"}
-      </button>
+      </DeskNativeButton>
     </form>
   );
 }

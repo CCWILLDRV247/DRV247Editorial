@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { DeskButton, DeskLink } from "@/components/admin/desk-tooltip";
 import {
   Table,
   TableBody,
@@ -140,29 +139,45 @@ export function EngineDesk({ sources, runs, articles, classified, children }: Pr
           </p>
         </div>
         <div className="flex w-full min-w-0 flex-wrap gap-2 md:w-auto md:justify-end">
-          <Link
+          <DeskLink
             href="/admin/engagement"
             rel="nofollow"
+            tooltip="Open engagement analytics: exposure-adjusted open, outbound, save, and share rates by date window and desk section."
             className="inline-flex h-8 items-center rounded-lg border border-border px-2.5 text-sm"
           >
             Engagement
-          </Link>
-          <Link
+          </DeskLink>
+          <DeskLink
             href="/admin"
             rel="nofollow"
+            tooltip="Switch to the legacy v1 editorial desk for RSS leftover sources, story categories, and hide/show controls."
             className="inline-flex h-8 items-center rounded-lg border border-border px-2.5 text-sm"
           >
             v1 desk
-          </Link>
-          <Button variant="outline" disabled={Boolean(busy)} onClick={() => void backfillMetadata()}>
+          </DeskLink>
+          <DeskButton
+            variant="outline"
+            disabled={Boolean(busy)}
+            onClick={() => void backfillMetadata()}
+            tooltip="Re-run structured classification and related-article links on stored teasers without re-fetching feeds from publishers."
+          >
             {busy === "metadata" ? "Classifying…" : "Backfill metadata"}
-          </Button>
-          <Button variant="outline" disabled={Boolean(busy)} onClick={() => void reprocess()}>
+          </DeskButton>
+          <DeskButton
+            variant="outline"
+            disabled={Boolean(busy)}
+            onClick={() => void reprocess()}
+            tooltip="Re-apply entity extraction and normalization across stored articles after classification or adapter rule changes."
+          >
             Reprocess
-          </Button>
-          <Button disabled={Boolean(busy)} onClick={() => void ingest()}>
+          </DeskButton>
+          <DeskButton
+            disabled={Boolean(busy)}
+            onClick={() => void ingest()}
+            tooltip="Pull fresh teasers from every enabled culture-engine media source in one batch and reload the desk with results."
+          >
             {busy === "all" ? "Ingesting…" : "Ingest enabled"}
-          </Button>
+          </DeskButton>
         </div>
       </div>
       {message ? <p className="text-sm text-[#1b1d1f]/80">{message}</p> : null}
@@ -179,14 +194,15 @@ export function EngineDesk({ sources, runs, articles, classified, children }: Pr
         </p>
         <div className="mb-3 flex flex-wrap gap-2">
           {(Object.keys(FOR_YOU_DEMO_PROFILES) as ForYouDemoId[]).map((id) => (
-            <Button
+            <DeskButton
               key={id}
               size="sm"
               variant={rankProfile === id ? "default" : "outline"}
               onClick={() => setRankProfile(id)}
+              tooltip={`Preview For You ranking as if the reader’s garage were ${FOR_YOU_DEMO_PROFILES[id].label}; the same teaser set re-orders from stored metadata only.`}
             >
               {id} · {FOR_YOU_DEMO_PROFILES[id].label}
-            </Button>
+            </DeskButton>
           ))}
         </div>
         <Table>
@@ -276,14 +292,15 @@ export function EngineDesk({ sources, runs, articles, classified, children }: Pr
                 {articles.filter((article) => article.sourceId === source.id).length}
               </TableCell>
               <TableCell>
-                <Button
+                <DeskButton
                   size="sm"
                   variant="outline"
                   disabled={Boolean(busy)}
                   onClick={() => void ingest(source.id)}
+                  tooltip={`Ingest ${source.publication} only through the editorial engine (RSS, YouTube, or local mock) and record a run in Recent runs.`}
                 >
                   Run
-                </Button>
+                </DeskButton>
               </TableCell>
             </TableRow>
           ))}

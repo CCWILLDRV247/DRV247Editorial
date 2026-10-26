@@ -1,7 +1,7 @@
-import Link from "next/link";
+import { EngagementDeskNav } from "@/components/admin/engagement-desk-nav";
+import { DeskLink } from "@/components/admin/desk-tooltip";
 import { isPhase3bEnabled } from "@/lib/engagement/phase-3b";
 import {
-  DESK_TABS,
   DESK_WINDOWS,
   getCachedIntelligenceDesk,
   parseDeskTab,
@@ -18,18 +18,6 @@ import type { ArticleRateRow, DimRateRow, EmergingInterest } from "@/lib/engagem
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const TAB_LABELS: Record<DeskTab, string> = {
-  overview: "Overview",
-  content: "Content",
-  interests: "Interests",
-  publishers: "Publishers",
-  feedback: "Feedback",
-};
-
-function href(days: DeskWindowDays, tab: DeskTab) {
-  return `/admin/engagement?days=${days}&tab=${tab}`;
-}
 
 function RateCells({ row }: { row: ExposureRates }) {
   return (
@@ -120,39 +108,17 @@ export default async function EngagementAdminPage({
           Weighted uses the trending weights and only appears with the component rates.
         </p>
         <p className="mt-4">
-          <Link href="/admin/engine" rel="nofollow" className="font-display text-sm font-bold uppercase underline">
+          <DeskLink
+            href="/admin/engine"
+            rel="nofollow"
+            tooltip="Return to the culture-engine desk: ingest controls, DRV247 Picks, For You debug, and source runs."
+            className="font-display text-sm font-bold uppercase underline"
+          >
             Back to engine
-          </Link>
+          </DeskLink>
         </p>
 
-        <nav className="mt-6 flex flex-wrap gap-3 text-sm" aria-label="Date range">
-          {DESK_WINDOWS.map((windowDays) => (
-            <Link
-              key={windowDays}
-              href={href(windowDays, tab)}
-              rel="nofollow"
-              className={`font-display font-bold uppercase ${
-                windowDays === days ? "underline" : "text-[#1b1d1f]/60"
-              }`}
-            >
-              {windowDays} days
-            </Link>
-          ))}
-        </nav>
-        <nav className="mt-3 flex flex-wrap gap-3 text-sm" aria-label="Desk sections">
-          {DESK_TABS.map((item) => (
-            <Link
-              key={item}
-              href={href(days, item)}
-              rel="nofollow"
-              className={`font-display font-bold uppercase ${
-                item === tab ? "underline" : "text-[#1b1d1f]/60"
-              }`}
-            >
-              {TAB_LABELS[item]}
-            </Link>
-          ))}
-        </nav>
+        <EngagementDeskNav windows={DESK_WINDOWS} days={days} tab={tab} />
 
         {error ? (
           <p className="mt-8 rounded-md border border-[#1b1d1f] px-3 py-2 text-sm">{error}</p>
